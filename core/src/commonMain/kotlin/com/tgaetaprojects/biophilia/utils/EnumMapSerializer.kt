@@ -1,55 +1,45 @@
 package com.tgaetaprojects.biophilia.utils
 
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.descriptors.mapSerialDescriptor
-import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.encoding.decodeStructure
-import kotlinx.serialization.encoding.encodeStructure
 
+/**
+ * Serializes an [EnumMap] in exactly the same wire format as a regular [Map], so any format kotlinx supports
+ * (JSON, CBOR, ProtoBuf...) works, and the result is interchangeable with a `Map<K, V>` on the other side.
+ *
+ * Decoding needs the key's enum [Class] to build the backing [java.util.EnumMap]. It comes from the first
+ * decoded key. An empty map has no key to inspect, so the class is looked up by the key descriptor's serial name.
+ * That fallback only works when the name is the enum's JVM binary name: the default for top-level enums, but not
+ * when the enum carries a custom `@SerialName` or is nested inside another class (`Outer$Inner`).
+ */
 class EnumMapSerializer<K : Enum<K>, V>(
-    private val keySerializer: KSerializer<K>,
-    private val valueSerializer: KSerializer<V>
+    keySerializer: KSerializer<K>,
+    valueSerializer: KSerializer<V>
 ) : KSerializer<EnumMap<K, V>> {
+    private val mapSerializer = MapSerializer(keySerializer, valueSerializer)
+    private val keySerialName = keySerializer.descriptor.serialName
 
-    @OptIn(ExperimentalSerializationApi::class)
-    override val descriptor: SerialDescriptor = mapSerialDescriptor(
-        keySerializer.descriptor, valueSerializer.descriptor
-    )
+    override val descriptor: SerialDescriptor get() = mapSerializer.descriptor
 
     override fun serialize(encoder: Encoder, value: EnumMap<K, V>) {
-        encoder.encodeStructure(descriptor) {
-            var index = 0
-            for ((k, v) in value) {
-                encodeSerializableElement(descriptor, index++, keySerializer, k)
-                encodeSerializableElement(descriptor, index++, valueSerializer, v)
-            }
-        }
+        mapSerializer.serialize(encoder, value)
+    }
+
+    override fun deserialize(decoder: Decoder): EnumMap<K, V> {
+        val decoded = mapSerializer.deserialize(decoder)
+        val keyType = decoded.keys.firstOrNull()?.declaringJavaClass ?: keyTypeFromSerialName()
+        return EnumMapImpl(keyType, decoded)
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun deserialize(decoder: Decoder): EnumMap<K, V> {
-        // Resolve the class token cleanly using the serialization framework's internal type-name strings
-        val enumClassName = keySerializer.descriptor.serialName
-        val enumClass = Class.forName(enumClassName) as Class<K>
-
-        val map: MutableEnumMap<K, V> = EnumMapImpl(enumClass)
-
-        decoder.decodeStructure(descriptor) {
-            while (true) {
-                val index = decodeElementIndex(descriptor)
-                if (index == CompositeDecoder.DECODE_DONE) break
-
-                val key = decodeSerializableElement(descriptor, index, keySerializer)
-                val nextIndex = decodeElementIndex(descriptor)
-                val value = decodeSerializableElement(descriptor, nextIndex, valueSerializer)
-
-                map[key] = value
-            }
-        }
-        return map
+    private fun keyTypeFromSerialName(): Class<K> = try {
+        Class.forName(keySerialName) as Class<K>
+    } catch (e: ClassNotFoundException) {
+        throw IllegalStateException(
+            "Can't decode an empty EnumMap: no enum class named '$keySerialName'. See EnumMapSerializer.", e
+        )
     }
 }

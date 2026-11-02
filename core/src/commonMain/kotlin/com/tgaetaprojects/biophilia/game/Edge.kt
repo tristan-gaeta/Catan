@@ -42,7 +42,7 @@ enum class Edge {
                     edges.next()
                 else null
             }
-            if (edges.hasNext()) throw IllegalStateException("Not all edges were assigned")
+            assert(!edges.hasNext()){"Not all edges were assigned"}
         }
 
         fun fromCoordinate(q: Int, r: Int, direction: Direction): Edge? {

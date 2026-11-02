@@ -46,12 +46,10 @@ class GameBoard(seed: Long = System.currentTimeMillis()) {
     val biomes: Map<Hex, Terrain>
     val ports: Map<Edge, PortType>
 
-    val roads: Map<Edge, PlayerColor> get() = _roads
-    private val _roads: MutableMap<Edge, PlayerColor> = MutableEnumMap()
-
-    val buildings: Map<Vertex, Building> get() = _buildings
-    private val _buildings: MutableMap<Vertex, Building> = MutableEnumMap()
-
+    val roads: Map<Edge, PlayerColor>
+        field: MutableMap<Edge, PlayerColor> = MutableEnumMap()
+    val buildings: Map<Vertex, Building>
+        field: MutableMap<Vertex, Building> = MutableEnumMap()
     lateinit var robberTileIndex: Hex
         private set
 

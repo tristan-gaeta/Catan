@@ -12,8 +12,8 @@ enum class Direction(val q: Int, val r: Int) {
         get() = entries[(ordinal + 3) % 6]
 
     fun rotatedCW(steps: Int = 1): Direction =
-        entries[(ordinal + steps).mod(6)]
+        entries[(ordinal - steps).mod(6)]
 
     fun rotatedCCW(steps: Int = 1): Direction =
-        entries[(ordinal - steps).mod(6)]
+        entries[(ordinal + steps).mod(6)]
 }
