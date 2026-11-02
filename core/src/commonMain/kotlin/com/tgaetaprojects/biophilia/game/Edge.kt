@@ -13,14 +13,30 @@ enum class Edge {
     E60, E61, E62, E63, E64, E65, E66, E67, E68, E69,
     E70, E71;
 
+    /** The two endpoints of this edge. */
+    val vertices: Set<Vertex> get() = BoardGraph.edgeVertices[ordinal]
+
+    /** The one (coastal) or two (inland) tiles bordering this edge. */
+    val hexes: Set<Hex> get() = BoardGraph.edgeHexes[ordinal]
+
+    val isCoastal: Boolean get() = hexes.size == 1
+
     companion object {
+        /* Same scheme as Hex.board, but over a radius 3 grid (7x7 rhombus, 3 cells of padding truncated
+           from each end) so the sea-side cells around the board can own the coastal edges. Each cell owns
+           its NE, NW and W edges; the other three belong to a neighbour.
+         */
+        private const val WIDTH = 7
+        private const val PADDING = 3
+
         private val board: Array<Edge?>
 
         init {
             val edges = entries.iterator()
-            board = Array(3*(7*7 - 2*3)){ i ->
-                val q: Int = (i / 3) % 7
-                val r: Int = (i / 3) / 7 - 3
+            board = Array(3 * (WIDTH * WIDTH - 2 * PADDING)) { i ->
+                val cell = i / 3 + PADDING
+                val q: Int = cell % WIDTH - PADDING
+                val r: Int = cell / WIDTH - PADDING
                 val dir = Direction.entries[i % 3]
                 if (Hex.isValidTile(q, r) || Hex.isValidTile(q + dir.q, r + dir.r))
                     edges.next()
@@ -32,7 +48,8 @@ enum class Edge {
         fun fromCoordinate(q: Int, r: Int, direction: Direction): Edge? {
             if (direction.ordinal >= 3)
                 return fromCoordinate(q + direction.q, r + direction.r, direction.opposite)
-            val index = ((r + 3) * 7 + q) * 3 + direction.ordinal
+            if (!Hex.isWithinRadius(q, r, PADDING)) return null
+            val index = ((r + PADDING) * WIDTH + q) * 3 + direction.ordinal
             return board.getOrNull(index)
         }
     }

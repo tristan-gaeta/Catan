@@ -2,10 +2,15 @@ package com.tgaetaprojects.biophilia.utils
 
 import java.util.EnumSet as JEnumSet
 
-@JvmInline
-value class EnumSetImpl<E : Enum<E>>(
+class EnumSetImpl<E : Enum<E>>(
     private val delegate: JEnumSet<E>
 ) : MutableEnumSet<E>, MutableSet<E> by delegate {
+    // Delegation doesn't cover these; forward them so equality follows the Set contract
+    override fun equals(other: Any?): Boolean =
+        delegate == if (other is EnumSetImpl<*>) other.delegate else other
+    override fun hashCode(): Int = delegate.hashCode()
+    override fun toString(): String = delegate.toString()
+
     constructor(clazz: Class<E>) : this(JEnumSet.noneOf<E>(clazz))
     constructor(elements: Collection<E>) : this(JEnumSet.copyOf(elements))
     constructor(elements: EnumSet<E>) : this(JEnumSet.copyOf(elements))

@@ -33,9 +33,10 @@ class GameBoard(seed: Long = System.currentTimeMillis()) {
 
             for (i in (0 until 6) step 2) {
                 val dir = Direction.entries[i]
-                val hex1 = Hex.fromCoordinate(dir.q * 2, dir.r * 2)
-                portMap[hex1.edges[dir]] = portTypes.next()
+                val hex1 = Hex.fromCoordinate(dir.q * 2, dir.r * 2)!!
+                portMap[hex1.edges.getValue(dir)] = portTypes.next()
             }
+            assert(!portTypes.hasNext(), { "Not all ports were assigned" })
 
             return portMap
         }

@@ -1,7 +1,5 @@
 package com.tgaetaprojects.biophilia.game
 
-import com.tgaetaprojects.biophilia.utils.MutableEnumMap
-import com.tgaetaprojects.biophilia.utils.MutableEnumSet
 import kotlin.math.abs
 
 /**
@@ -20,8 +18,9 @@ enum class Hex(val q: Int, val r: Int) {
         0 -> q; 1 -> r; 2 -> s; else -> throw IllegalArgumentException()
     }
 
-    val vertices: Set<Vertex> = MutableEnumSet<Vertex>()
-    val edges: Map<Direction, Edge> = MutableEnumMap<Direction, Edge>()
+    /** The six corners, keyed by the corner convention described on [Vertex.fromCoordinates]. */
+    val vertices: Map<Direction, Vertex> get() = BoardGraph.hexVertices[ordinal]
+    val edges: Map<Direction, Edge> get() = BoardGraph.hexEdges[ordinal]
 
     fun getNeighbor(dir: Direction): Hex? {
         val nQ = q + dir.q
@@ -52,15 +51,20 @@ enum class Hex(val q: Int, val r: Int) {
                 Q   R   S   .   .
          */
         internal val board = Array(21) { i ->
-            val q = i % 5
-            val r = (i / 5) - 2
+            // undo the truncated padding to recover the coordinate
+            val cell = i + 2
+            val q = cell % 5 - 2
+            val r = cell / 5 - 2
             if (isValidTile(q, r)) {
                 Hex.entries.firstOrNull { it.q == q && it.r == r }
                     ?: throw IllegalStateException("Hex with coordinate q=$q, r=$r is not declared in enum class.")
             } else null
         }
 
-        internal fun isValidTile(q: Int, r: Int): Boolean = abs(q) + abs(r) + abs(q + r) <= 4
+        internal fun isWithinRadius(q: Int, r: Int, radius: Int): Boolean =
+            abs(q) + abs(r) + abs(q + r) <= 2 * radius
+
+        internal fun isValidTile(q: Int, r: Int): Boolean = isWithinRadius(q, r, 2)
 
         internal fun getIndex(q: Int, r: Int): Int {
             return if (isValidTile(q, r)) {

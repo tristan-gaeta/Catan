@@ -1,9 +1,5 @@
 package com.tgaetaprojects.biophilia.game
 
-import com.tgaetaprojects.biophilia.utils.MutableEnumMap
-import com.tgaetaprojects.biophilia.utils.MutableEnumSet
-import com.tgaetaprojects.biophilia.utils.buildEnumMap
-
 import com.tgaetaprojects.biophilia.game.Direction.*
 
 /**
@@ -17,64 +13,60 @@ enum class Vertex {
     V40, V41, V42, V43, V44, V45, V46, V47, V48, V49,
     V50, V51, V52, V53;
 
-    val neighbors: Map<Vertex, Edge> by lazy {
-        val q = (ordinal / 2) % 7
-        val r = (ordinal / 2) / 7 - 3
+    /** Adjacent vertices, each mapped to the edge that connects it to this one. */
+    val neighbors: Map<Vertex, Edge> get() = BoardGraph.vertexNeighbors[ordinal]
 
-        buildEnumMap {
-            if (ordinal % 2 == 0) { // Y shape
-                fromCoordinates(q + NE.q, r + NE.r, SW)?.let {
-                    put(it, Edge.fromCoordinate(q, r, NW)!!)
-                }
-                fromCoordinates(q + NW.q, r + NW.r, SW)?.let {
-                    put(it, Edge.fromCoordinate(q, r, NE)!!)
-                }
-                fromCoordinates(q + 1, r - 2, SW)?.let {
-                    put(it, Edge.fromCoordinate(q, r, S)!!) }
-            } else {
-                fromCoordinates(q, r + 1, NE)?.let {
-                    put(it, Edge.fromCoordinate(q, r, SE)!!)
-                }
-                fromCoordinates(q - 1, r + 1, NE)?.let { put(it, Edge.E1) }
-                fromCoordinates(q - 1, r + 2, NE)?.let { put(it, Edge.E2) }
-            }
-        }
-    }
+    /** The two (coastal) or three (inland) edges meeting at this vertex. */
+    val edges: Set<Edge> get() = BoardGraph.vertexEdges[ordinal]
+
+    /** The one to three tiles touching this vertex; these are what a building here collects from. */
+    val hexes: Set<Hex> get() = BoardGraph.vertexHexes[ordinal]
 
     companion object {
+        /* Same 7x7 truncated grid as Edge.board. Each cell owns two corners, its north (Y shape) and its
+           south (inverted Y); the other four are a neighbour's north or south.
+         */
+        private const val WIDTH = 7
+        private const val PADDING = 3
+        private const val NORTH = 0
+        private const val SOUTH = 1
+
         private val board: Array<Vertex?>
 
         init {
             val verts = entries.iterator()
-            board = Array(86){ i ->
-                val q: Int = (i / 2) % 7
-                val r: Int = (i / 2) / 7 - 3
-                // Include the vertex if at least one of the adjacent hexes are on the board
-                if (Hex.isValidTile(q, r)) {
-                    verts.next()
-                } else if (i % 2 == 0) {
-                    if (Hex.isValidTile(q - 1, r) || Hex.isValidTile(q - 1, r + 1)) {
-                        verts.next()
-                    } else null
+            board = Array(2 * (WIDTH * WIDTH - 2 * PADDING)) { i ->
+                val cell = i / 2 + PADDING
+                val q: Int = cell % WIDTH - PADDING
+                val r: Int = cell / WIDTH - PADDING
+                // Include the vertex if at least one of the three hexes sharing it is on the board
+                val touchesBoard = if (i % 2 == NORTH) {
+                    Hex.isValidTile(q, r) || Hex.isValidTile(q, r - 1) || Hex.isValidTile(q + 1, r - 1)
                 } else {
-                    if (Hex.isValidTile(q + 1, r) || Hex.isValidTile(q + 1, r - 1)) {
-                        verts.next()
-                    } else null
+                    Hex.isValidTile(q, r) || Hex.isValidTile(q - 1, r + 1) || Hex.isValidTile(q, r + 1)
                 }
+                if (touchesBoard) verts.next() else null
             }
             if(verts.hasNext()) throw IllegalStateException("Not all vertices were assigned")
         }
 
-        fun fromCoordinates(q: Int, r: Int, direction: Direction): Vertex? {
-            val index = when(direction) {
-                NE -> ((r + 3) * 7 + q) * 2  // North
-                NW -> ((r + 2) * 7 + q) * 2 + 1
-                W -> ((r + 4) * 7 + q - 1) * 2
-                SW -> ((r + 3) * 7 + q) * 2 + 1 // South
-                SE -> ((r + 4) * 7 + q) * 2
-                E -> ((r + 1) * 7 + q + 1) * 2 + 1
-            }
-            return board.getOrNull(index)
+        private fun ownedBy(q: Int, r: Int, corner: Int): Vertex? {
+            if (!Hex.isWithinRadius(q, r, PADDING)) return null
+            return board.getOrNull(((r + PADDING) * WIDTH + q) * 2 + corner)
+        }
+
+        /**
+         * Corners are named by the edge direction 30 degrees clockwise of them, so corner `d` sits between
+         * edge `d` and the next edge counter-clockwise (NE -> north, SW -> south, E -> the NE corner...).
+         * It follows that edge `d` runs from corner `d` to the corner of the previous direction.
+         */
+        fun fromCoordinates(q: Int, r: Int, direction: Direction): Vertex? = when(direction) {
+            NE -> ownedBy(q, r, NORTH)
+            NW -> ownedBy(q, r - 1, SOUTH)
+            W -> ownedBy(q - 1, r + 1, NORTH)
+            SW -> ownedBy(q, r, SOUTH)
+            SE -> ownedBy(q, r + 1, NORTH)
+            E -> ownedBy(q + 1, r - 1, SOUTH)
         }
     }
 }
