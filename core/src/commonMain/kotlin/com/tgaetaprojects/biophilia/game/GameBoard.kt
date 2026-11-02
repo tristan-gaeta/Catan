@@ -2,6 +2,8 @@ package com.tgaetaprojects.biophilia.game
 
 import com.tgaetaprojects.biophilia.game.Terrain.*
 import com.tgaetaprojects.biophilia.utils.*
+import kotlin.math.atan2
+import kotlin.math.sqrt
 import kotlin.random.Random
 import kotlin.random.asKotlinRandom
 import java.util.Random as JRand
@@ -12,6 +14,8 @@ import java.util.Random as JRand
  * using axial coordinates (q,r) where the center is (0,0) and +q is east and +r is
  * south-east.
  *
+ * Layout (terrain, number tokens and harbors) is fixed by the seed. Pieces and the robber are mutated
+ * by the rules engine through the internal setters.
  */
 class GameBoard(seed: Long = System.currentTimeMillis()) {
     companion object {
@@ -22,6 +26,25 @@ class GameBoard(seed: Long = System.currentTimeMillis()) {
             DiceTotal.SIX, DiceTotal.THREE, DiceTotal.ELEVEN
         )
 
+        /** The 30 coastal edges in counter-clockwise order around the island. */
+        internal val coastline: List<Edge> = Edge.entries.filter { it.isCoastal }.sortedBy { coastalAngle(it) }
+
+        /**
+         * Gaps, in coastal edges, between consecutive harbors. Repeated three times it covers the 30-edge coast
+         * like the printed frame, and since every gap is at least 3 no two harbors share an intersection.
+         */
+        private val harborGaps = intArrayOf(3, 3, 4)
+
+        /** Angle of a coastal edge's midpoint around the board center, counter-clockwise from east. */
+        private fun coastalAngle(edge: Edge): Double {
+            val hex = edge.hexes.single()
+            val dir = Direction.entries.first { hex.edges[it] == edge }
+            val sqrt3 = sqrt(3.0)
+            // hex center plus half the step to the (sea) neighbor; y grows downwards so flip it for atan2
+            val x = sqrt3 * (hex.q + hex.r / 2.0) + sqrt3 * (dir.q + dir.r / 2.0) / 2
+            val y = 1.5 * hex.r + 1.5 * dir.r / 2
+            return atan2(-y, x)
+        }
 
         private fun initPorts(rng: Random): Map<Edge, PortType> {
             val portTypes = mutableListOf(
@@ -31,12 +54,12 @@ class GameBoard(seed: Long = System.currentTimeMillis()) {
 
             val portMap = MutableEnumMap<Edge, PortType>()
 
-            for (i in (0 until 6) step 2) {
-                val dir = Direction.entries[i]
-                val hex1 = Hex.fromCoordinate(dir.q * 2, dir.r * 2)!!
-                portMap[hex1.edges.getValue(dir)] = portTypes.next()
+            var position = rng.nextInt(coastline.size)
+            var gap = 0
+            while (portTypes.hasNext()) {
+                portMap[coastline[position % coastline.size]] = portTypes.next()
+                position += harborGaps[gap++ % harborGaps.size]
             }
-            assert(!portTypes.hasNext(), { "Not all ports were assigned" })
 
             return portMap
         }
@@ -50,8 +73,8 @@ class GameBoard(seed: Long = System.currentTimeMillis()) {
         field: MutableMap<Edge, PlayerColor> = MutableEnumMap()
     val buildings: Map<Vertex, Building>
         field: MutableMap<Vertex, Building> = MutableEnumMap()
-    lateinit var robberTileIndex: Hex
-        private set
+    lateinit var robber: Hex
+        internal set
 
     init {
         // java random algorithm is guarantee to not change
@@ -84,7 +107,7 @@ class GameBoard(seed: Long = System.currentTimeMillis()) {
             terrainMap[hex] = biome
 
             if (biome == DESERT) {
-                robberTileIndex = hex
+                robber = hex
                 numMap[hex] = DiceTotal.SEVEN
             } else {
                 numMap[hex] = numbers.next()
@@ -93,5 +116,17 @@ class GameBoard(seed: Long = System.currentTimeMillis()) {
 
         this.numberTiles = numMap
         this.biomes = terrainMap
+    }
+
+    /** The harbor touching [vertex], if any. Harbors are spaced so a vertex touches at most one. */
+    fun harborAt(vertex: Vertex): PortType? = vertex.edges.firstNotNullOfOrNull { ports[it] }
+
+    internal fun placeRoad(edge: Edge, color: PlayerColor) {
+        roads[edge] = color
+    }
+
+    /** Places a settlement, or replaces one with a city. */
+    internal fun placeBuilding(vertex: Vertex, building: Building) {
+        buildings[vertex] = building
     }
 }

@@ -6,13 +6,13 @@ import java.util.EnumSet as JEnumSet
  * The single implementation of [MutableEnumSet], a thin wrapper over [java.util.EnumSet] (one bit per constant,
  * stored in a `long`, or a `long[]` for enums with more than 64 constants).
  *
- * Behaviour inherited from the JDK class:
+ * Behavior inherited from the JDK class:
  * - iteration follows declaration (ordinal) order, whatever the insertion order;
  * - iterators are weakly consistent rather than fail-fast, so they never throw [ConcurrentModificationException];
  * - [contains] and [remove] with an element of another type return `false` instead of throwing.
  *
  * [equals], [hashCode] and [toString] are not covered by interface delegation, so they are forwarded explicitly
- * to honour the [Set] contract: an instance equals any [Set] with the same elements. Note that enum hash codes are
+ * to honor the [Set] contract: an instance equals any [Set] with the same elements. Note that enum hash codes are
  * identity based, so [hashCode] differs between JVM runs and must never be persisted.
  *
  * Every constructor takes the element type's [Class] or a non-empty set of elements. The JDK's own copy
