@@ -2,6 +2,7 @@ package com.tgaetaprojects.biophilia.game.engine
 
 import com.tgaetaprojects.biophilia.game.Building
 import com.tgaetaprojects.biophilia.game.DevelopmentCardType
+import com.tgaetaprojects.biophilia.game.DiceTotal
 import com.tgaetaprojects.biophilia.game.Edge
 import com.tgaetaprojects.biophilia.game.PlayerColor
 import com.tgaetaprojects.biophilia.game.PlayerColor.*
@@ -15,7 +16,19 @@ import kotlin.test.fail
  * the engine itself only changes state through Game.apply.
  */
 
-internal fun newGame(seed: Long = 7L, players: List<PlayerColor> = listOf(RED, WHITE, BLUE)) = Game(players, seed)
+/** A game that has skipped the opening roll-off, with the first seat starting set-up. */
+internal fun newGame(
+    seats: List<PlayerColor> = listOf(RED, WHITE, BLUE),
+    boardSeed: Long = 7L,
+    gameSeed: Long = 8L,
+) = Game(seats, boardSeed, gameSeed).apply { skipFirstPlayerRoll() }
+
+/** Skips the opening roll-off as if [first] had rolled highest. */
+internal fun Game.skipFirstPlayerRoll(first: PlayerColor = seatOrder.first()) {
+    setFirstPlayer(first)
+    currentPlayer = first
+    phase = Phase.SetupSettlement(1)
+}
 
 /** Skips set-up and makes it [color]'s turn, in [phase]. */
 internal fun Game.startTurnFor(color: PlayerColor, phase: Phase = Phase.Main) {
@@ -23,6 +36,23 @@ internal fun Game.startTurnFor(color: PlayerColor, phase: Phase = Phase.Main) {
     turn = maxOf(turn, 1)
     this.phase = phase
     devCardPlayedThisTurn = false
+}
+
+/** Makes every roll [roll] from now on; steals still draw from the game's own generator. */
+internal fun Game.forceRoll(roll: DiceTotal) {
+    val seeded = SeededChance(random)
+    chance = object : Chance by seeded {
+        override fun roll() = roll
+    }
+}
+
+/** Makes the next rolls [rolls], in order; fails the test if more rolls are made. */
+internal fun Game.forceRolls(vararg rolls: DiceTotal) {
+    val seeded = SeededChance(random)
+    val queue = ArrayDeque(rolls.toList())
+    chance = object : Chance by seeded {
+        override fun roll() = queue.removeFirstOrNull() ?: fail("No more forced rolls")
+    }
 }
 
 /** Moves [cards] from the bank to [color]'s hand. */

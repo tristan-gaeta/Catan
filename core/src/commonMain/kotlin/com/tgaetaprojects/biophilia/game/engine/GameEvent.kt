@@ -13,21 +13,32 @@ import com.tgaetaprojects.biophilia.game.Vertex
  * bought development card) that a future per-player view must hide from the other players.
  */
 sealed interface GameEvent {
+    /** The first player has been rolled; [turnOrder] runs clockwise from them. */
+    data class TurnOrderDecided(val turnOrder: List<PlayerColor>) : GameEvent
+
     data class TurnStarted(val player: PlayerColor, val turn: Int) : GameEvent
     data class DiceRolled(val player: PlayerColor, val roll: DiceTotal) : GameEvent
     data class ResourcesProduced(val gains: Map<PlayerColor, ResourceCounts>) : GameEvent
     data class StartingResources(val player: PlayerColor, val cards: ResourceCounts) : GameEvent
     data class Discarded(val player: PlayerColor, val cards: ResourceCounts) : GameEvent
     data class RobberMoved(val player: PlayerColor, val hex: Hex) : GameEvent
-    /** [resource] is `null` when the victim had nothing to steal. Private to thief and victim. */
-    data class Stole(val thief: PlayerColor, val victim: PlayerColor, val resource: Resource?) : GameEvent
+    /**
+     * [resource] is private to thief and victim; others see it as `null` with [tookCard] still telling them a card
+     * changed hands. With [tookCard] false the victim had nothing to steal.
+     */
+    data class Stole(
+        val thief: PlayerColor,
+        val victim: PlayerColor,
+        val resource: Resource?,
+        val tookCard: Boolean = resource != null
+    ) : GameEvent
 
     data class RoadBuilt(val player: PlayerColor, val edge: Edge, val free: Boolean) : GameEvent
     data class SettlementBuilt(val player: PlayerColor, val vertex: Vertex, val free: Boolean) : GameEvent
     data class CityBuilt(val player: PlayerColor, val vertex: Vertex) : GameEvent
 
-    /** [card] is private to the buyer. */
-    data class DevCardBought(val player: PlayerColor, val card: DevelopmentCardType) : GameEvent
+    /** [card] is private to the buyer; others see `null`. */
+    data class DevCardBought(val player: PlayerColor, val card: DevelopmentCardType?) : GameEvent
     data class DevCardPlayed(val player: PlayerColor, val card: DevelopmentCardType) : GameEvent
     data class YearOfPlenty(val player: PlayerColor, val cards: ResourceCounts) : GameEvent
     data class Monopolized(val player: PlayerColor, val resource: Resource, val taken: Map<PlayerColor, Int>) : GameEvent
@@ -42,6 +53,16 @@ sealed interface GameEvent {
     data class LargestArmyChanged(val holder: PlayerColor, val knights: Int) : GameEvent
 
     data class GameWon(val player: PlayerColor, val victoryPoints: Int) : GameEvent
+
+    /**
+     * This event as [viewer] may see it: a stolen card's type is hidden from everyone but thief and victim, and a
+     * bought development card from everyone but the buyer. Everything else in the base game is public.
+     */
+    fun visibleTo(viewer: PlayerColor): GameEvent = when (this) {
+        is Stole -> if (viewer == thief || viewer == victim) this else copy(resource = null)
+        is DevCardBought -> if (viewer == player) this else copy(card = null)
+        else -> this
+    }
 }
 
 /** Why an [Action] was refused. A refused action leaves the game untouched. */
@@ -66,6 +87,13 @@ enum class RuleViolation {
 
 /** The outcome of [Game.apply]. */
 sealed interface ActionResult {
-    data class Accepted(val events: List<GameEvent>) : ActionResult
+    /**
+     * [events] are the server's unredacted record, including stolen card types and bought cards. Send each player
+     * [eventsFor] that player, never [events] itself.
+     */
+    data class Accepted(val events: List<GameEvent>) : ActionResult {
+        /** The events as [viewer] may see them; see [GameEvent.visibleTo]. */
+        fun eventsFor(viewer: PlayerColor): List<GameEvent> = events.map { it.visibleTo(viewer) }
+    }
     data class Rejected(val violation: RuleViolation) : ActionResult
 }

@@ -1,10 +1,17 @@
 package com.tgaetaprojects.biophilia.game.engine
 
+import com.tgaetaprojects.biophilia.game.DiceTotal
 import com.tgaetaprojects.biophilia.game.PlayerColor
 import com.tgaetaprojects.biophilia.game.Vertex
 
 /** Where the game is, and so which [Action]s are accepted next. */
 sealed interface Phase {
+    /**
+     * Before set-up: each of [contenders] rolls the dice, in seat order; [rolls] holds the rolls so far. The highest
+     * roll becomes the first player. If the highest roll is tied, the tied players roll again.
+     */
+    data class RollForFirstPlayer(val contenders: List<PlayerColor>, val rolls: Map<PlayerColor, DiceTotal>) : Phase
+
     /** Set-up: the current player places a free settlement. In [round] 2 it also pays out starting resources. */
     data class SetupSettlement(val round: Int) : Phase
 

@@ -13,50 +13,78 @@ import com.tgaetaprojects.biophilia.game.Vertex
 import com.tgaetaprojects.biophilia.game.engine.RuleViolation.*
 import com.tgaetaprojects.biophilia.utils.EnumMap
 import com.tgaetaprojects.biophilia.utils.MutableEnumMap
+import com.tgaetaprojects.biophilia.utils.asReadOnly
 import com.tgaetaprojects.biophilia.utils.toEnumMap
-import java.util.Collections
-import kotlin.random.Random
-import kotlin.random.asKotlinRandom
-import java.util.Random as JRand
+import com.tgaetaprojects.biophilia.game.random.GameRandom
+import com.tgaetaprojects.biophilia.game.random.shuffleWith
+import com.tgaetaprojects.biophilia.utils.toEnumSet
 
 /**
  * The rules engine for one game of the base rules, using the combined trade/build phase.
  *
  * All state lives here and is changed in place, only through [apply]. Each action is fully validated before
- * anything changes, so a [ActionResult.Rejected] action leaves the game untouched. Every random draw (board layout,
- * dice, development deck, stolen cards) comes from one generator seeded with [seed], so the same seed and the same
- * actions always replay to the same game.
+ * anything changes, so a [ActionResult.Rejected] action leaves the game untouched.
  *
- * @param colors 3 or 4 distinct colors in turn order; the first player starts.
+ * A game is server-side state: it holds every player's hidden cards, the deck order and the random generator.
+ * Players and bots get [viewFor] instead. The same seeds and the same actions always replay to the same game, as
+ * long as [RULES_VERSION] is unchanged.
+ *
+ * @param seats 3 or 4 distinct colors in seating (clockwise) order. Who starts is decided by dice in
+ *   [Phase.RollForFirstPlayer]; play then goes clockwise from them.
  */
-class Game(colors: List<PlayerColor>, seed: Long) {
+class Game internal constructor(
+    seats: List<PlayerColor>,
+    val board: GameBoard,
+    internal val random: GameRandom,
+    shuffleDeck: Boolean
+) {
+    /**
+     * A new game. [boardSeed] is public: it fixes the layout, and clients can rebuild the board from it. [gameSeed]
+     * is secret: it decides every dice roll, card draw and steal, so it must never leave the server. Draw both
+     * independently from a cryptographically secure source; never derive one from the other or from anything a
+     * player can see.
+     */
+    constructor(seats: List<PlayerColor>, boardSeed: Long, gameSeed: Long) :
+        this(seats, GameBoard(boardSeed), GameRandom(gameSeed), shuffleDeck = true)
+
     init {
-        require(colors.size in 3..4) { "The base game is for 3 or 4 players, not ${colors.size}" }
-        require(colors.toSet().size == colors.size) { "Duplicate player colors: $colors" }
+        require(seats.size in 3..4) { "The base game is for 3 or 4 players, not ${seats.size}" }
+        require(seats.toEnumSet().size == seats.size) { "Duplicate player colors: $seats" }
     }
 
-    private val rng: Random = JRand(seed).asKotlinRandom()
+    /**
+     * Where dice rolls and stolen cards come from; replaced in tests and in [copy]. Internal so nothing outside the
+     * engine can draw from the real game's generator, which would desynchronize it from its record.
+     */
+    internal var chance: Chance = SeededChance(random)
 
-    /** Rolls the dice; tests swap it to force a roll. */
-    internal var diceRoller: () -> DiceTotal = { DiceTotal.roll(rng) }
+    /** Everyone's seat, clockwise. */
+    val seatOrder: List<PlayerColor> = seats.toList()
 
-    val board: GameBoard = GameBoard(rng.nextLong())
-    val turnOrder: List<PlayerColor> = colors.toList()
+    /** Seats in playing order, starting with the first player; the seat order until the first player is rolled. */
+    var turnOrder: List<PlayerColor> = seatOrder
+        private set
 
-    private val states: EnumMap<PlayerColor, PlayerState> = turnOrder.map { it to PlayerState(it) }.toEnumMap()
+    private val states: EnumMap<PlayerColor, PlayerState> = seatOrder.map { it to PlayerState(it) }.toEnumMap()
 
-    /** Every player's state, in turn order. */
-    val players: List<PlayerState> = turnOrder.map { states.getValue(it) }
+    /** Every player's state, in [turnOrder]. */
+    var players: List<PlayerState> = seatOrder.map { states.getValue(it) }
+        private set
+
+    /** The player who rolled highest at the start, or `null` while that's still being rolled. */
+    val firstPlayer: PlayerColor? get() = if (phase is Phase.RollForFirstPlayer) null else turnOrder.first()
 
     var bank: ResourceCounts = ResourceCounts.FULL_BANK
         internal set
 
-    internal val devDeck = ArrayDeque(newDevelopmentDeck().shuffled(rng))
+    /** The face-down deck, top card first. Its order is secret server-side state. */
+    internal val devDeck: ArrayDeque<DevelopmentCardType> =
+        if (shuffleDeck) ArrayDeque(newDevelopmentDeck().toMutableList().apply { shuffleWith(random) }) else ArrayDeque()
     val devCardsRemaining: Int get() = devDeck.size
 
-    var phase: Phase = Phase.SetupSettlement(1)
+    var phase: Phase = Phase.RollForFirstPlayer(seatOrder, emptyMap())
         internal set
-    var currentPlayer: PlayerColor = turnOrder.first()
+    var currentPlayer: PlayerColor = seatOrder.first()
         internal set
 
     /** The current turn number, starting at 1 after set-up; 0 during set-up. */
@@ -65,7 +93,7 @@ class Game(colors: List<PlayerColor>, seed: Long) {
 
     /** This turn's roll; `null` during set-up and until the current player rolls. */
     var lastRoll: DiceTotal? = null
-        private set
+        internal set
 
     var longestRoadHolder: PlayerColor? = null
         internal set
@@ -74,9 +102,11 @@ class Game(colors: List<PlayerColor>, seed: Long) {
 
     internal var devCardPlayedThisTurn = false
 
-    private val offers = mutableListOf<TradeOffer>()
-    private var nextOfferId = 1
-    private var setupStep = 0
+    internal val offers = mutableListOf<TradeOffer>()
+    internal var nextOfferId = 1
+
+    /** How many set-up placements (settlement plus road) are done; drives the snake order. */
+    internal var setupStep = 0
 
     /** Open domestic trade offers; all are withdrawn when the turn ends. */
     val tradeOffers: List<TradeOffer> get() = offers.toList()
@@ -172,6 +202,47 @@ class Game(colors: List<PlayerColor>, seed: Long) {
 
     private val current: PlayerState get() = player(currentPlayer)
 
+    // ---- Choosing the first player ----
+
+    /**
+     * Each contender rolls once, in seat order. The highest roll goes first; if the highest roll is tied, just the
+     * tied players roll again. (The rulebook only says the highest roll starts; re-rolling ties is the usual way
+     * to settle them.)
+     */
+    private fun rollForFirstPlayer(p: Phase.RollForFirstPlayer, events: MutableList<GameEvent>): RuleViolation? {
+        val roll = chance.roll()
+        events += GameEvent.DiceRolled(currentPlayer, roll)
+
+        val rolls = MutableEnumMap<PlayerColor, DiceTotal>().also { it.putAll(p.rolls); it[currentPlayer] = roll }
+        val waiting = p.contenders.firstOrNull { it !in rolls }
+        if (waiting != null) {
+            currentPlayer = waiting
+            phase = Phase.RollForFirstPlayer(p.contenders, rolls.asReadOnly())
+            return null
+        }
+
+        val best = p.contenders.maxOf { rolls.getValue(it).value }
+        val tied = p.contenders.filter { rolls.getValue(it).value == best }
+        if (tied.size > 1) {
+            currentPlayer = tied.first()
+            phase = Phase.RollForFirstPlayer(tied, emptyMap())
+        } else {
+            setFirstPlayer(tied.single())
+            currentPlayer = tied.single()
+            phase = Phase.SetupSettlement(1)
+            events += GameEvent.TurnOrderDecided(turnOrder)
+        }
+        return null
+    }
+
+    /** Fixes the turn order: clockwise around the table from [first]. */
+    internal fun setFirstPlayer(first: PlayerColor) {
+        val seat = seatOrder.indexOf(first)
+        require(seat >= 0) { "$first isn't playing" }
+        turnOrder = seatOrder.drop(seat) + seatOrder.take(seat)
+        players = turnOrder.map { states.getValue(it) }
+    }
+
     // ---- Set-up ----
 
     private fun placeSetupSettlement(vertex: Vertex, events: MutableList<GameEvent>): RuleViolation? {
@@ -231,9 +302,10 @@ class Game(colors: List<PlayerColor>, seed: Long) {
     // ---- Rolling and the robber ----
 
     private fun rollDice(events: MutableList<GameEvent>): RuleViolation? {
+        (phase as? Phase.RollForFirstPlayer)?.let { return rollForFirstPlayer(it, events) }
         if (phase != Phase.PreRoll) return WRONG_PHASE
 
-        val roll = diceRoller()
+        val roll = chance.roll()
         lastRoll = roll
         events += GameEvent.DiceRolled(currentPlayer, roll)
 
@@ -243,11 +315,11 @@ class Game(colors: List<PlayerColor>, seed: Long) {
                 val owed = discardAmount(player.hand.total)
                 if (owed > 0) pending[player.color] = owed
             }
-            phase = if (pending.isEmpty()) Phase.MoveRobber(Phase.Main) else Phase.Discard(pending.readOnly())
+            phase = if (pending.isEmpty()) Phase.MoveRobber(Phase.Main) else Phase.Discard(pending.asReadOnly())
         } else {
             val gains = settleProduction(board.productionClaims(roll), bank)
             for ((color, cards) in gains) takeFromBank(player(color), cards)
-            events += GameEvent.ResourcesProduced(gains.readOnly())
+            events += GameEvent.ResourcesProduced(gains.asReadOnly())
             phase = Phase.Main
         }
         return null
@@ -264,7 +336,7 @@ class Game(colors: List<PlayerColor>, seed: Long) {
         events += GameEvent.Discarded(actor, cards)
 
         val stillOwed = p.pending - actor
-        phase = if (stillOwed.isEmpty()) Phase.MoveRobber(Phase.Main) else Phase.Discard(stillOwed.readOnly())
+        phase = if (stillOwed.isEmpty()) Phase.MoveRobber(Phase.Main) else Phase.Discard(stillOwed.asReadOnly())
         return null
     }
 
@@ -279,7 +351,7 @@ class Game(colors: List<PlayerColor>, seed: Long) {
 
         if (victim != null) {
             val target = player(victim)
-            val stolen = if (target.hand.isEmpty) null else target.hand.cardAt(rng.nextInt(target.hand.total))
+            val stolen = if (target.hand.isEmpty) null else chance.stealFrom(target.hand)
             if (stolen != null) {
                 target.hand -= stolen
                 current.hand += stolen
@@ -410,7 +482,7 @@ class Game(colors: List<PlayerColor>, seed: Long) {
             current.hand = current.hand.with(resource, current.hand[resource] + count)
             taken[other.color] = count
         }
-        events += GameEvent.Monopolized(currentPlayer, resource, taken.readOnly())
+        events += GameEvent.Monopolized(currentPlayer, resource, taken.asReadOnly())
         return null
     }
 
@@ -529,10 +601,47 @@ class Game(colors: List<PlayerColor>, seed: Long) {
         bank += cards
     }
 
-    /** Maps handed out in phases and events can't be cast back and mutated. */
-    private fun <K, V> Map<K, V>.readOnly(): Map<K, V> = Collections.unmodifiableMap(this)
+    // ---- Copying ----
+
+    /**
+     * An independent deep copy that draws its dice and steals from [chance], for exploring moves on the server
+     * without touching the real game. The copy shares only the immutable layout.
+     *
+     * The copy carries every secret of the original, including the deck order, so it must stay on the server just
+     * like the original. A bot playing a seat should plan from [viewFor] instead. The chance source is required, and
+     * may not be the real game's own, so a copy can never foresee the real game's rolls or advance its generator.
+     */
+    fun copy(chance: Chance): Game {
+        require(!(chance is SeededChance && chance.random === random)) {
+            "A copy can't draw from the real game's generator; give it its own Chance"
+        }
+        val copy = Game(seatOrder, board.copy(), random.copy(), shuffleDeck = false)
+        if (phase !is Phase.RollForFirstPlayer) copy.setFirstPlayer(turnOrder.first())
+        copy.devDeck.addAll(devDeck)
+        copy.bank = bank
+        copy.phase = phase
+        copy.currentPlayer = currentPlayer
+        copy.turn = turn
+        copy.lastRoll = lastRoll
+        copy.longestRoadHolder = longestRoadHolder
+        copy.largestArmyHolder = largestArmyHolder
+        copy.devCardPlayedThisTurn = devCardPlayedThisTurn
+        copy.offers.addAll(offers)
+        copy.nextOfferId = nextOfferId
+        copy.setupStep = setupStep
+        for (player in players) copy.player(player.color).copyFrom(player)
+        copy.chance = chance
+        return copy
+    }
 
     companion object {
         const val VICTORY_POINTS_TO_WIN = 10
+
+        /**
+         * The version of the rules, the board generator, and the order in which they draw random numbers. Recorded
+         * games only replay correctly on the same version, so bump it whenever a change would alter how a recorded
+         * game unfolds. `VersionGuardTest` pins this version's behavior and fails if it changes without a bump.
+         */
+        const val RULES_VERSION = 1
     }
 }

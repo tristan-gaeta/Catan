@@ -17,7 +17,7 @@ sealed interface Action {
     /** [Phase.SetupRoad] or [Phase.RoadBuilding]: place a free road. */
     data class PlaceRoad(val edge: Edge) : Action
 
-    /** [Phase.PreRoll]. */
+    /** [Phase.PreRoll], or [Phase.RollForFirstPlayer] when it's your roll. */
     data object RollDice : Action
 
     /** [Phase.Discard]: any player who still owes a discard, giving exactly the amount owed. */

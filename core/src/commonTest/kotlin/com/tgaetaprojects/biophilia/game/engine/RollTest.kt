@@ -11,7 +11,7 @@ import com.tgaetaprojects.biophilia.game.engine.ResourceCounts.Companion.of
 import com.tgaetaprojects.biophilia.game.engine.RuleViolation.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
+import kotlin.test.assertFails
 import kotlin.test.assertIs
 import kotlin.test.assertNull
 
@@ -21,7 +21,7 @@ class RollTest {
 
     private fun rollAs(color: PlayerColor, roll: DiceTotal): List<GameEvent> {
         game.startTurnFor(color, Phase.PreRoll)
-        game.diceRoller = { roll }
+        game.forceRoll(roll)
         return game.apply(color, Action.RollDice).accepted()
     }
 
@@ -78,7 +78,9 @@ class RollTest {
         rollAs(RED, DiceTotal.SEVEN)
         val pending = assertIs<Phase.Discard>(game.phase).pending
 
+        // the read-only view can't even be cast to a mutable map, let alone changed through one
         @Suppress("UNCHECKED_CAST")
-        assertFailsWith<UnsupportedOperationException> { (pending as MutableMap<PlayerColor, Int>)[BLUE] = 0 }
+        assertFails { (pending as MutableMap<PlayerColor, Int>)[BLUE] = 0 }
+        assertEquals(mapOf(BLUE to 4), pending)
     }
 }

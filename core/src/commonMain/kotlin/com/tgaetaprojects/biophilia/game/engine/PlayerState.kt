@@ -32,6 +32,18 @@ class PlayerState internal constructor(val color: PlayerColor) {
     var longestRoad: Int = 0
         internal set
 
+    internal fun copyFrom(other: PlayerState) {
+        require(other.color == color)
+        hand = other.hand
+        devCards = other.devCards
+        boughtThisTurn = other.boughtThisTurn
+        knightsPlayed = other.knightsPlayed
+        settlementsLeft = other.settlementsLeft
+        citiesLeft = other.citiesLeft
+        roadsLeft = other.roadsLeft
+        longestRoad = other.longestRoad
+    }
+
     override fun toString(): String = "PlayerState($color, hand=$hand, devCards=$devCards, knights=$knightsPlayed)"
 
     companion object {

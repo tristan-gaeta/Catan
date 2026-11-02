@@ -116,7 +116,7 @@ class DevCardTest {
         game.giveDevCard(RED, ROAD_BUILDING)
         game.giveDevCard(RED, YEAR_OF_PLENTY)
         game.giveDevCard(RED, MONOPOLY)
-        game.diceRoller = { DiceTotal.TWO }
+        game.forceRoll(DiceTotal.TWO)
 
         game.startTurnFor(RED, Phase.PreRoll)
         game.apply(RED, Action.PlayRoadBuilding).accepted()

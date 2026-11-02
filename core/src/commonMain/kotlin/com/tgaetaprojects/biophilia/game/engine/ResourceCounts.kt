@@ -13,13 +13,13 @@ import com.tgaetaprojects.biophilia.game.Resource.*
  * Instances are immutable; arithmetic returns new values and throws if a count would leave `0..31`.
  */
 @JvmInline
-value class ResourceCounts private constructor(private val packed: Int) {
-    operator fun get(resource: Resource): Int = (packed ushr (resource.ordinal * BITS)) and MASK
+value class ResourceCounts private constructor(private val packedBits: Int) {
+    operator fun get(resource: Resource): Int = (packedBits ushr (resource.ordinal * BITS)) and MASK
 
     /** The total number of cards. */
     val total: Int get() = Resource.entries.sumOf { get(it) }
 
-    val isEmpty: Boolean get() = packed == 0
+    val isEmpty: Boolean get() = packedBits == 0
 
     /** The resource types with a non-zero count, in ordinal order. */
     val types: List<Resource> get() = Resource.entries.filter { get(it) > 0 }
@@ -28,7 +28,7 @@ value class ResourceCounts private constructor(private val packed: Int) {
     fun with(resource: Resource, count: Int): ResourceCounts {
         require(count in 0..MASK) { "Count $count for $resource is out of range" }
         val shift = resource.ordinal * BITS
-        return ResourceCounts((packed and (MASK shl shift).inv()) or (count shl shift))
+        return ResourceCounts((packedBits and (MASK shl shift).inv()) or (count shl shift))
     }
 
     operator fun plus(other: ResourceCounts): ResourceCounts =

@@ -1,6 +1,5 @@
 package com.tgaetaprojects.biophilia.game.engine
 
-import com.tgaetaprojects.biophilia.game.GameBoard
 import com.tgaetaprojects.biophilia.game.PlayerColor.*
 import com.tgaetaprojects.biophilia.game.PortType
 import com.tgaetaprojects.biophilia.game.Resource
@@ -18,28 +17,6 @@ class TradeTest {
     /** One end of a [type] harbor's edge; either end gives access. */
     private fun harborVertex(type: PortType, end: Int = 0) =
         game.board.ports.entries.first { it.value == type }.key.vertices.elementAt(end)
-
-    @Test
-    fun theCoastlineIsOneUnbrokenLoop() {
-        val coast = GameBoard.coastline
-        assertEquals(30, coast.size)
-        for (i in coast.indices) {
-            val shared = coast[i].vertices intersect coast[(i + 1) % coast.size].vertices
-            assertEquals(1, shared.size, "coastal edges $i and ${i + 1} must meet")
-        }
-    }
-
-    @Test
-    fun everyBoardHasNineSeparateHarbors() {
-        for (seed in 0L until 100L) {
-            val ports = GameBoard(seed).ports
-            assertEquals(9, ports.size, "seed $seed")
-            assertTrue(ports.keys.all { it.isCoastal }, "seed $seed")
-            assertEquals(18, ports.keys.flatMap { it.vertices }.toSet().size, "seed $seed: harbors share an intersection")
-            assertEquals(4, ports.values.count { it == PortType.GENERIC }, "seed $seed")
-            assertEquals(PortType.entries.toSet(), ports.values.toSet(), "seed $seed")
-        }
-    }
 
     @Test
     fun eitherEndOfAHarborGivesAccess() {

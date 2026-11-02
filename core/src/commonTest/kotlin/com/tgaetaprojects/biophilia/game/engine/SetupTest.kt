@@ -1,5 +1,6 @@
 package com.tgaetaprojects.biophilia.game.engine
 
+import com.tgaetaprojects.biophilia.game.DiceTotal
 import com.tgaetaprojects.biophilia.game.Direction.NE
 import com.tgaetaprojects.biophilia.game.Hex
 import com.tgaetaprojects.biophilia.game.PlayerColor
@@ -8,13 +9,58 @@ import com.tgaetaprojects.biophilia.game.Vertex
 import com.tgaetaprojects.biophilia.game.engine.RuleViolation.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class SetupTest {
 
+    // ---- Choosing the first player ----
+
+    @Test
+    fun theHighestRollGoesFirstAndPlayGoesClockwiseFromThem() {
+        val game = Game(listOf(RED, WHITE, BLUE, ORANGE), boardSeed = 1, gameSeed = 2)
+        game.forceRolls(DiceTotal.SIX, DiceTotal.TEN, DiceTotal.THREE, DiceTotal.EIGHT)
+        assertEquals(Phase.RollForFirstPlayer(listOf(RED, WHITE, BLUE, ORANGE), emptyMap()), game.phase)
+        assertNull(game.firstPlayer)
+
+        game.apply(WHITE, Action.RollDice).rejectedWith(NOT_YOUR_TURN)
+        game.apply(RED, Action.PlaceSettlement(Hex.J.vertices.getValue(NE))).rejectedWith(WRONG_PHASE)
+        for (color in listOf(RED, WHITE, BLUE)) game.apply(color, Action.RollDice).accepted()
+        val events = game.apply(ORANGE, Action.RollDice).accepted()
+
+        assertEquals(listOf(WHITE, BLUE, ORANGE, RED), game.turnOrder)
+        assertEquals(listOf(RED, WHITE, BLUE, ORANGE), game.seatOrder)
+        assertEquals(GameEvent.TurnOrderDecided(listOf(WHITE, BLUE, ORANGE, RED)), events.last())
+        assertEquals(WHITE, game.firstPlayer)
+        assertEquals(WHITE, game.currentPlayer)
+        assertEquals(Phase.SetupSettlement(1), game.phase)
+        assertEquals(0, game.turn)
+    }
+
+    @Test
+    fun onlyPlayersTiedForTheHighestRollRollAgain() {
+        val game = Game(listOf(RED, WHITE, BLUE), boardSeed = 1, gameSeed = 2)
+        game.forceRolls(DiceTotal.EIGHT, DiceTotal.ELEVEN, DiceTotal.ELEVEN, DiceTotal.FOUR, DiceTotal.FOUR, DiceTotal.NINE, DiceTotal.TWO)
+        for (color in listOf(RED, WHITE, BLUE)) game.apply(color, Action.RollDice).accepted()
+        assertEquals(Phase.RollForFirstPlayer(listOf(WHITE, BLUE), emptyMap()), game.phase)
+        assertEquals(WHITE, game.currentPlayer)
+        game.apply(RED, Action.RollDice).rejectedWith(NOT_YOUR_TURN)
+
+        // tied again at 4, then WHITE wins the third roll-off 9 to 2
+        game.apply(WHITE, Action.RollDice).accepted()
+        game.apply(BLUE, Action.RollDice).accepted()
+        assertEquals(Phase.RollForFirstPlayer(listOf(WHITE, BLUE), emptyMap()), game.phase)
+        game.apply(WHITE, Action.RollDice).accepted()
+        game.apply(BLUE, Action.RollDice).accepted()
+        assertEquals(listOf(WHITE, BLUE, RED), game.turnOrder)
+        assertEquals(WHITE, game.currentPlayer)
+    }
+
+    // ---- Placing starting pieces ----
+
     @Test
     fun setupRunsAsASnakeAndTheFirstPlayerStarts() {
-        val game = newGame(players = listOf(RED, WHITE, BLUE, ORANGE))
+        val game = newGame(seats = listOf(RED, WHITE, BLUE, ORANGE)).apply { skipFirstPlayerRoll(BLUE) }
         val placers = mutableListOf<PlayerColor>()
         while (game.phase != Phase.PreRoll) {
             if (game.phase is Phase.SetupSettlement) placers += game.currentPlayer
@@ -24,8 +70,8 @@ class SetupTest {
             }
             game.apply(game.currentPlayer, action).accepted()
         }
-        assertEquals(listOf(RED, WHITE, BLUE, ORANGE, ORANGE, BLUE, WHITE, RED), placers)
-        assertEquals(RED, game.currentPlayer)
+        assertEquals(listOf(BLUE, ORANGE, RED, WHITE, WHITE, RED, ORANGE, BLUE), placers)
+        assertEquals(BLUE, game.currentPlayer)
         assertEquals(1, game.turn)
     }
 
