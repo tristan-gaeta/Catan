@@ -19,7 +19,11 @@ internal fun GameBoard.productionClaims(roll: DiceTotal): Map<PlayerColor, Resou
         for (vertex in hex.vertices.values) {
             val building = buildings[vertex] ?: continue
             val yield = if (building.isCity) 2 else 1
-            claims[building.color] = (claims[building.color] ?: ResourceCounts.EMPTY) + ResourceCounts.of(resource, yield)
+            claims[building.color] =
+                (claims[building.color] ?: ResourceCounts.EMPTY) + ResourceCounts.of(
+                    resource,
+                    yield
+                )
         }
     }
     return claims
@@ -45,7 +49,8 @@ internal fun settleProduction(
             else -> continue
         }
         for ((color, count) in payouts) {
-            if (count > 0) paid[color] = (paid[color] ?: ResourceCounts.EMPTY) + ResourceCounts.of(resource, count)
+            if (count > 0) paid[color] =
+                (paid[color] ?: ResourceCounts.EMPTY) + ResourceCounts.of(resource, count)
         }
     }
     return paid

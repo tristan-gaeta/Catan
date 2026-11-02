@@ -54,8 +54,8 @@ data class PlayerView(
     /** Points everyone can see: buildings and the two special cards. */
     fun publicVictoryPoints(color: PlayerColor): Int =
         buildings.values.filter { it.color == color }.sumOf { it.victoryPoints } +
-            (if (longestRoadHolder == color) 2 else 0) +
-            (if (largestArmyHolder == color) 2 else 0)
+                (if (longestRoadHolder == color) 2 else 0) +
+                (if (largestArmyHolder == color) 2 else 0)
 }
 
 /** What everyone at the table can see about one player. */
@@ -89,7 +89,13 @@ fun Game.viewFor(viewer: PlayerColor): PlayerView {
         largestArmyHolder = largestArmyHolder,
         tradeOffers = tradeOffers,
         players = seatOrder.map(::player).map {
-            PlayerSummary(it.color, it.hand.total, it.devCards.total, it.boughtThisTurn.total, it.knightsPlayed)
+            PlayerSummary(
+                it.color,
+                it.hand.total,
+                it.devCards.total,
+                it.boughtThisTurn.total,
+                it.knightsPlayed
+            )
         },
         hand = me.hand,
         devCards = me.devCards,

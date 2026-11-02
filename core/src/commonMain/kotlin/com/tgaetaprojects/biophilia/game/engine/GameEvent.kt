@@ -22,6 +22,7 @@ sealed interface GameEvent {
     data class StartingResources(val player: PlayerColor, val cards: ResourceCounts) : GameEvent
     data class Discarded(val player: PlayerColor, val cards: ResourceCounts) : GameEvent
     data class RobberMoved(val player: PlayerColor, val hex: Hex) : GameEvent
+
     /**
      * [resource] is private to thief and victim; others see it as `null` with [tookCard] still telling them a card
      * changed hands. With [tookCard] false the victim had nothing to steal.
@@ -34,16 +35,27 @@ sealed interface GameEvent {
     ) : GameEvent
 
     data class RoadBuilt(val player: PlayerColor, val edge: Edge, val free: Boolean) : GameEvent
-    data class SettlementBuilt(val player: PlayerColor, val vertex: Vertex, val free: Boolean) : GameEvent
+    data class SettlementBuilt(val player: PlayerColor, val vertex: Vertex, val free: Boolean) :
+        GameEvent
+
     data class CityBuilt(val player: PlayerColor, val vertex: Vertex) : GameEvent
 
     /** [card] is private to the buyer; others see `null`. */
     data class DevCardBought(val player: PlayerColor, val card: DevelopmentCardType?) : GameEvent
     data class DevCardPlayed(val player: PlayerColor, val card: DevelopmentCardType) : GameEvent
     data class YearOfPlenty(val player: PlayerColor, val cards: ResourceCounts) : GameEvent
-    data class Monopolized(val player: PlayerColor, val resource: Resource, val taken: Map<PlayerColor, Int>) : GameEvent
+    data class Monopolized(
+        val player: PlayerColor,
+        val resource: Resource,
+        val taken: Map<PlayerColor, Int>
+    ) : GameEvent
 
-    data class MaritimeTraded(val player: PlayerColor, val gave: ResourceCounts, val got: ResourceCounts) : GameEvent
+    data class MaritimeTraded(
+        val player: PlayerColor,
+        val gave: ResourceCounts,
+        val got: ResourceCounts
+    ) : GameEvent
+
     data class TradeProposed(val offer: TradeOffer) : GameEvent
     data class TradeAccepted(val offer: TradeOffer) : GameEvent
     data class TradeCancelled(val offer: TradeOffer, val by: PlayerColor) : GameEvent
@@ -95,5 +107,6 @@ sealed interface ActionResult {
         /** The events as [viewer] may see them; see [GameEvent.visibleTo]. */
         fun eventsFor(viewer: PlayerColor): List<GameEvent> = events.map { it.visibleTo(viewer) }
     }
+
     data class Rejected(val violation: RuleViolation) : ActionResult
 }

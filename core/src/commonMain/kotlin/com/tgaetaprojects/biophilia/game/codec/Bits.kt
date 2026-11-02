@@ -7,7 +7,8 @@ import com.tgaetaprojects.biophilia.game.engine.ResourceCounts
 import kotlin.enums.enumEntries
 
 /** Thrown when bytes can't be decoded: truncated, corrupted, the wrong kind of blob, or an unknown format version. */
-class CodecException(message: String, cause: Throwable? = null) : IllegalArgumentException(message, cause)
+class CodecException(message: String, cause: Throwable? = null) :
+    IllegalArgumentException(message, cause)
 
 /**
  * The kinds of top-level blob. Every blob starts with [FORMAT_VERSION] and its kind's ordinal, one byte each, so a
@@ -27,16 +28,17 @@ internal enum class BlobKind { LAYOUT, ACTION, SNAPSHOT, VIEW, RECORD }
  * and the action and phase tags in `ActionCodec` and `SnapshotCodec`. (`Vertex` and `Edge` ordinals are board
  * positions, assigned in a fixed geometric order, so those two only change if the board does.)
  */
-internal const val FORMAT_VERSION = 1
+internal const val FORMAT_VERSION = 2
 
 /** Bits needed to store any of [count] distinct values, e.g. 54 vertices need 6. */
-internal fun bitsFor(count: Int): Int = if (count <= 1) 0 else 32 - (count - 1).countLeadingZeroBits()
+internal fun bitsFor(count: Int): Int =
+    if (count <= 1) 0 else 32 - (count - 1).countLeadingZeroBits()
 
 /** How many bits each count in [ResourceCounts] and [DevCardCounts] takes on the wire (at most 19 or 14). */
 internal const val COUNT_WIDTH = 5
 
 /**
- * Appends values to a growing byte array, least significant bit first, with no padding between fields. An enum is
+ * Appends values to a growing byte array, the least significant bit first, with no padding between fields. An enum is
  * written as its ordinal in exactly as many bits as its enum needs.
  */
 internal class BitWriter {
@@ -50,7 +52,8 @@ internal class BitWriter {
         for (i in 0 until width) {
             if ((value ushr i) and 1 != 0) {
                 val index = position + i
-                buffer[index ushr 3] = (buffer[index ushr 3].toInt() or (1 shl (index and 7))).toByte()
+                buffer[index ushr 3] =
+                    (buffer[index ushr 3].toInt() or (1 shl (index and 7))).toByte()
             }
         }
         position += width
@@ -74,7 +77,8 @@ internal class BitWriter {
         bits(rest, 8)
     }
 
-    inline fun <reified E : Enum<E>> code(value: E) = bits(value.ordinal, bitsFor(enumEntries<E>().size))
+    inline fun <reified E : Enum<E>> code(value: E) =
+        bits(value.ordinal, bitsFor(enumEntries<E>().size))
 
     /** An optional enum: a presence bit, then the ordinal if present. */
     inline fun <reified E : Enum<E>> optional(value: E?) {
@@ -114,7 +118,8 @@ internal class BitReader(private val bytes: ByteArray) {
         var value = 0
         for (i in 0 until width) {
             val index = position + i
-            if ((bytes[index ushr 3].toInt() ushr (index and 7)) and 1 != 0) value = value or (1 shl i)
+            if ((bytes[index ushr 3].toInt() ushr (index and 7)) and 1 != 0) value =
+                value or (1 shl i)
         }
         position += width
         return value
@@ -153,7 +158,8 @@ internal class BitReader(private val bytes: ByteArray) {
     inline fun <reified E : Enum<E>> code(): E {
         val entries = enumEntries<E>()
         val ordinal = bits(bitsFor(entries.size))
-        return entries.getOrNull(ordinal) ?: throw CodecException("No ${E::class.simpleName} with ordinal $ordinal")
+        return entries.getOrNull(ordinal)
+            ?: throw CodecException("No ${E::class.simpleName} with ordinal $ordinal")
     }
 
     inline fun <reified E : Enum<E>> optional(): E? = if (bool()) code<E>() else null
@@ -162,7 +168,12 @@ internal class BitReader(private val bytes: ByteArray) {
         Resource.entries.fold(ResourceCounts.EMPTY) { acc, r -> acc.with(r, bits(COUNT_WIDTH)) }
 
     fun devCardCounts(): DevCardCounts =
-        DevelopmentCardType.entries.fold(DevCardCounts.EMPTY) { acc, t -> acc.with(t, bits(COUNT_WIDTH)) }
+        DevelopmentCardType.entries.fold(DevCardCounts.EMPTY) { acc, t ->
+            acc.with(
+                t,
+                bits(COUNT_WIDTH)
+            )
+        }
 
     fun header(expected: BlobKind) {
         val version = bits(8)
@@ -175,7 +186,9 @@ internal class BitReader(private val bytes: ByteArray) {
     /** Checks that only the zero padding of the last byte is left. */
     fun finish() {
         if (bytes.size != (position + 7) ushr 3) throw CodecException("Trailing data after the encoded value")
-        if (position < bytes.size * 8 && bits(bytes.size * 8 - position) != 0) throw CodecException("Non-zero padding")
+        if (position < bytes.size * 8 && bits(bytes.size * 8 - position) != 0) throw CodecException(
+            "Non-zero padding"
+        )
     }
 }
 
@@ -183,14 +196,15 @@ internal class BitReader(private val bytes: ByteArray) {
  * Runs a decoder, turning any validation failure inside it (from `require`, a lookup, or the engine's own checks)
  * into a [CodecException], so callers only have one failure type to handle.
  */
-internal inline fun <T> decoding(what: String, bytes: ByteArray, block: BitReader.() -> T): T = try {
-    BitReader(bytes).run { block().also { finish() } }
-} catch (e: CodecException) {
-    throw e
-} catch (e: IllegalArgumentException) {
-    throw CodecException("Invalid $what: ${e.message}", e)
-} catch (e: IllegalStateException) {
-    throw CodecException("Invalid $what: ${e.message}", e)
-} catch (e: NoSuchElementException) {
-    throw CodecException("Invalid $what: ${e.message}", e)
-}
+internal inline fun <T> decoding(what: String, bytes: ByteArray, block: BitReader.() -> T): T =
+    try {
+        BitReader(bytes).run { block().also { finish() } }
+    } catch (e: CodecException) {
+        throw e
+    } catch (e: IllegalArgumentException) {
+        throw CodecException("Invalid $what: ${e.message}", e)
+    } catch (e: IllegalStateException) {
+        throw CodecException("Invalid $what: ${e.message}", e)
+    } catch (e: NoSuchElementException) {
+        throw CodecException("Invalid $what: ${e.message}", e)
+    }

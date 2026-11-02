@@ -39,7 +39,8 @@ class EnumMapSerializer<K : Enum<K>, V>(
         Class.forName(keySerialName) as Class<K>
     } catch (e: ClassNotFoundException) {
         throw IllegalStateException(
-            "Can't decode an empty EnumMap: no enum class named '$keySerialName'. See EnumMapSerializer.", e
+            "Can't decode an empty EnumMap: no enum class named '$keySerialName'. See EnumMapSerializer.",
+            e
         )
     }
 }

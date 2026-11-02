@@ -34,6 +34,7 @@ internal class EnumSetImpl<E : Enum<E>>(
 
     override fun equals(other: Any?): Boolean =
         delegate == if (other is EnumSetImpl<*>) other.delegate else other
+
     override fun hashCode(): Int = delegate.hashCode()
     override fun toString(): String = delegate.toString()
 

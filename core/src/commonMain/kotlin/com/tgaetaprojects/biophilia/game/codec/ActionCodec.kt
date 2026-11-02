@@ -55,6 +55,7 @@ object ActionCodec {
                 code(action.hex)
                 optional(action.victim)
             }
+
             is Action.BuildRoad -> code(action.edge)
             is Action.BuildSettlement -> code(action.vertex)
             is Action.BuildCity -> code(action.vertex)
@@ -63,17 +64,20 @@ object ActionCodec {
                 code(action.first)
                 code(action.second)
             }
+
             is Action.PlayMonopoly -> code(action.resource)
             is Action.MaritimeTrade -> {
                 code(action.give)
                 code(action.get)
                 varint(action.lots)
             }
+
             is Action.ProposeTrade -> {
                 code(action.to)
                 counts(action.give)
                 counts(action.get)
             }
+
             is Action.AcceptTrade -> varint(action.offerId)
             is Action.CancelTrade -> varint(action.offerId)
         }

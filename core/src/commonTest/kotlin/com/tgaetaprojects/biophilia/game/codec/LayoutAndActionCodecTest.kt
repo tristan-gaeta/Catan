@@ -38,9 +38,15 @@ class LayoutAndActionCodecTest {
         assertFailsWith<CodecException> { LayoutCodec.decode(bytes.copyOf(bytes.size - 1)) }
         assertFailsWith<CodecException> { LayoutCodec.decode(bytes + 0) }
         assertFailsWith<CodecException> { LayoutCodec.decode(bytes.copyOf().also { it[0] = 99 }) }
-        assertFailsWith<CodecException> { LayoutCodec.decode(bytes.copyOf().also { it[1] = BlobKind.ACTION.ordinal.toByte() }) }
+        assertFailsWith<CodecException> {
+            LayoutCodec.decode(
+                bytes.copyOf().also { it[1] = BlobKind.ACTION.ordinal.toByte() })
+        }
         // changing the first frame piece repeats a piece (or names none), which decoding re-validates
-        assertFailsWith<CodecException> { LayoutCodec.decode(bytes.copyOf().also { it[2] = (it[2].toInt() xor 0b111).toByte() }) }
+        assertFailsWith<CodecException> {
+            LayoutCodec.decode(
+                bytes.copyOf().also { it[2] = (it[2].toInt() xor 0b111).toByte() })
+        }
     }
 
     @Test
@@ -67,7 +73,11 @@ class LayoutAndActionCodecTest {
             Action.EndTurn,
         )
         for (action in actions) {
-            assertEquals(ORANGE to action, ActionCodec.decode(ActionCodec.encode(ORANGE, action)), "$action")
+            assertEquals(
+                ORANGE to action,
+                ActionCodec.decode(ActionCodec.encode(ORANGE, action)),
+                "$action"
+            )
         }
     }
 
@@ -83,14 +93,40 @@ class LayoutAndActionCodecTest {
     fun corruptActionsAreRejected() {
         assertFailsWith<CodecException> { ActionCodec.decode(byteArrayOf()) }
         // tag 31 doesn't exist
-        assertFailsWith<CodecException> { ActionCodec.decode(byteArrayOf(FORMAT_VERSION.toByte(), BlobKind.ACTION.ordinal.toByte(), 0x7C)) }
-        assertFailsWith<CodecException> { ActionCodec.decode(ActionCodec.encode(RED, Action.BuildRoad(Edge.E5)).dropLast(1).toByteArray()) }
-        assertFailsWith<CodecException> { ActionCodec.decode(LayoutCodec.encode(BoardLayout.generate(1))) }
+        assertFailsWith<CodecException> {
+            ActionCodec.decode(
+                byteArrayOf(
+                    FORMAT_VERSION.toByte(),
+                    BlobKind.ACTION.ordinal.toByte(),
+                    0x7C
+                )
+            )
+        }
+        assertFailsWith<CodecException> {
+            ActionCodec.decode(
+                ActionCodec.encode(
+                    RED,
+                    Action.BuildRoad(Edge.E5)
+                ).dropLast(1).toByteArray()
+            )
+        }
+        assertFailsWith<CodecException> {
+            ActionCodec.decode(
+                LayoutCodec.encode(
+                    BoardLayout.generate(
+                        1
+                    )
+                )
+            )
+        }
     }
 
     @Test
     fun countsUseAll25Bits() {
         val full = ResourceCounts.FULL_BANK
-        assertEquals(Action.Discard(full), ActionCodec.decode(ActionCodec.encode(RED, Action.Discard(full))).second)
+        assertEquals(
+            Action.Discard(full),
+            ActionCodec.decode(ActionCodec.encode(RED, Action.Discard(full))).second
+        )
     }
 }

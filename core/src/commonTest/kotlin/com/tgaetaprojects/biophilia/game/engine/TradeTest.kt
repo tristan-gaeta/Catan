@@ -49,7 +49,8 @@ class TradeTest {
     fun maritimeTradeExchangesWithTheBank() {
         game.give(RED, of(ORE, 9))
         game.apply(RED, Action.MaritimeTrade(ORE, ORE)).rejectedWith(INVALID_TRADE)
-        game.apply(RED, Action.MaritimeTrade(ORE, WOOL, lots = 3)).rejectedWith(INSUFFICIENT_RESOURCES)
+        game.apply(RED, Action.MaritimeTrade(ORE, WOOL, lots = 3))
+            .rejectedWith(INSUFFICIENT_RESOURCES)
 
         game.apply(RED, Action.MaritimeTrade(ORE, WOOL, lots = 2)).accepted()
         assertEquals(of(ORE to 1, WOOL to 2), game.player(RED).hand)
@@ -63,13 +64,19 @@ class TradeTest {
         game.give(WHITE, of(BRICK, 1))
         game.give(BLUE, of(WOOL, 1))
 
-        game.apply(RED, Action.ProposeTrade(WHITE, of(ORE, 1), ResourceCounts.EMPTY)).rejectedWith(INVALID_TRADE)
-        game.apply(RED, Action.ProposeTrade(WHITE, of(ORE, 1), of(ORE, 1))).rejectedWith(INVALID_TRADE)
-        game.apply(RED, Action.ProposeTrade(RED, of(ORE, 1), of(BRICK, 1))).rejectedWith(INVALID_TRADE)
-        game.apply(RED, Action.ProposeTrade(WHITE, of(GRAIN, 1), of(BRICK, 1))).rejectedWith(INSUFFICIENT_RESOURCES)
-        game.apply(BLUE, Action.ProposeTrade(WHITE, of(WOOL, 1), of(BRICK, 1))).rejectedWith(NOT_YOUR_TURN)
+        game.apply(RED, Action.ProposeTrade(WHITE, of(ORE, 1), ResourceCounts.EMPTY))
+            .rejectedWith(INVALID_TRADE)
+        game.apply(RED, Action.ProposeTrade(WHITE, of(ORE, 1), of(ORE, 1)))
+            .rejectedWith(INVALID_TRADE)
+        game.apply(RED, Action.ProposeTrade(RED, of(ORE, 1), of(BRICK, 1)))
+            .rejectedWith(INVALID_TRADE)
+        game.apply(RED, Action.ProposeTrade(WHITE, of(GRAIN, 1), of(BRICK, 1)))
+            .rejectedWith(INSUFFICIENT_RESOURCES)
+        game.apply(BLUE, Action.ProposeTrade(WHITE, of(WOOL, 1), of(BRICK, 1)))
+            .rejectedWith(NOT_YOUR_TURN)
 
-        val proposed = game.apply(RED, Action.ProposeTrade(WHITE, of(ORE, 1), of(BRICK, 1))).accepted()
+        val proposed =
+            game.apply(RED, Action.ProposeTrade(WHITE, of(ORE, 1), of(BRICK, 1))).accepted()
         val offer = assertIs<GameEvent.TradeProposed>(proposed.single()).offer
         game.apply(BLUE, Action.AcceptTrade(offer.id)).rejectedWith(NOT_YOUR_TURN)
         game.apply(WHITE, Action.AcceptTrade(offer.id)).accepted()
@@ -86,11 +93,13 @@ class TradeTest {
         game.give(WHITE, of(BRICK, 2))
 
         // a counteroffer from another player to the current player
-        val counter = game.apply(WHITE, Action.ProposeTrade(RED, of(BRICK, 2), of(ORE, 1))).accepted()
+        val counter =
+            game.apply(WHITE, Action.ProposeTrade(RED, of(BRICK, 2), of(ORE, 1))).accepted()
         val counterId = assertIs<GameEvent.TradeProposed>(counter.single()).offer.id
 
         // a second offer the recipient declines
-        val declined = game.apply(RED, Action.ProposeTrade(BLUE, of(ORE, 1), of(WOOL, 1))).accepted()
+        val declined =
+            game.apply(RED, Action.ProposeTrade(BLUE, of(ORE, 1), of(WOOL, 1))).accepted()
         val declinedId = assertIs<GameEvent.TradeProposed>(declined.single()).offer.id
         game.apply(BLUE, Action.CancelTrade(declinedId)).accepted()
 
@@ -103,7 +112,8 @@ class TradeTest {
         game.apply(WHITE, Action.AcceptTrade(staleId)).accepted()
         game.apply(RED, Action.ProposeTrade(WHITE, of(BRICK, 1), of(ORE, 1))).accepted()
         game.player(WHITE).hand = ResourceCounts.EMPTY
-        game.apply(WHITE, Action.AcceptTrade(game.tradeOffers.single().id)).rejectedWith(INSUFFICIENT_RESOURCES)
+        game.apply(WHITE, Action.AcceptTrade(game.tradeOffers.single().id))
+            .rejectedWith(INSUFFICIENT_RESOURCES)
         game.apply(RED, Action.EndTurn).accepted()
         assertTrue(game.tradeOffers.isEmpty())
     }

@@ -16,7 +16,10 @@ class RandomPlaySmokeTest {
     fun randomGamesStayConsistentAndFinish() {
         val seeds = 1L..40L
         val unfinished = seeds.filter { seed -> playGame(seed).first.phase !is Phase.GameOver }
-        assertTrue(unfinished.isEmpty(), "Games with seeds $unfinished hit the action cap without a winner")
+        assertTrue(
+            unfinished.isEmpty(),
+            "Games with seeds $unfinished hit the action cap without a winner"
+        )
     }
 
     @Test
@@ -35,7 +38,11 @@ class RandomPlaySmokeTest {
         RandomBots.play(game, seed) { actor, action, produced ->
             events += produced
             progressCardsPlayed += produced.count { it is GameEvent.DevCardPlayed && it.card != KNIGHT }
-            checkInvariants(game, progressCardsPlayed, "seed $seed, event ${events.size} after $actor's $action")
+            checkInvariants(
+                game,
+                progressCardsPlayed,
+                "seed $seed, event ${events.size} after $actor's $action"
+            )
         }
         return game to events
     }
@@ -50,22 +57,33 @@ class RandomPlaySmokeTest {
             val settlements = game.board.buildings.values.count { it == Building.settlement(color) }
             val cities = game.board.buildings.values.count { it == Building.city(color) }
             val roads = game.board.roads.values.count { it == color }
-            assertEquals(PlayerState.SETTLEMENTS - player.settlementsLeft, settlements, "$color settlements at $where")
+            assertEquals(
+                PlayerState.SETTLEMENTS - player.settlementsLeft,
+                settlements,
+                "$color settlements at $where"
+            )
             assertEquals(PlayerState.CITIES - player.citiesLeft, cities, "$color cities at $where")
             assertEquals(PlayerState.ROADS - player.roadsLeft, roads, "$color roads at $where")
 
-            val awards = (if (game.longestRoadHolder == color) 2 else 0) + (if (game.largestArmyHolder == color) 2 else 0)
-            assertEquals(settlements + 2 * cities + awards, game.publicVictoryPoints(color), "$color points at $where")
+            val awards =
+                (if (game.longestRoadHolder == color) 2 else 0) + (if (game.largestArmyHolder == color) 2 else 0)
+            assertEquals(
+                settlements + 2 * cities + awards,
+                game.publicVictoryPoints(color),
+                "$color points at $where"
+            )
         }
         // every card is in the deck, in a hand, or played (knights stay in front of their player)
         val accounted = game.devCardsRemaining + progressCardsPlayed +
-            game.players.sumOf { it.devCards.total + it.knightsPlayed }
+                game.players.sumOf { it.devCards.total + it.knightsPlayed }
         assertEquals(25, accounted, "Development cards not conserved at $where")
 
         game.longestRoadHolder?.let { holder ->
             val length = game.player(holder).longestRoad
-            assertTrue(length >= MIN_LONGEST_ROAD && game.players.all { it.longestRoad <= length },
-                "$holder holds Longest Road with $length at $where")
+            assertTrue(
+                length >= MIN_LONGEST_ROAD && game.players.all { it.longestRoad <= length },
+                "$holder holds Longest Road with $length at $where"
+            )
         }
     }
 }

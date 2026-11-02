@@ -69,7 +69,8 @@ class PlacementTest {
         game.give(RED, ResourceCounts.CITY)
 
         game.apply(RED, Action.BuildCity(whiteHome)).rejectedWith(ILLEGAL_LOCATION)
-        game.apply(RED, Action.BuildCity(home.neighbors.keys.first())).rejectedWith(ILLEGAL_LOCATION)
+        game.apply(RED, Action.BuildCity(home.neighbors.keys.first()))
+            .rejectedWith(ILLEGAL_LOCATION)
 
         game.apply(RED, Action.BuildCity(home)).accepted()
         assertEquals(Building.city(RED), board.buildings[home])

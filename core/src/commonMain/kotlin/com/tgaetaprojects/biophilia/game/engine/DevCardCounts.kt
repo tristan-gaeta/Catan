@@ -8,7 +8,8 @@ import com.tgaetaprojects.biophilia.game.DevelopmentCardType
  */
 @JvmInline
 value class DevCardCounts private constructor(internal val packedBits: Int) {
-    operator fun get(type: DevelopmentCardType): Int = (packedBits ushr (type.ordinal * BITS)) and MASK
+    operator fun get(type: DevelopmentCardType): Int =
+        (packedBits ushr (type.ordinal * BITS)) and MASK
 
     val total: Int get() = DevelopmentCardType.entries.sumOf { get(it) }
 
@@ -25,7 +26,8 @@ value class DevCardCounts private constructor(internal val packedBits: Int) {
     operator fun minus(type: DevelopmentCardType): DevCardCounts = with(type, get(type) - 1)
 
     override fun toString(): String =
-        DevelopmentCardType.entries.filter { get(it) > 0 }.joinToString(prefix = "{", postfix = "}") { "$it=${get(it)}" }
+        DevelopmentCardType.entries.filter { get(it) > 0 }
+            .joinToString(prefix = "{", postfix = "}") { "$it=${get(it)}" }
 
     companion object {
         private const val BITS = 5

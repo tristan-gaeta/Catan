@@ -54,7 +54,8 @@ value class ResourceCounts private constructor(private val packedBits: Int) {
     fun covers(other: ResourceCounts): Boolean = Resource.entries.all { get(it) >= other[it] }
 
     /** Whether no resource type appears in both this and [other]. */
-    fun isDisjointFrom(other: ResourceCounts): Boolean = Resource.entries.none { get(it) > 0 && other[it] > 0 }
+    fun isDisjointFrom(other: ResourceCounts): Boolean =
+        Resource.entries.none { get(it) > 0 && other[it] > 0 }
 
     /** The [index]th card, counting through the cards in ordinal order; used to draw one at random. */
     fun cardAt(index: Int): Resource {
@@ -68,7 +69,8 @@ value class ResourceCounts private constructor(private val packedBits: Int) {
     }
 
     override fun toString(): String =
-        Resource.entries.filter { get(it) > 0 }.joinToString(prefix = "{", postfix = "}") { "$it=${get(it)}" }
+        Resource.entries.filter { get(it) > 0 }
+            .joinToString(prefix = "{", postfix = "}") { "$it=${get(it)}" }
 
     companion object {
         private const val BITS = 5

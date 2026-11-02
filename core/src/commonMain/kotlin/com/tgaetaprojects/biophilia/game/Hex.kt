@@ -14,7 +14,7 @@ enum class Hex(val q: Int, val r: Int) {
 
     inline val s: Int get() = -q - r
 
-    operator fun get(index: Int) = when(index) {
+    operator fun get(index: Int) = when (index) {
         0 -> q; 1 -> r; 2 -> s; else -> throw IllegalArgumentException()
     }
 

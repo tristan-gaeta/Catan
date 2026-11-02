@@ -26,13 +26,26 @@ import kotlin.test.assertEquals
 class DevCardTest {
     private val game = newGame()
     private val home = Hex.J.vertices.getValue(NE)
-    private val emptyHex get() = Hex.entries.first { it != game.board.robber && game.robberVictims(it).isEmpty() }
+    private val emptyHex
+        get() = Hex.entries.first {
+            it != game.board.robber && game.robberVictims(
+                it
+            ).isEmpty()
+        }
 
     @Test
     fun theDeckHasTheBaseGameMix() {
         assertEquals(25, game.devCardsRemaining)
-        assertEquals(mapOf(KNIGHT to 14, VICTORY_POINT to 5, ROAD_BUILDING to 2, YEAR_OF_PLENTY to 2, MONOPOLY to 2),
-            game.devDeck.groupingBy { it }.eachCount())
+        assertEquals(
+            mapOf(
+            KNIGHT to 14,
+            VICTORY_POINT to 5,
+            ROAD_BUILDING to 2,
+            YEAR_OF_PLENTY to 2,
+            MONOPOLY to 2
+        ),
+            game.devDeck.groupingBy { it }.eachCount()
+        )
     }
 
     @Test
@@ -82,7 +95,8 @@ class DevCardTest {
 
         game.apply(RED, Action.PlayRoadBuilding).accepted()
         assertEquals(Phase.RoadBuilding(2, Phase.Main), game.phase)
-        game.apply(RED, Action.BuildRoad(game.legalRoadSpots(RED).first())).rejectedWith(WRONG_PHASE)
+        game.apply(RED, Action.BuildRoad(game.legalRoadSpots(RED).first()))
+            .rejectedWith(WRONG_PHASE)
         repeat(2) { game.apply(RED, Action.PlaceRoad(game.legalRoadSpots(RED).first())).accepted() }
 
         assertEquals(Phase.Main, game.phase)

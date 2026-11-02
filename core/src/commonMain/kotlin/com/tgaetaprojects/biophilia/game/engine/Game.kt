@@ -61,11 +61,11 @@ class Game internal constructor(
     /**
      * A new game. [boardSeed] is public: it fixes the layout, and clients can rebuild the board from it. [gameSeed]
      * is secret: it decides every dice roll, card draw and steal, so it must never leave the server. Draw both
-     * independently from a cryptographically secure source; never derive one from the other or from anything a
+     * independently of a cryptographically secure source; never derive one from the other or from anything a
      * player can see.
      */
     constructor(seats: List<PlayerColor>, boardSeed: Long, gameSeed: Long) :
-        this(seats, GameBoard(boardSeed), GameRandom(gameSeed), shuffleDeck = true)
+            this(seats, GameBoard(boardSeed), GameRandom(gameSeed), shuffleDeck = true)
 
     init {
         require(seats.size in 3..4) { "The base game is for 3 or 4 players, not ${seats.size}" }
@@ -85,7 +85,8 @@ class Game internal constructor(
     var turnOrder: List<PlayerColor> = seatOrder
         private set
 
-    private val states: EnumMap<PlayerColor, PlayerState> = seatOrder.map { it to PlayerState(it) }.toEnumMap()
+    private val states: EnumMap<PlayerColor, PlayerState> =
+        seatOrder.map { it to PlayerState(it) }.toEnumMap()
 
     /** Every player's state, in [turnOrder]. */
     var players: List<PlayerState> = seatOrder.map { states.getValue(it) }
@@ -99,7 +100,8 @@ class Game internal constructor(
 
     /** The face-down deck, top card first. Its order is secret server-side state. */
     internal val devDeck: ArrayDeque<DevelopmentCardType> =
-        if (shuffleDeck) ArrayDeque(newDevelopmentDeck().toMutableList().apply { shuffleWith(random) }) else ArrayDeque()
+        if (shuffleDeck) ArrayDeque(
+            newDevelopmentDeck().toMutableList().apply { shuffleWith(random) }) else ArrayDeque()
     val devCardsRemaining: Int get() = devDeck.size
 
     var phase: Phase = Phase.RollForFirstPlayer(seatOrder, emptyMap())
@@ -140,9 +142,9 @@ class Game internal constructor(
     fun publicVictoryPoints(color: PlayerColor): Int {
         val player = player(color)
         return (PlayerState.SETTLEMENTS - player.settlementsLeft) +
-            2 * (PlayerState.CITIES - player.citiesLeft) +
-            (if (longestRoadHolder == color) 2 else 0) +
-            (if (largestArmyHolder == color) 2 else 0)
+                2 * (PlayerState.CITIES - player.citiesLeft) +
+                (if (longestRoadHolder == color) 2 else 0) +
+                (if (largestArmyHolder == color) 2 else 0)
     }
 
     /** [publicVictoryPoints] plus hidden victory point cards; this is what wins the game. */
@@ -151,7 +153,7 @@ class Game internal constructor(
 
     // ---- Queries for UIs and bots ----
 
-    /** Where [color] may place a settlement now: free in set-up, connected by road afterwards. */
+    /** Where [color] may place a settlement now: free in set-up, connected by road afterward. */
     fun legalSettlementSpots(color: PlayerColor): List<Vertex> {
         if (player(color).settlementsLeft == 0) return emptyList()
         val requireRoad = phase !is Phase.SetupSettlement
@@ -164,13 +166,16 @@ class Game internal constructor(
         return when (val p = phase) {
             is Phase.SetupRoad ->
                 if (color == currentPlayer) p.settlement.edges.filter { it !in board.roads } else emptyList()
+
             else -> Edge.entries.filter { board.canPlaceRoad(color, it) }
         }
     }
 
-    fun legalCitySpots(color: PlayerColor): List<Vertex> = Vertex.entries.filter { board.canUpgradeToCity(color, it) }
+    fun legalCitySpots(color: PlayerColor): List<Vertex> =
+        Vertex.entries.filter { board.canUpgradeToCity(color, it) }
 
-    fun maritimeRate(color: PlayerColor, resource: Resource): Int = board.maritimeRate(color, resource)
+    fun maritimeRate(color: PlayerColor, resource: Resource): Int =
+        board.maritimeRate(color, resource)
 
     /** Who the current player could rob by moving the robber to [hex]. */
     fun robberVictims(hex: Hex): Set<PlayerColor> = board.robberVictims(hex, currentPlayer)
@@ -229,11 +234,16 @@ class Game internal constructor(
      * tied players roll again. (The rulebook only says the highest roll starts; re-rolling ties is the usual way
      * to settle them.)
      */
-    private fun rollForFirstPlayer(p: Phase.RollForFirstPlayer, events: MutableList<GameEvent>): RuleViolation? {
+    private fun rollForFirstPlayer(
+        p: Phase.RollForFirstPlayer,
+        events: MutableList<GameEvent>
+    ): RuleViolation? {
         val roll = chance.roll()
         events += GameEvent.DiceRolled(currentPlayer, roll)
 
-        val rolls = MutableEnumMap<PlayerColor, DiceTotal>().also { it.putAll(p.rolls); it[currentPlayer] = roll }
+        val rolls = MutableEnumMap<PlayerColor, DiceTotal>().also {
+            it.putAll(p.rolls); it[currentPlayer] = roll
+        }
         val waiting = p.contenders.firstOrNull { it !in rolls }
         if (waiting != null) {
             currentPlayer = waiting
@@ -265,9 +275,17 @@ class Game internal constructor(
 
     // ---- Set-up ----
 
-    private fun placeSetupSettlement(vertex: Vertex, events: MutableList<GameEvent>): RuleViolation? {
+    private fun placeSetupSettlement(
+        vertex: Vertex,
+        events: MutableList<GameEvent>
+    ): RuleViolation? {
         val p = phase as? Phase.SetupSettlement ?: return WRONG_PHASE
-        if (!board.canPlaceSettlement(currentPlayer, vertex, requireRoad = false)) return ILLEGAL_LOCATION
+        if (!board.canPlaceSettlement(
+                currentPlayer,
+                vertex,
+                requireRoad = false
+            )
+        ) return ILLEGAL_LOCATION
 
         board.placeBuilding(vertex, Building.settlement(currentPlayer))
         current.settlementsLeft--
@@ -291,16 +309,19 @@ class Game internal constructor(
                 layRoad(edge, free = true, events)
                 advanceSetup(events)
             }
+
             is Phase.RoadBuilding -> {
                 if (!board.canPlaceRoad(currentPlayer, edge)) return ILLEGAL_LOCATION
                 layRoad(edge, free = true, events)
                 val remaining = p.remaining - 1
-                phase = if (remaining == 0 || current.roadsLeft == 0 || legalRoadSpots(currentPlayer).isEmpty()) {
-                    p.returnTo
-                } else {
-                    Phase.RoadBuilding(remaining, p.returnTo)
-                }
+                phase =
+                    if (remaining == 0 || current.roadsLeft == 0 || legalRoadSpots(currentPlayer).isEmpty()) {
+                        p.returnTo
+                    } else {
+                        Phase.RoadBuilding(remaining, p.returnTo)
+                    }
             }
+
             else -> return WRONG_PHASE
         }
         return null
@@ -335,7 +356,8 @@ class Game internal constructor(
                 val owed = discardAmount(player.hand.total)
                 if (owed > 0) pending[player.color] = owed
             }
-            phase = if (pending.isEmpty()) Phase.MoveRobber(Phase.Main) else Phase.Discard(pending.asReadOnly())
+            phase =
+                if (pending.isEmpty()) Phase.MoveRobber(Phase.Main) else Phase.Discard(pending.asReadOnly())
         } else {
             val gains = settleProduction(board.productionClaims(roll), bank)
             for ((color, cards) in gains) takeFromBank(player(color), cards)
@@ -345,7 +367,11 @@ class Game internal constructor(
         return null
     }
 
-    private fun discard(actor: PlayerColor, cards: ResourceCounts, events: MutableList<GameEvent>): RuleViolation? {
+    private fun discard(
+        actor: PlayerColor,
+        cards: ResourceCounts,
+        events: MutableList<GameEvent>
+    ): RuleViolation? {
         val p = phase as? Phase.Discard ?: return WRONG_PHASE
         val owed = p.pending[actor] ?: return INVALID_DISCARD
         val player = player(actor)
@@ -356,11 +382,16 @@ class Game internal constructor(
         events += GameEvent.Discarded(actor, cards)
 
         val stillOwed = p.pending - actor
-        phase = if (stillOwed.isEmpty()) Phase.MoveRobber(Phase.Main) else Phase.Discard(stillOwed.asReadOnly())
+        phase =
+            if (stillOwed.isEmpty()) Phase.MoveRobber(Phase.Main) else Phase.Discard(stillOwed.asReadOnly())
         return null
     }
 
-    private fun moveRobber(hex: Hex, victim: PlayerColor?, events: MutableList<GameEvent>): RuleViolation? {
+    private fun moveRobber(
+        hex: Hex,
+        victim: PlayerColor?,
+        events: MutableList<GameEvent>
+    ): RuleViolation? {
         val p = phase as? Phase.MoveRobber ?: return WRONG_PHASE
         if (hex == board.robber) return INVALID_ROBBER_MOVE
         val victims = board.robberVictims(hex, currentPlayer)
@@ -406,7 +437,12 @@ class Game internal constructor(
         if (phase != Phase.Main) return WRONG_PHASE
         if (current.settlementsLeft == 0) return NO_PIECES_LEFT
         if (!current.hand.covers(ResourceCounts.SETTLEMENT)) return INSUFFICIENT_RESOURCES
-        if (!board.canPlaceSettlement(currentPlayer, vertex, requireRoad = true)) return ILLEGAL_LOCATION
+        if (!board.canPlaceSettlement(
+                currentPlayer,
+                vertex,
+                requireRoad = true
+            )
+        ) return ILLEGAL_LOCATION
 
         payBank(current, ResourceCounts.SETTLEMENT)
         board.placeBuilding(vertex, Building.settlement(currentPlayer))
@@ -474,11 +510,16 @@ class Game internal constructor(
         consumeCard(ROAD_BUILDING, events)
         // with no pieces or nowhere to build, the card is simply spent
         val roads = minOf(2, current.roadsLeft)
-        if (roads > 0 && legalRoadSpots(currentPlayer).isNotEmpty()) phase = Phase.RoadBuilding(roads, returnTo = phase)
+        if (roads > 0 && legalRoadSpots(currentPlayer).isNotEmpty()) phase =
+            Phase.RoadBuilding(roads, returnTo = phase)
         return null
     }
 
-    private fun playYearOfPlenty(first: Resource, second: Resource, events: MutableList<GameEvent>): RuleViolation? {
+    private fun playYearOfPlenty(
+        first: Resource,
+        second: Resource,
+        events: MutableList<GameEvent>
+    ): RuleViolation? {
         checkCanPlay(YEAR_OF_PLENTY)?.let { return it }
         val cards = ResourceCounts.of(first, second)
         if (!bank.covers(cards)) return BANK_SHORTAGE
@@ -508,7 +549,10 @@ class Game internal constructor(
 
     // ---- Trade ----
 
-    private fun maritimeTrade(trade: Action.MaritimeTrade, events: MutableList<GameEvent>): RuleViolation? {
+    private fun maritimeTrade(
+        trade: Action.MaritimeTrade,
+        events: MutableList<GameEvent>
+    ): RuleViolation? {
         if (phase != Phase.Main) return WRONG_PHASE
         if (trade.give == trade.get || trade.lots < 1) return INVALID_TRADE
         val cost = board.maritimeRate(currentPlayer, trade.give) * trade.lots
@@ -523,7 +567,11 @@ class Game internal constructor(
         return null
     }
 
-    private fun proposeTrade(actor: PlayerColor, trade: Action.ProposeTrade, events: MutableList<GameEvent>): RuleViolation? {
+    private fun proposeTrade(
+        actor: PlayerColor,
+        trade: Action.ProposeTrade,
+        events: MutableList<GameEvent>
+    ): RuleViolation? {
         if (phase != Phase.Main) return WRONG_PHASE
         if (trade.to !in states || trade.to == actor) return INVALID_TRADE
         // every trade involves the player whose turn it is
@@ -537,7 +585,11 @@ class Game internal constructor(
         return null
     }
 
-    private fun acceptTrade(actor: PlayerColor, offerId: Int, events: MutableList<GameEvent>): RuleViolation? {
+    private fun acceptTrade(
+        actor: PlayerColor,
+        offerId: Int,
+        events: MutableList<GameEvent>
+    ): RuleViolation? {
         if (phase != Phase.Main) return WRONG_PHASE
         val offer = offers.find { it.id == offerId } ?: return NO_SUCH_OFFER
         if (actor != offer.to) return NOT_YOUR_TURN
@@ -553,7 +605,11 @@ class Game internal constructor(
         return null
     }
 
-    private fun cancelTrade(actor: PlayerColor, offerId: Int, events: MutableList<GameEvent>): RuleViolation? {
+    private fun cancelTrade(
+        actor: PlayerColor,
+        offerId: Int,
+        events: MutableList<GameEvent>
+    ): RuleViolation? {
         val offer = offers.find { it.id == offerId } ?: return NO_SUCH_OFFER
         if (actor != offer.from && actor != offer.to) return NOT_YOUR_TURN
         offers.remove(offer)
@@ -596,15 +652,19 @@ class Game internal constructor(
 
     private fun updateLongestRoad(events: MutableList<GameEvent>) {
         for (player in players) player.longestRoad = board.longestRoad(player.color)
-        val holder = longestRoadHolder(longestRoadHolder, players.associate { it.color to it.longestRoad })
+        val holder =
+            longestRoadHolder(longestRoadHolder, players.associate { it.color to it.longestRoad })
         if (holder != longestRoadHolder) {
             longestRoadHolder = holder
-            events += GameEvent.LongestRoadChanged(holder, holder?.let { player(it).longestRoad } ?: 0)
+            events += GameEvent.LongestRoadChanged(
+                holder,
+                holder?.let { player(it).longestRoad } ?: 0)
         }
     }
 
     private fun updateLargestArmy(events: MutableList<GameEvent>) {
-        val holder = largestArmyHolder(largestArmyHolder, players.associate { it.color to it.knightsPlayed })
+        val holder =
+            largestArmyHolder(largestArmyHolder, players.associate { it.color to it.knightsPlayed })
         if (holder != largestArmyHolder && holder != null) {
             largestArmyHolder = holder
             events += GameEvent.LargestArmyChanged(holder, player(holder).knightsPlayed)
@@ -662,6 +722,6 @@ class Game internal constructor(
          * games only replay correctly on the same version, so bump it whenever a change would alter how a recorded
          * game unfolds. `VersionGuardTest` pins this version's behavior and fails if it changes without a bump.
          */
-        const val RULES_VERSION = 1
+        const val RULES_VERSION = 2
     }
 }

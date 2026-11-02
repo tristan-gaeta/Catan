@@ -16,7 +16,10 @@ import kotlin.io.encoding.Base64
  */
 object Base64ByteArraySerializer : KSerializer<ByteArray> {
     override val descriptor: SerialDescriptor =
-        PrimitiveSerialDescriptor("com.tgaetaprojects.biophilia.utils.Base64ByteArray", PrimitiveKind.STRING)
+        PrimitiveSerialDescriptor(
+            "com.tgaetaprojects.biophilia.utils.Base64ByteArray",
+            PrimitiveKind.STRING
+        )
 
     override fun serialize(encoder: Encoder, value: ByteArray) {
         encoder.encodeString(Base64.encode(value))

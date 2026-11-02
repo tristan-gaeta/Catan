@@ -25,7 +25,8 @@ internal object RandomBots {
     const val MAX_ACTIONS = 20_000
 
     /** Odd seeds give 3-player games, even seeds 4. */
-    fun colorsFor(seed: Long): List<PlayerColor> = listOf(RED, WHITE, BLUE, ORANGE).take(if (seed % 2 == 0L) 4 else 3)
+    fun colorsFor(seed: Long): List<PlayerColor> =
+        listOf(RED, WHITE, BLUE, ORANGE).take(if (seed % 2 == 0L) 4 else 3)
 
     /** Distinct board and game seeds for test game [seed]; real games draw them independently. */
     fun boardSeedFor(seed: Long): Long = seed * 1_000_003
@@ -67,29 +68,48 @@ internal object RandomBots {
         }
     }
 
-    private fun chooseAction(game: Game, bot: GameRandom, actionsThisTurn: Int): Pair<PlayerColor, Action> {
+    private fun chooseAction(
+        game: Game,
+        bot: GameRandom,
+        actionsThisTurn: Int
+    ): Pair<PlayerColor, Action> {
         val me = game.currentPlayer
         return when (val phase = game.phase) {
             is Phase.RollForFirstPlayer -> me to Action.RollDice
-            is Phase.SetupSettlement -> me to Action.PlaceSettlement(game.legalSettlementSpots(me).pickWith(bot))
-            is Phase.SetupRoad, is Phase.RoadBuilding -> me to Action.PlaceRoad(game.legalRoadSpots(me).pickWith(bot))
+            is Phase.SetupSettlement -> me to Action.PlaceSettlement(
+                game.legalSettlementSpots(me).pickWith(bot)
+            )
+
+            is Phase.SetupRoad, is Phase.RoadBuilding -> me to Action.PlaceRoad(
+                game.legalRoadSpots(
+                    me
+                ).pickWith(bot)
+            )
+
             Phase.PreRoll ->
                 if (canPlay(game, KNIGHT) && bot.nextInt(3) == 0) me to Action.PlayKnight
                 else me to Action.RollDice
+
             is Phase.Discard -> {
                 val (color, owed) = phase.pending.entries.first()
                 color to Action.Discard(randomCards(game.player(color).hand, owed, bot))
             }
+
             is Phase.MoveRobber -> {
                 val hex = Hex.entries.filter { it != game.board.robber }.pickWith(bot)
                 me to Action.MoveRobber(hex, game.robberVictims(hex).toList().pickOrNull(bot))
             }
+
             Phase.Main -> mainAction(game, bot, actionsThisTurn)
             is Phase.GameOver -> error("game is over")
         }
     }
 
-    private fun mainAction(game: Game, bot: GameRandom, actionsThisTurn: Int): Pair<PlayerColor, Action> {
+    private fun mainAction(
+        game: Game,
+        bot: GameRandom,
+        actionsThisTurn: Int
+    ): Pair<PlayerColor, Action> {
         val me = game.currentPlayer
         val player = game.player(me)
         val hand = player.hand
@@ -109,7 +129,8 @@ internal object RandomBots {
             game.legalCitySpots(me).pickOrNull(bot)?.let { return me to Action.BuildCity(it) }
         }
         if (hand.covers(ResourceCounts.SETTLEMENT) && player.settlementsLeft > 0) {
-            game.legalSettlementSpots(me).pickOrNull(bot)?.let { return me to Action.BuildSettlement(it) }
+            game.legalSettlementSpots(me).pickOrNull(bot)
+                ?.let { return me to Action.BuildSettlement(it) }
         }
 
         val options = mutableListOf<Action>(Action.EndTurn, Action.EndTurn)
@@ -126,14 +147,19 @@ internal object RandomBots {
         }
         for (give in hand.types) {
             if (hand[give] < game.maritimeRate(me, give)) continue
-            val get = Resource.entries.filter { it != give && game.bank[it] > 0 }.pickOrNull(bot) ?: continue
+            val get = Resource.entries.filter { it != give && game.bank[it] > 0 }.pickOrNull(bot)
+                ?: continue
             options += Action.MaritimeTrade(give, get)
         }
         if (!hand.isEmpty) {
             val give = hand.types.pickWith(bot)
             val get = Resource.entries.filter { it != give }.pickWith(bot)
             val partner = game.turnOrder.filter { it != me }.pickWith(bot)
-            options += Action.ProposeTrade(partner, ResourceCounts.of(give, 1), ResourceCounts.of(get, 1))
+            options += Action.ProposeTrade(
+                partner,
+                ResourceCounts.of(give, 1),
+                ResourceCounts.of(get, 1)
+            )
         }
         return me to options.pickWith(bot)
     }

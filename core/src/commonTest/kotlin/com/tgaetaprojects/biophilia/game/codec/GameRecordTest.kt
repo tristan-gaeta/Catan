@@ -18,9 +18,14 @@ import kotlin.test.assertTrue
 class GameRecordTest {
 
     private fun recordGame(seed: Long): Pair<GameRecorder, List<GameEvent>> {
-        val recorder = GameRecorder(RandomBots.colorsFor(seed), boardSeed = seed * 31, gameSeed = seed * 17)
+        val recorder =
+            GameRecorder(RandomBots.colorsFor(seed), boardSeed = seed * 31, gameSeed = seed * 17)
         val events = mutableListOf<GameEvent>()
-        RandomBots.play(recorder.game, seed, apply = recorder::apply) { _, _, produced -> events += produced }
+        RandomBots.play(
+            recorder.game,
+            seed,
+            apply = recorder::apply
+        ) { _, _, produced -> events += produced }
         return recorder to events
     }
 
@@ -35,11 +40,16 @@ class GameRecordTest {
             totalActions += recorder.record().actions.size
 
             val replayedEvents = mutableListOf<GameEvent>()
-            val replayed = GameRecord.decode(bytes).replay { _, _, produced -> replayedEvents += produced }
+            val replayed =
+                GameRecord.decode(bytes).replay { _, _, produced -> replayedEvents += produced }
 
             assertTrue(recorder.game.phase is Phase.GameOver, "seed $seed should finish")
             assertEquals(events, replayedEvents, "seed $seed events")
-            assertContentEquals(SnapshotCodec.encode(recorder.game), SnapshotCodec.encode(replayed), "seed $seed final state")
+            assertContentEquals(
+                SnapshotCodec.encode(recorder.game),
+                SnapshotCodec.encode(replayed),
+                "seed $seed final state"
+            )
         }
         val bytesPerAction = totalBytes.toDouble() / totalActions
         assertTrue(bytesPerAction <= 2.5, "records average $bytesPerAction bytes per action")
@@ -72,13 +82,34 @@ class GameRecordTest {
     fun replayRefusesRecordsItCannotReproduce() {
         val record = recordGame(1).first.record()
 
-        val otherRules = GameRecord(Game.RULES_VERSION + 1, record.seats, record.boardSeed, record.gameSeed, record.layout, record.actions)
+        val otherRules = GameRecord(
+            Game.RULES_VERSION + 1,
+            record.seats,
+            record.boardSeed,
+            record.gameSeed,
+            record.layout,
+            record.actions
+        )
         assertFailsWith<IllegalStateException> { otherRules.replay() }
 
-        val otherBoard = GameRecord(record.rulesVersion, record.seats, record.boardSeed, record.gameSeed, BoardLayout.generate(12345), record.actions)
+        val otherBoard = GameRecord(
+            record.rulesVersion,
+            record.seats,
+            record.boardSeed,
+            record.gameSeed,
+            BoardLayout.generate(12345),
+            record.actions
+        )
         assertFailsWith<IllegalStateException> { otherBoard.replay() }
 
-        val otherDice = GameRecord(record.rulesVersion, record.seats, record.boardSeed, record.gameSeed + 1, record.layout, record.actions)
+        val otherDice = GameRecord(
+            record.rulesVersion,
+            record.seats,
+            record.boardSeed,
+            record.gameSeed + 1,
+            record.layout,
+            record.actions
+        )
         assertFailsWith<IllegalStateException> { otherDice.replay() }
     }
 
@@ -86,7 +117,20 @@ class GameRecordTest {
     fun corruptRecordsAreRejected() {
         val bytes = recordGame(2).first.record().encode()
         assertFailsWith<CodecException> { GameRecord.decode(bytes.copyOf(bytes.size / 2)) }
-        assertFailsWith<CodecException> { GameRecord.decode(bytes.copyOf().also { it[0] = 2 }) }
-        assertFailsWith<CodecException> { GameRecord.decode(SnapshotCodec.encode(Game(listOf(RED, WHITE, BLUE), 1, 2))) }
+        val otherVersion = bytes.copyOf().also { it[0] = (FORMAT_VERSION + 1).toByte() }
+        assertFailsWith<CodecException> { GameRecord.decode(otherVersion) }
+        assertFailsWith<CodecException> {
+            GameRecord.decode(
+                SnapshotCodec.encode(
+                    Game(
+                        listOf(
+                            RED,
+                            WHITE,
+                            BLUE
+                        ), 1, 2
+                    )
+                )
+            )
+        }
     }
 }

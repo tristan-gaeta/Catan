@@ -101,7 +101,11 @@ internal fun Game.playSetup() {
  * A simple path of [length] roads starting at [start], walking greedily to unvisited intersections and never
  * entering [avoid]. Returns the edges and the [length] + 1 intersections along it.
  */
-internal fun pathFrom(start: Vertex, length: Int, avoid: Collection<Vertex> = emptyList()): Pair<List<Edge>, List<Vertex>> {
+internal fun pathFrom(
+    start: Vertex,
+    length: Int,
+    avoid: Collection<Vertex> = emptyList()
+): Pair<List<Edge>, List<Vertex>> {
     val edges = mutableListOf<Edge>()
     val vertices = mutableListOf(start)
     while (edges.size < length) {

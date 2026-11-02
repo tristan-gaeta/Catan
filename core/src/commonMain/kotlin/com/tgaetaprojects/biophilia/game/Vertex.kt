@@ -29,7 +29,7 @@ enum class Vertex {
 
     companion object {
         /* Same 7x7 truncated grid as Edge.board. Each cell owns two corners, its north (Y shape) and its
-           south (inverted Y); the other four are a neighbour's north or south.
+           south (inverted Y); the other four are a neighbor's north or south.
          */
         private const val WIDTH = 7
         private const val PADDING = 3
@@ -46,13 +46,19 @@ enum class Vertex {
                 val r: Int = cell / WIDTH - PADDING
                 // Include the vertex if at least one of the three hexes sharing it is on the board
                 val touchesBoard = if (i % 2 == NORTH) {
-                    Hex.isValidTile(q, r) || Hex.isValidTile(q, r - 1) || Hex.isValidTile(q + 1, r - 1)
+                    Hex.isValidTile(q, r) || Hex.isValidTile(q, r - 1) || Hex.isValidTile(
+                        q + 1,
+                        r - 1
+                    )
                 } else {
-                    Hex.isValidTile(q, r) || Hex.isValidTile(q - 1, r + 1) || Hex.isValidTile(q, r + 1)
+                    Hex.isValidTile(q, r) || Hex.isValidTile(q - 1, r + 1) || Hex.isValidTile(
+                        q,
+                        r + 1
+                    )
                 }
                 if (touchesBoard) verts.next() else null
             }
-            if(verts.hasNext()) throw IllegalStateException("Not all vertices were assigned")
+            if (verts.hasNext()) throw IllegalStateException("Not all vertices were assigned")
         }
 
         private fun ownedBy(q: Int, r: Int, corner: Int): Vertex? {
@@ -65,7 +71,7 @@ enum class Vertex {
          * edge `d` and the next edge counter-clockwise (NE -> north, SW -> south, E -> the NE corner...).
          * It follows that edge `d` runs from corner `d` to the corner of the previous direction.
          */
-        fun fromCoordinates(q: Int, r: Int, direction: Direction): Vertex? = when(direction) {
+        fun fromCoordinates(q: Int, r: Int, direction: Direction): Vertex? = when (direction) {
             NE -> ownedBy(q, r, NORTH)
             NW -> ownedBy(q, r - 1, SOUTH)
             W -> ownedBy(q - 1, r + 1, NORTH)

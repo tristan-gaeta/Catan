@@ -45,19 +45,27 @@ sealed interface MutableEnumMap<K : Enum<K>, V> : EnumMap<K, V>, MutableMap<K, V
 inline fun <reified K : Enum<K>, V> enumMapOf(): EnumMap<K, V> = mutableEnumMapOf()
 
 /** A read-only map of [pairs]; later pairs win on duplicate keys, as with [mapOf]. */
-inline fun <reified K : Enum<K>, V> enumMapOf(vararg pairs: Pair<K, V>): EnumMap<K, V> = pairs.toMutableEnumMap()
+inline fun <reified K : Enum<K>, V> enumMapOf(vararg pairs: Pair<K, V>): EnumMap<K, V> =
+    pairs.toMutableEnumMap()
 
 /** A read-only snapshot of [map]. */
-inline fun <reified K : Enum<K>, V> enumMapOf(map: Map<out K, V>): EnumMap<K, V> = map.toMutableEnumMap()
+inline fun <reified K : Enum<K>, V> enumMapOf(map: Map<out K, V>): EnumMap<K, V> =
+    map.toMutableEnumMap()
 
 /** A read-only snapshot of this map. */
 inline fun <reified K : Enum<K>, V> Map<out K, V>.toEnumMap(): EnumMap<K, V> = toMutableEnumMap()
+
 /** A read-only map of these pairs; later pairs win on duplicate keys. */
-inline fun <reified K : Enum<K>, V> Iterable<Pair<K, V>>.toEnumMap(): EnumMap<K, V> = toMutableEnumMap()
+inline fun <reified K : Enum<K>, V> Iterable<Pair<K, V>>.toEnumMap(): EnumMap<K, V> =
+    toMutableEnumMap()
+
 /** A read-only map of these pairs; later pairs win on duplicate keys. */
-inline fun <reified K : Enum<K>, V> Sequence<Pair<K, V>>.toEnumMap(): EnumMap<K, V> = toMutableEnumMap()
+inline fun <reified K : Enum<K>, V> Sequence<Pair<K, V>>.toEnumMap(): EnumMap<K, V> =
+    toMutableEnumMap()
+
 /** A read-only map of these pairs; later pairs win on duplicate keys. */
-inline fun <reified K : Enum<K>, V> Array<out Pair<K, V>>.toEnumMap(): EnumMap<K, V> = toMutableEnumMap()
+inline fun <reified K : Enum<K>, V> Array<out Pair<K, V>>.toEnumMap(): EnumMap<K, V> =
+    toMutableEnumMap()
 
 /** Builds a read-only map by running [builderAction] on a new mutable one, like [buildMap]. */
 inline fun <reified K : Enum<K>, V> buildEnumMap(builderAction: MutableEnumMap<K, V>.() -> Unit): EnumMap<K, V> =
@@ -66,7 +74,8 @@ inline fun <reified K : Enum<K>, V> buildEnumMap(builderAction: MutableEnumMap<K
 // Mutable builders. Each returns a new instance; sources are copied, never wrapped.
 
 /** An empty mutable map. */
-inline fun <reified K : Enum<K>, V> mutableEnumMapOf(): MutableEnumMap<K, V> = EnumMapImpl(K::class.java)
+inline fun <reified K : Enum<K>, V> mutableEnumMapOf(): MutableEnumMap<K, V> =
+    EnumMapImpl(K::class.java)
 
 /** A mutable map of [pairs]; later pairs win on duplicate keys, as with [mutableMapOf]. */
 inline fun <reified K : Enum<K>, V> mutableEnumMapOf(vararg pairs: Pair<K, V>): MutableEnumMap<K, V> =
@@ -83,9 +92,11 @@ inline fun <reified K : Enum<K>, V> Map<out K, V>.toMutableEnumMap(): MutableEnu
 /** A mutable map of these pairs; later pairs win on duplicate keys. */
 inline fun <reified K : Enum<K>, V> Iterable<Pair<K, V>>.toMutableEnumMap(): MutableEnumMap<K, V> =
     EnumMapImpl<K, V>(K::class.java).also { it.putAll(this) }
+
 /** A mutable map of these pairs; later pairs win on duplicate keys. */
 inline fun <reified K : Enum<K>, V> Sequence<Pair<K, V>>.toMutableEnumMap(): MutableEnumMap<K, V> =
     EnumMapImpl<K, V>(K::class.java).also { it.putAll(this) }
+
 /** A mutable map of these pairs; later pairs win on duplicate keys. */
 inline fun <reified K : Enum<K>, V> Array<out Pair<K, V>>.toMutableEnumMap(): MutableEnumMap<K, V> =
     EnumMapImpl<K, V>(K::class.java).also { it.putAll(this) }

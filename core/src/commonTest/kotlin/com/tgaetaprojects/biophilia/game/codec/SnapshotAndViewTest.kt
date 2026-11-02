@@ -3,8 +3,12 @@ package com.tgaetaprojects.biophilia.game.codec
 import com.tgaetaprojects.biophilia.game.BoardLayout
 import com.tgaetaprojects.biophilia.game.DevelopmentCardType.KNIGHT
 import com.tgaetaprojects.biophilia.game.DevelopmentCardType.MONOPOLY
-import com.tgaetaprojects.biophilia.game.PlayerColor.*
-import com.tgaetaprojects.biophilia.game.Resource.*
+import com.tgaetaprojects.biophilia.game.PlayerColor.BLUE
+import com.tgaetaprojects.biophilia.game.PlayerColor.RED
+import com.tgaetaprojects.biophilia.game.PlayerColor.WHITE
+import com.tgaetaprojects.biophilia.game.Resource.BRICK
+import com.tgaetaprojects.biophilia.game.Resource.ORE
+import com.tgaetaprojects.biophilia.game.Resource.WOOL
 import com.tgaetaprojects.biophilia.game.engine.ActionResult
 import com.tgaetaprojects.biophilia.game.engine.Chance
 import com.tgaetaprojects.biophilia.game.engine.Game
@@ -48,8 +52,18 @@ class SnapshotAndViewTest {
                     val other = decoded.player(player.color)
                     assertEquals(player.toString(), other.toString())
                     assertEquals(
-                        listOf(player.settlementsLeft, player.citiesLeft, player.roadsLeft, player.longestRoad),
-                        listOf(other.settlementsLeft, other.citiesLeft, other.roadsLeft, other.longestRoad)
+                        listOf(
+                            player.settlementsLeft,
+                            player.citiesLeft,
+                            player.roadsLeft,
+                            player.longestRoad
+                        ),
+                        listOf(
+                            other.settlementsLeft,
+                            other.citiesLeft,
+                            other.roadsLeft,
+                            other.longestRoad
+                        )
                     )
                 }
             }
@@ -67,7 +81,10 @@ class SnapshotAndViewTest {
 
         // the restored game, given the same later actions, must draw the same dice and steals
         val restored = SnapshotCodec.decode(midGame)
-        for ((actor, action) in recorder.record().actions.drop(MID_GAME)) restored.apply(actor, action).accepted()
+        for ((actor, action) in recorder.record().actions.drop(MID_GAME)) restored.apply(
+            actor,
+            action
+        ).accepted()
         assertContentEquals(SnapshotCodec.encode(recorder.game), SnapshotCodec.encode(restored))
     }
 
@@ -78,7 +95,7 @@ class SnapshotAndViewTest {
         assertFailsWith<CodecException> { SnapshotCodec.decode(bytes.copyOf().also { it[2] = 99 }) }
         assertFailsWith<CodecException> { SnapshotCodec.decodeView(bytes) }
 
-        // a game whose dice come from a bot can't be snapshotted
+        // a game whose dice come from a bot can't be snapshot
         val scripted = newGame().copy(object : Chance {
             override fun roll() = error("unused")
             override fun stealFrom(hand: ResourceCounts) = error("unused")
@@ -128,7 +145,8 @@ class SnapshotAndViewTest {
     }
 
     /** Everything about a game except its generator: every seat's view, plus the deck order. */
-    private fun Game.everything(): List<Any> = seatOrder.map { viewFor(it) } + listOf(devDeck.toList())
+    private fun Game.everything(): List<Any> =
+        seatOrder.map { viewFor(it) } + listOf(devDeck.toList())
 
     @Test
     fun copiesAreIndependentAndContinueIdentically() {
@@ -149,7 +167,7 @@ class SnapshotAndViewTest {
     }
 
     @Test
-    fun copiesCannotBeSnapshottedAsIfTheyWereTheRealGame() {
+    fun copiesCannotBeSnapshotAsIfTheyWereTheRealGame() {
         val copy = RandomBots.game(1).copy(SeededChance(GameRandom(1)))
         assertFailsWith<IllegalStateException> { SnapshotCodec.encode(copy) }
     }
@@ -176,17 +194,26 @@ class SnapshotAndViewTest {
         // same board, different game seeds: different deck order and dice, identical public state
         val one = Game(listOf(RED, WHITE, BLUE), boardSeed = 1, gameSeed = 2)
         val two = Game(listOf(RED, WHITE, BLUE), boardSeed = 1, gameSeed = 3)
-        assertContentEquals(SnapshotCodec.encodeView(one.viewFor(RED)), SnapshotCodec.encodeView(two.viewFor(RED)))
+        assertContentEquals(
+            SnapshotCodec.encodeView(one.viewFor(RED)),
+            SnapshotCodec.encodeView(two.viewFor(RED))
+        )
 
         // opponents swap which resources they hold; bank and totals are unchanged
         one.give(WHITE, of(ORE, 2)); one.give(BLUE, of(WOOL, 2))
         two.give(WHITE, of(WOOL, 2)); two.give(BLUE, of(ORE, 2))
         one.giveDevCard(WHITE, KNIGHT); two.giveDevCard(WHITE, MONOPOLY)
         // the decks now differ in which card is missing, which is also hidden
-        assertContentEquals(SnapshotCodec.encodeView(one.viewFor(RED)), SnapshotCodec.encodeView(two.viewFor(RED)))
+        assertContentEquals(
+            SnapshotCodec.encodeView(one.viewFor(RED)),
+            SnapshotCodec.encodeView(two.viewFor(RED))
+        )
 
         // but WHITE sees their own cards
-        assertFalse(SnapshotCodec.encodeView(one.viewFor(WHITE)).contentEquals(SnapshotCodec.encodeView(two.viewFor(WHITE))))
+        assertFalse(
+            SnapshotCodec.encodeView(one.viewFor(WHITE))
+                .contentEquals(SnapshotCodec.encodeView(two.viewFor(WHITE)))
+        )
         assertEquals(of(ORE, 2), one.viewFor(WHITE).hand)
         assertEquals(2, one.viewFor(RED).summary(WHITE).handSize)
     }
@@ -206,7 +233,10 @@ class SnapshotAndViewTest {
         assertEquals(produced, produced.visibleTo(BLUE))
 
         val accepted = ActionResult.Accepted(listOf(stole, bought, produced))
-        assertEquals(listOf(stole.visibleTo(BLUE), bought.visibleTo(BLUE), produced), accepted.eventsFor(BLUE))
+        assertEquals(
+            listOf(stole.visibleTo(BLUE), bought.visibleTo(BLUE), produced),
+            accepted.eventsFor(BLUE)
+        )
         assertEquals(listOf(stole, bought, produced), accepted.eventsFor(RED))
     }
 
@@ -218,7 +248,10 @@ class SnapshotAndViewTest {
         val view = game.viewFor(BLUE)
         assertEquals(view, SnapshotCodec.decodeView(SnapshotCodec.encodeView(view)))
         game.startTurnFor(RED, Phase.Discard(mapOf(WHITE to 4)))
-        assertEquals(game.viewFor(RED), SnapshotCodec.decodeView(SnapshotCodec.encodeView(game.viewFor(RED))))
+        assertEquals(
+            game.viewFor(RED),
+            SnapshotCodec.decodeView(SnapshotCodec.encodeView(game.viewFor(RED)))
+        )
         game.startTurnFor(RED, Phase.RoadBuilding(1, Phase.Main))
         assertEquals(game.phase, SnapshotCodec.decode(SnapshotCodec.encode(game)).phase)
     }

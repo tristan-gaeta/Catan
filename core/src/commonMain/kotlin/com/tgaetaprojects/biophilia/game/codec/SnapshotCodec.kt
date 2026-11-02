@@ -60,7 +60,7 @@ object SnapshotCodec {
     fun encode(game: Game): ByteArray = BitWriter().apply {
         val chance = game.chance
         check(chance is SeededChance && chance.random === game.random) {
-            "Only games drawing from their own seeded generator can be snapshotted"
+            "Only games drawing from their own seeded generator can be snapshot"
         }
         header(BlobKind.SNAPSHOT)
         varint(Game.RULES_VERSION)
@@ -70,7 +70,13 @@ object SnapshotCodec {
 
         varint(game.turn)
         varint(game.setupStep)
-        writeShared(game.currentPlayer, game.phase, game.lastRoll, game.devCardPlayedThisTurn, game.seatOrder)
+        writeShared(
+            game.currentPlayer,
+            game.phase,
+            game.lastRoll,
+            game.devCardPlayedThisTurn,
+            game.seatOrder
+        )
         writeBoard(game.board.robber, game.board.roads, game.board.buildings)
 
         for (color in game.seatOrder) {
@@ -134,7 +140,8 @@ object SnapshotCodec {
         val buildings = game.board.buildings.values
         for (player in game.players) {
             val color = player.color
-            player.settlementsLeft = PlayerState.SETTLEMENTS - buildings.count { it == Building.settlement(color) }
+            player.settlementsLeft =
+                PlayerState.SETTLEMENTS - buildings.count { it == Building.settlement(color) }
             player.citiesLeft = PlayerState.CITIES - buildings.count { it == Building.city(color) }
             player.roadsLeft = PlayerState.ROADS - game.board.roads.values.count { it == color }
             require(player.settlementsLeft >= 0 && player.citiesLeft >= 0 && player.roadsLeft >= 0) {
@@ -147,7 +154,8 @@ object SnapshotCodec {
         require(ResourceCounts.FULL_BANK.covers(held)) { "Players hold more cards than exist: $held" }
         game.bank = ResourceCounts.FULL_BANK - held
 
-        val devCards = game.devDeck.size + game.players.sumOf { it.devCards.total + it.knightsPlayed }
+        val devCards =
+            game.devDeck.size + game.players.sumOf { it.devCards.total + it.knightsPlayed }
         require(devCards <= 25) { "More than 25 development cards" }
 
         checkPhase(game)
@@ -164,13 +172,15 @@ object SnapshotCodec {
                 val next = phase.contenders.firstOrNull { it !in phase.rolls }
                 require(next != null && game.currentPlayer == next) { "The current player must be the next to roll" }
             }
+
             is Phase.SetupSettlement, is Phase.SetupRoad -> {
                 val players = game.turnOrder.size
                 val step = game.setupStep
                 require(game.turn == 0 && step < 2 * players) { "Set-up is over after ${2 * players} placements" }
                 val round = if (step < players) 1 else 2
                 val placing = game.turnOrder[if (round == 1) step else 2 * players - 1 - step]
-                val phaseRound = if (phase is Phase.SetupSettlement) phase.round else (phase as Phase.SetupRoad).round
+                val phaseRound =
+                    if (phase is Phase.SetupSettlement) phase.round else (phase as Phase.SetupRoad).round
                 require(game.currentPlayer == placing && phaseRound == round) { "Set-up placement out of order" }
                 if (phase is Phase.SetupRoad) {
                     require(game.board.buildings[phase.settlement] == Building.settlement(placing)) {
@@ -178,6 +188,7 @@ object SnapshotCodec {
                     }
                 }
             }
+
             is Phase.Discard -> {
                 require(game.turn >= 1) { "Discards happen during play" }
                 for ((color, owed) in phase.pending) {
@@ -185,6 +196,7 @@ object SnapshotCodec {
                     require(held > 7 && owed == held / 2) { "$color can't owe $owed cards with $held in hand" }
                 }
             }
+
             else -> require(game.turn >= 1) { "${phase::class.simpleName} only happens during play" }
         }
     }
@@ -199,7 +211,13 @@ object SnapshotCodec {
         writeLayout(view.layout)
 
         varint(view.turn)
-        writeShared(view.currentPlayer, view.phase, view.lastRoll, view.devCardPlayedThisTurn, view.seatOrder)
+        writeShared(
+            view.currentPlayer,
+            view.phase,
+            view.lastRoll,
+            view.devCardPlayedThisTurn,
+            view.seatOrder
+        )
         writeBoard(view.robber, view.roads, view.buildings)
 
         counts(view.bank)
@@ -223,7 +241,8 @@ object SnapshotCodec {
         header(BlobKind.VIEW)
         readRulesVersion()
         val (seats, firstPlayer) = readSeats()
-        val viewer = code<PlayerColor>().also { require(it in seats) { "Viewer $it isn't playing" } }
+        val viewer =
+            code<PlayerColor>().also { require(it in seats) { "Viewer $it isn't playing" } }
         val layout = readLayout()
 
         val turn = varint()
@@ -234,7 +253,13 @@ object SnapshotCodec {
         val bank = resourceCounts()
         val deckSize = bits(CARD_COUNT_WIDTH)
         val summaries = seats.map {
-            PlayerSummary(it, bits(HAND_SIZE_WIDTH), bits(CARD_COUNT_WIDTH), bits(CARD_COUNT_WIDTH), bits(KNIGHTS_WIDTH))
+            PlayerSummary(
+                it,
+                bits(HAND_SIZE_WIDTH),
+                bits(CARD_COUNT_WIDTH),
+                bits(CARD_COUNT_WIDTH),
+                bits(KNIGHTS_WIDTH)
+            )
         }
         val hand = resourceCounts()
         val devCards = devCardCounts()
@@ -284,14 +309,24 @@ object SnapshotCodec {
     private fun BitReader.readSeats(): Pair<List<PlayerColor>, PlayerColor?> {
         val seats = List(bits(1) + 3) { code<PlayerColor>() }
         require(seats.toSet().size == seats.size) { "Duplicate colors $seats" }
-        val first = optional<PlayerColor>()?.also { require(it in seats) { "First player $it isn't seated" } }
+        val first =
+            optional<PlayerColor>()?.also { require(it in seats) { "First player $it isn't seated" } }
         return seats to first
     }
 
-    private data class Shared(val current: PlayerColor, val phase: Phase, val lastRoll: DiceTotal?, val devCardPlayed: Boolean)
+    private data class Shared(
+        val current: PlayerColor,
+        val phase: Phase,
+        val lastRoll: DiceTotal?,
+        val devCardPlayed: Boolean
+    )
 
     private fun BitWriter.writeShared(
-        current: PlayerColor, phase: Phase, lastRoll: DiceTotal?, devCardPlayed: Boolean, seats: List<PlayerColor>
+        current: PlayerColor,
+        phase: Phase,
+        lastRoll: DiceTotal?,
+        devCardPlayed: Boolean,
+        seats: List<PlayerColor>
     ) {
         code(current)
         writePhase(phase, seats)
@@ -300,7 +335,8 @@ object SnapshotCodec {
     }
 
     private fun BitReader.readShared(seats: List<PlayerColor>): Shared {
-        val current = code<PlayerColor>().also { require(it in seats) { "Current player $it isn't playing" } }
+        val current =
+            code<PlayerColor>().also { require(it in seats) { "Current player $it isn't playing" } }
         return Shared(current, readPhase(seats), optional<DiceTotal>(), bool())
     }
 
@@ -312,30 +348,36 @@ object SnapshotCodec {
                 for (color in seats) bool(color in phase.contenders)
                 for (color in phase.contenders) optional(phase.rolls[color])
             }
+
             is Phase.SetupSettlement -> {
                 code(PhaseTag.SETUP_SETTLEMENT)
                 bits(phase.round - 1, 1)
             }
+
             is Phase.SetupRoad -> {
                 code(PhaseTag.SETUP_ROAD)
                 bits(phase.round - 1, 1)
                 code(phase.settlement)
             }
+
             Phase.PreRoll -> code(PhaseTag.PRE_ROLL)
             is Phase.Discard -> {
                 code(PhaseTag.DISCARD)
                 for (color in seats) bits(phase.pending[color] ?: 0, DISCARD_WIDTH)
             }
+
             is Phase.MoveRobber -> {
                 code(PhaseTag.MOVE_ROBBER)
                 writePhase(phase.returnTo, seats)
             }
+
             Phase.Main -> code(PhaseTag.MAIN)
             is Phase.RoadBuilding -> {
                 code(PhaseTag.ROAD_BUILDING)
                 bits(phase.remaining, 2)
                 writePhase(phase.returnTo, seats)
             }
+
             is Phase.GameOver -> {
                 code(PhaseTag.GAME_OVER)
                 code(phase.winner)
@@ -352,6 +394,7 @@ object SnapshotCodec {
             for (color in contenders) optional<DiceTotal>()?.let { rolls[color] = it }
             Phase.RollForFirstPlayer(contenders, rolls.asReadOnly())
         }
+
         PhaseTag.SETUP_SETTLEMENT -> Phase.SetupSettlement(bits(1) + 1)
         PhaseTag.SETUP_ROAD -> Phase.SetupRoad(bits(1) + 1, code<Vertex>())
         PhaseTag.PRE_ROLL -> Phase.PreRoll
@@ -361,6 +404,7 @@ object SnapshotCodec {
             require(pending.isNotEmpty()) { "A discard phase with nobody discarding" }
             Phase.Discard(pending.asReadOnly())
         }
+
         PhaseTag.MOVE_ROBBER -> Phase.MoveRobber(readResumablePhase(seats))
         PhaseTag.MAIN -> Phase.Main
         PhaseTag.ROAD_BUILDING -> {
@@ -368,6 +412,7 @@ object SnapshotCodec {
             require(remaining in 1..2) { "Road Building with $remaining roads" }
             Phase.RoadBuilding(remaining, readResumablePhase(seats))
         }
+
         PhaseTag.GAME_OVER -> Phase.GameOver(code<PlayerColor>().also { require(it in seats) })
     }
 
@@ -375,7 +420,11 @@ object SnapshotCodec {
     private fun BitReader.readResumablePhase(seats: List<PlayerColor>): Phase =
         readPhase(seats).also { require(it == Phase.PreRoll || it == Phase.Main) { "Can't resume into $it" } }
 
-    private fun BitWriter.writeBoard(robber: Hex, roads: Map<Edge, PlayerColor>, buildings: Map<Vertex, Building>) {
+    private fun BitWriter.writeBoard(
+        robber: Hex,
+        roads: Map<Edge, PlayerColor>,
+        buildings: Map<Vertex, Building>
+    ) {
         code(robber)
         for (edge in Edge.entries) optional(roads[edge])
         for (vertex in Vertex.entries) optional(buildings[vertex])
@@ -407,10 +456,18 @@ object SnapshotCodec {
     }
 
     /** The smallest possible encoded offer: a one-byte id, two colors and two hands of counts. */
-    private val MIN_OFFER_BITS = 8 + 2 * bitsFor(PlayerColor.entries.size) + 2 * Resource.entries.size * COUNT_WIDTH
+    private val MIN_OFFER_BITS =
+        8 + 2 * bitsFor(PlayerColor.entries.size) + 2 * Resource.entries.size * COUNT_WIDTH
 
-    private fun BitReader.readOffers(seats: List<PlayerColor>): List<TradeOffer> = List(count(minBitsEach = MIN_OFFER_BITS)) {
-        TradeOffer(varint(), code<PlayerColor>(), code<PlayerColor>(), resourceCounts(), resourceCounts())
-            .also { require(it.from in seats && it.to in seats) { "Offer between players not in the game" } }
-    }
+    private fun BitReader.readOffers(seats: List<PlayerColor>): List<TradeOffer> =
+        List(count(minBitsEach = MIN_OFFER_BITS)) {
+            TradeOffer(
+                varint(),
+                code<PlayerColor>(),
+                code<PlayerColor>(),
+                resourceCounts(),
+                resourceCounts()
+            )
+                .also { require(it.from in seats && it.to in seats) { "Offer between players not in the game" } }
+        }
 }

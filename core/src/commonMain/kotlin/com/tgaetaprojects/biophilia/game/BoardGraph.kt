@@ -10,7 +10,7 @@ import com.tgaetaprojects.biophilia.utils.MutableEnumSet
  *
  * Every vertex and edge touches at least one tile, so walking the six corners and sides of each of the
  * 19 hexes reaches the whole graph. This lives outside the enums so that Hex, Edge and Vertex only ever
- * depend on each other's coordinate lookups during class initialisation, never on each other's graph.
+ * depend on each other's coordinate lookups during class initialization, never on each other's graph.
  */
 internal object BoardGraph {
     val hexVertices: List<EnumMap<Direction, Vertex>>

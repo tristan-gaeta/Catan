@@ -26,11 +26,15 @@ class SetupTest {
     fun theHighestRollGoesFirstAndPlayGoesClockwiseFromThem() {
         val game = Game(listOf(RED, WHITE, BLUE, ORANGE), boardSeed = 1, gameSeed = 2)
         game.forceRolls(DiceTotal.SIX, DiceTotal.TEN, DiceTotal.THREE, DiceTotal.EIGHT)
-        assertEquals(Phase.RollForFirstPlayer(listOf(RED, WHITE, BLUE, ORANGE), emptyMap()), game.phase)
+        assertEquals(
+            Phase.RollForFirstPlayer(listOf(RED, WHITE, BLUE, ORANGE), emptyMap()),
+            game.phase
+        )
         assertNull(game.firstPlayer)
 
         game.apply(WHITE, Action.RollDice).rejectedWith(NOT_YOUR_TURN)
-        game.apply(RED, Action.PlaceSettlement(Hex.J.vertices.getValue(NE))).rejectedWith(WRONG_PHASE)
+        game.apply(RED, Action.PlaceSettlement(Hex.J.vertices.getValue(NE)))
+            .rejectedWith(WRONG_PHASE)
         for (color in listOf(RED, WHITE, BLUE)) game.apply(color, Action.RollDice).accepted()
         val events = game.apply(ORANGE, Action.RollDice).accepted()
 
@@ -46,7 +50,15 @@ class SetupTest {
     @Test
     fun onlyPlayersTiedForTheHighestRollRollAgain() {
         val game = Game(listOf(RED, WHITE, BLUE), boardSeed = 1, gameSeed = 2)
-        game.forceRolls(DiceTotal.EIGHT, DiceTotal.ELEVEN, DiceTotal.ELEVEN, DiceTotal.FOUR, DiceTotal.FOUR, DiceTotal.NINE, DiceTotal.TWO)
+        game.forceRolls(
+            DiceTotal.EIGHT,
+            DiceTotal.ELEVEN,
+            DiceTotal.ELEVEN,
+            DiceTotal.FOUR,
+            DiceTotal.FOUR,
+            DiceTotal.NINE,
+            DiceTotal.TWO
+        )
         for (color in listOf(RED, WHITE, BLUE)) game.apply(color, Action.RollDice).accepted()
         assertEquals(Phase.RollForFirstPlayer(listOf(WHITE, BLUE), emptyMap()), game.phase)
         assertEquals(WHITE, game.currentPlayer)
@@ -66,12 +78,16 @@ class SetupTest {
 
     @Test
     fun setupRunsAsASnakeAndTheFirstPlayerStarts() {
-        val game = newGame(seats = listOf(RED, WHITE, BLUE, ORANGE)).apply { skipFirstPlayerRoll(BLUE) }
+        val game =
+            newGame(seats = listOf(RED, WHITE, BLUE, ORANGE)).apply { skipFirstPlayerRoll(BLUE) }
         val placers = mutableListOf<PlayerColor>()
         while (game.phase != Phase.PreRoll) {
             if (game.phase is Phase.SetupSettlement) placers += game.currentPlayer
             val action = when (game.phase) {
-                is Phase.SetupSettlement -> Action.PlaceSettlement(game.legalSettlementSpots(game.currentPlayer).first())
+                is Phase.SetupSettlement -> Action.PlaceSettlement(
+                    game.legalSettlementSpots(game.currentPlayer).first()
+                )
+
                 else -> Action.PlaceRoad(game.legalRoadSpots(game.currentPlayer).first())
             }
             game.apply(game.currentPlayer, action).accepted()
@@ -93,7 +109,10 @@ class SetupTest {
                 game.apply(game.currentPlayer, Action.PlaceSettlement(spot)).accepted()
                 if (phase.round == 1) assertTrue(game.player(game.currentPlayer).hand.isEmpty)
             } else {
-                game.apply(game.currentPlayer, Action.PlaceRoad(game.legalRoadSpots(game.currentPlayer).first())).accepted()
+                game.apply(
+                    game.currentPlayer,
+                    Action.PlaceRoad(game.legalRoadSpots(game.currentPlayer).first())
+                ).accepted()
             }
         }
         for ((color, vertex) in secondSettlements) {
@@ -112,7 +131,8 @@ class SetupTest {
         game.apply(RED, Action.PlaceSettlement(north)).accepted()
         game.apply(RED, Action.PlaceRoad(north.edges.first())).accepted()
 
-        game.apply(WHITE, Action.PlaceSettlement(north.neighbors.keys.first())).rejectedWith(ILLEGAL_LOCATION)
+        game.apply(WHITE, Action.PlaceSettlement(north.neighbors.keys.first()))
+            .rejectedWith(ILLEGAL_LOCATION)
         game.apply(WHITE, Action.PlaceSettlement(Hex.A.vertices.getValue(NE))).accepted()
     }
 
@@ -130,9 +150,10 @@ class SetupTest {
     }
 
     @Test
-    fun otherPlayersCannotActDuringSomeoneElsesSetup() {
+    fun otherPlayersCannotActDuringSomeoneElseSetup() {
         val game = newGame()
-        game.apply(WHITE, Action.PlaceSettlement(Hex.J.vertices.getValue(NE))).rejectedWith(NOT_YOUR_TURN)
+        game.apply(WHITE, Action.PlaceSettlement(Hex.J.vertices.getValue(NE)))
+            .rejectedWith(NOT_YOUR_TURN)
         game.apply(ORANGE, Action.RollDice).rejectedWith(UNKNOWN_PLAYER)
     }
 }

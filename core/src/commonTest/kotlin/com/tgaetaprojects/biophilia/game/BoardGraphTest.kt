@@ -24,7 +24,10 @@ class BoardGraphTest {
     fun hexLookupRoundTrips() {
         for (hex in Hex.entries) assertEquals(hex, Hex.fromCoordinate(hex.q, hex.r))
         assertNull(Hex.fromCoordinate(3, 0))
-        for (dir in Direction.entries) assertEquals(Hex.entries.toSet(), Hex.spiralInwardCC(dir).toSet())
+        for (dir in Direction.entries) assertEquals(
+            Hex.entries.toSet(),
+            Hex.spiralInwardCC(dir).toSet()
+        )
     }
 
     @Test
@@ -34,7 +37,11 @@ class BoardGraphTest {
             assertEquals(6, hex.vertices.values.toSet().size)
             for ((dir, vertex) in hex.vertices) {
                 val point = cornerPoint(hex, dir)
-                assertEquals(point, points.getOrPut(vertex) { point }, "$vertex seen at two positions")
+                assertEquals(
+                    point,
+                    points.getOrPut(vertex) { point },
+                    "$vertex seen at two positions"
+                )
             }
         }
         assertEquals(Vertex.entries.size, points.size)

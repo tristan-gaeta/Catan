@@ -14,7 +14,11 @@ internal fun GameBoard.satisfiesDistanceRule(vertex: Vertex): Boolean =
  * Whether [color] may put a settlement on [vertex]. Outside the set-up phase ([requireRoad]) the vertex must
  * also touch one of the player's own roads.
  */
-internal fun GameBoard.canPlaceSettlement(color: PlayerColor, vertex: Vertex, requireRoad: Boolean): Boolean =
+internal fun GameBoard.canPlaceSettlement(
+    color: PlayerColor,
+    vertex: Vertex,
+    requireRoad: Boolean
+): Boolean =
     satisfiesDistanceRule(vertex) && (!requireRoad || vertex.edges.any { roads[it] == color })
 
 /**

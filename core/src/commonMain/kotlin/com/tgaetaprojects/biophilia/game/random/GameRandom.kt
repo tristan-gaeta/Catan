@@ -12,7 +12,12 @@ package com.tgaetaprojects.biophilia.game.random
  * Changing anything here, or the order in which the engine draws numbers, changes every recorded game, so it
  * requires bumping `Game.RULES_VERSION`.
  */
-class GameRandom private constructor(private var s0: Int, private var s1: Int, private var s2: Int, private var s3: Int) {
+class GameRandom private constructor(
+    private var s0: Int,
+    private var s1: Int,
+    private var s2: Int,
+    private var s3: Int
+) {
 
     /** Seeds the generator by expanding [seed] with SplitMix64, as the xoshiro authors recommend. */
     constructor(seed: Long) : this(0, 0, 0, 0) {

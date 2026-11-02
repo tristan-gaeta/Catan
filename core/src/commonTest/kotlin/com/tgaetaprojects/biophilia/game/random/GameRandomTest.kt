@@ -21,7 +21,16 @@ class GameRandomTest {
     fun xoshiroSequenceIsPinned() {
         val random = GameRandom(42)
         assertEquals(
-            listOf(-1651223871, 1762251840, 1632151183, 1417845339, -968303052, -305620314, -15323469, -1419553110),
+            listOf(
+                -1651223871,
+                1762251840,
+                1632151183,
+                1417845339,
+                -968303052,
+                -305620314,
+                -15323469,
+                -1419553110
+            ),
             List(8) { random.nextInt() }
         )
     }
@@ -73,7 +82,11 @@ class GameRandomTest {
                 check(n in 0 until bound) { "$n out of 0 until $bound" }
                 seen += n
             }
-            if (bound <= 25) assertEquals(bound, seen.size, "every value below $bound should appear")
+            if (bound <= 25) assertEquals(
+                bound,
+                seen.size,
+                "every value below $bound should appear"
+            )
         }
     }
 }

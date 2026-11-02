@@ -14,7 +14,10 @@ internal const val MIN_LARGEST_ARMY = 3
  * - otherwise it goes to the single longest road of at least [MIN_LONGEST_ROAD];
  * - if that longest length is shared, or nobody reaches the minimum, the card is set aside (`null`).
  */
-internal fun longestRoadHolder(current: PlayerColor?, lengths: Map<PlayerColor, Int>): PlayerColor? {
+internal fun longestRoadHolder(
+    current: PlayerColor?,
+    lengths: Map<PlayerColor, Int>
+): PlayerColor? {
     val best = lengths.values.maxOrNull() ?: 0
     if (best < MIN_LONGEST_ROAD) return null
     if (current != null && lengths[current] == best) return current
@@ -25,7 +28,11 @@ internal fun longestRoadHolder(current: PlayerColor?, lengths: Map<PlayerColor, 
  * Who holds Largest Army given everyone's played [knights]: the first player to [MIN_LARGEST_ARMY], until someone
  * has strictly more than the [current] holder. Knights are never lost, so the card is never set aside.
  */
-internal fun largestArmyHolder(current: PlayerColor?, knights: Map<PlayerColor, Int>): PlayerColor? {
+internal fun largestArmyHolder(
+    current: PlayerColor?,
+    knights: Map<PlayerColor, Int>
+): PlayerColor? {
     val toBeat = current?.let { knights.getValue(it) } ?: (MIN_LARGEST_ARMY - 1)
-    return knights.filter { it.key != current && it.value > toBeat }.maxByOrNull { it.value }?.key ?: current
+    return knights.filter { it.key != current && it.value > toBeat }.maxByOrNull { it.value }?.key
+        ?: current
 }

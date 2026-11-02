@@ -28,19 +28,25 @@ sealed interface Action {
 
     /** [Phase.Main]. */
     data class BuildRoad(val edge: Edge) : Action
+
     /** [Phase.Main]. */
     data class BuildSettlement(val vertex: Vertex) : Action
+
     /** [Phase.Main]: upgrade one of your settlements. */
     data class BuildCity(val vertex: Vertex) : Action
+
     /** [Phase.Main]. */
     data object BuyDevCard : Action
 
     /** [Phase.PreRoll] or [Phase.Main], once per turn, with a card not bought this turn. */
     data object PlayKnight : Action
+
     /** Same timing as [PlayKnight]. */
     data object PlayRoadBuilding : Action
+
     /** Same timing as [PlayKnight]; [first] and [second] may be the same resource. */
     data class PlayYearOfPlenty(val first: Resource, val second: Resource) : Action
+
     /** Same timing as [PlayKnight]. */
     data class PlayMonopoly(val resource: Resource) : Action
 
@@ -51,7 +57,11 @@ sealed interface Action {
      * [Phase.Main]: offer [to] the cards in [give] for the cards in [get]. The current player may offer to anyone;
      * other players may only make (counter)offers to the current player.
      */
-    data class ProposeTrade(val to: PlayerColor, val give: ResourceCounts, val get: ResourceCounts) : Action
+    data class ProposeTrade(
+        val to: PlayerColor,
+        val give: ResourceCounts,
+        val get: ResourceCounts
+    ) : Action
 
     /** [Phase.Main]: the recipient of an offer accepts it. */
     data class AcceptTrade(val offerId: Int) : Action

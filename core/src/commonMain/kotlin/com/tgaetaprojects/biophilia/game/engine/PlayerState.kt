@@ -44,7 +44,8 @@ class PlayerState internal constructor(val color: PlayerColor) {
         longestRoad = other.longestRoad
     }
 
-    override fun toString(): String = "PlayerState($color, hand=$hand, devCards=$devCards, knights=$knightsPlayed)"
+    override fun toString(): String =
+        "PlayerState($color, hand=$hand, devCards=$devCards, knights=$knightsPlayed)"
 
     companion object {
         const val SETTLEMENTS = 5

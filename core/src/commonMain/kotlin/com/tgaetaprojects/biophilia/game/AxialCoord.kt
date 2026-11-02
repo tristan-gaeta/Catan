@@ -6,9 +6,9 @@ import kotlin.math.abs
 value class AxialCoord(val packed: Long) {
     inline val q: Int get() = packed.toInt()
     inline val r: Int get() = (packed ushr 32).toInt()
-    inline val s: Int get() = -q -r
+    inline val s: Int get() = -q - r
 
-    operator fun get(i: Int) = when(i) {
+    operator fun get(i: Int) = when (i) {
         0 -> q
         1 -> r
         2 -> s
@@ -35,7 +35,7 @@ value class AxialCoord(val packed: Long) {
 
     companion object {
         val ZERO = AxialCoord(0, 0)
-        val Q = AxialCoord(1,0)
+        val Q = AxialCoord(1, 0)
         val R = AxialCoord(0, 1)
         val S = AxialCoord(-1, -1)
 

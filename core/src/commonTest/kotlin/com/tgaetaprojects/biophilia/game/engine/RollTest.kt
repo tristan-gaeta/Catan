@@ -39,7 +39,14 @@ class RollTest {
         game.putCity(WHITE, hex.vertices.getValue(SW))
 
         val events = rollAs(RED, DiceTotal.TWO)
-        assertEquals(GameEvent.ResourcesProduced(mapOf(RED to of(resource, 1), WHITE to of(resource, 2))), events.last())
+        assertEquals(
+            GameEvent.ResourcesProduced(
+                mapOf(
+                    RED to of(resource, 1),
+                    WHITE to of(resource, 2)
+                )
+            ), events.last()
+        )
         assertEquals(of(resource, 1), game.player(RED).hand)
         assertEquals(19 - 3, game.bank[resource])
         assertEquals(Phase.Main, game.phase)
@@ -67,7 +74,8 @@ class RollTest {
         rollAs(RED, DiceTotal.SEVEN)
         assertEquals(Phase.Discard(mapOf(RED to 4, BLUE to 4)), game.phase)
         game.apply(WHITE, Action.Discard(of(WOOL, 3))).rejectedWith(INVALID_DISCARD)
-        game.apply(RED, Action.MoveRobber(Hex.entries.first { it != game.board.robber }, null)).rejectedWith(WRONG_PHASE)
+        game.apply(RED, Action.MoveRobber(Hex.entries.first { it != game.board.robber }, null))
+            .rejectedWith(WRONG_PHASE)
 
         game.apply(BLUE, Action.Discard(of(GRAIN, 4))).accepted()
         assertEquals(Phase.Discard(mapOf(RED to 4)), game.phase)

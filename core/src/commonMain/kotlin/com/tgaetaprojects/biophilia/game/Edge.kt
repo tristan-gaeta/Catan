@@ -24,7 +24,7 @@ enum class Edge {
     companion object {
         /* Same scheme as Hex.board, but over a radius 3 grid (7x7 rhombus, 3 cells of padding truncated
            from each end) so the sea-side cells around the board can own the coastal edges. Each cell owns
-           its NE, NW and W edges; the other three belong to a neighbour.
+           its NE, NW and W edges; the other three belong to a neighbor.
          */
         private const val WIDTH = 7
         private const val PADDING = 3
@@ -42,7 +42,7 @@ enum class Edge {
                     edges.next()
                 else null
             }
-            assert(!edges.hasNext()){"Not all edges were assigned"}
+            assert(!edges.hasNext()) { "Not all edges were assigned" }
         }
 
         fun fromCoordinate(q: Int, r: Int, direction: Direction): Edge? {

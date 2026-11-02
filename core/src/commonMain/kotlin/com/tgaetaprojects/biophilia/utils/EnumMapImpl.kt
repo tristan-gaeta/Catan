@@ -6,7 +6,7 @@ import java.util.EnumMap as JEnumMap
  * The single implementation of [MutableEnumMap], a thin wrapper over [java.util.EnumMap] (one array slot per
  * constant, indexed by ordinal).
  *
- * Behaviour inherited from the JDK class:
+ * Behavior inherited from the JDK class:
  * - iteration over [keys], [values] and [entries] follows declaration (ordinal) order;
  * - those views are live: removing through them, or calling `setValue` on an entry, writes through to the map;
  * - iterators are weakly consistent rather than fail-fast, so they never throw [ConcurrentModificationException];
@@ -14,7 +14,7 @@ import java.util.EnumMap as JEnumMap
  *   return `null` or `false` instead of throwing.
  *
  * [equals], [hashCode] and [toString] are not covered by interface delegation, so they are forwarded explicitly
- * to honour the [Map] contract: an instance equals any [Map] with the same entries. Note that enum hash codes are
+ * to honor the [Map] contract: an instance equals any [Map] with the same entries. Note that enum hash codes are
  * identity based, so [hashCode] differs between JVM runs and must never be persisted.
  *
  * Every constructor takes the key type's [Class]. The JDK's own copy constructor can't infer the type from an
@@ -29,6 +29,7 @@ internal class EnumMapImpl<K : Enum<K>, V>(
 
     override fun equals(other: Any?): Boolean =
         delegate == if (other is EnumMapImpl<*, *>) other.delegate else other
+
     override fun hashCode(): Int = delegate.hashCode()
     override fun toString(): String = delegate.toString()
 

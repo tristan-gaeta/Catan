@@ -52,30 +52,58 @@ class VersionGuardTest {
 
     @Test
     fun rulesBehaviorIsPinnedToTheRulesVersion() {
-        checkPinned("rules", "Game.RULES_VERSION", Game.RULES_VERSION, RULES_FINGERPRINTS, rulesFingerprint())
+        checkPinned(
+            "rules",
+            "Game.RULES_VERSION",
+            Game.RULES_VERSION,
+            RULES_FINGERPRINTS,
+            rulesFingerprint()
+        )
     }
 
     @Test
     fun encodingsArePinnedToTheFormatVersion() {
-        checkPinned("format", "FORMAT_VERSION", FORMAT_VERSION, FORMAT_FINGERPRINTS, formatFingerprint())
+        checkPinned(
+            "format",
+            "FORMAT_VERSION",
+            FORMAT_VERSION,
+            FORMAT_FINGERPRINTS,
+            formatFingerprint()
+        )
     }
 
     @Test
     fun blobsFromAnotherVersionAreRefused() {
         val game = fixedGame(Phase.Main)
         val snapshot = SnapshotCodec.encode(game)
-        assertFailsWith<CodecException> { SnapshotCodec.decode(snapshot.copyOf().also { it[0] = (FORMAT_VERSION + 1).toByte() }) }
-        assertFailsWith<CodecException> { SnapshotCodec.decode(snapshot.copyOf().also { it[2] = (Game.RULES_VERSION + 1).toByte() }) }
+        assertFailsWith<CodecException> {
+            SnapshotCodec.decode(
+                snapshot.copyOf().also { it[0] = (FORMAT_VERSION + 1).toByte() })
+        }
+        assertFailsWith<CodecException> {
+            SnapshotCodec.decode(
+                snapshot.copyOf().also { it[2] = (Game.RULES_VERSION + 1).toByte() })
+        }
         val view = SnapshotCodec.encodeView(game.viewFor(RED))
-        assertFailsWith<CodecException> { SnapshotCodec.decodeView(view.copyOf().also { it[2] = (Game.RULES_VERSION + 1).toByte() }) }
+        assertFailsWith<CodecException> {
+            SnapshotCodec.decodeView(
+                view.copyOf().also { it[2] = (Game.RULES_VERSION + 1).toByte() })
+        }
     }
 
-    private fun checkPinned(what: String, constant: String, version: Int, pinned: Map<Int, Int>, actual: Int) {
-        val expected = pinned[version] ?: fail("No $what fingerprint for $constant = $version; if this is a new version, add $version to $actual")
+    private fun checkPinned(
+        what: String,
+        constant: String,
+        version: Int,
+        pinned: Map<Int, Int>,
+        actual: Int
+    ) {
+        val expected = pinned[version]
+            ?: fail("No $what fingerprint for $constant = $version; if this is a new version, add $version to $actual")
         assertEquals(
             expected, actual,
             "The $what changed without a version bump. If the change is deliberate, bump $constant and add the new " +
-                "version with fingerprint $actual; otherwise it's a regression."
+                    "version with fingerprint $actual; otherwise it's a regression."
         )
     }
 
@@ -138,7 +166,8 @@ class VersionGuardTest {
         mix(game.lastRoll?.value ?: 0)
         mix(game.board.robber.ordinal)
         for (edge in Edge.entries) mix(game.board.roads[edge]?.let { it.ordinal + 1 } ?: 0)
-        for (vertex in Vertex.entries) mix(game.board.buildings[vertex]?.let { it.ordinal + 1 } ?: 0)
+        for (vertex in Vertex.entries) mix(game.board.buildings[vertex]?.let { it.ordinal + 1 }
+            ?: 0)
         for (color in game.seatOrder) {
             val player = game.player(color)
             mixCounts(player.hand)
@@ -159,16 +188,36 @@ class VersionGuardTest {
         when (phase) {
             is Phase.RollForFirstPlayer -> {
                 mix(1)
-                for (color in phase.contenders) mix(color.ordinal * 16 + (phase.rolls[color]?.value ?: 0))
+                for (color in phase.contenders) mix(
+                    color.ordinal * 16 + (phase.rolls[color]?.value ?: 0)
+                )
             }
-            is Phase.SetupSettlement -> { mix(2); mix(phase.round) }
-            is Phase.SetupRoad -> { mix(3); mix(phase.round); mix(phase.settlement.ordinal) }
+
+            is Phase.SetupSettlement -> {
+                mix(2); mix(phase.round)
+            }
+
+            is Phase.SetupRoad -> {
+                mix(3); mix(phase.round); mix(phase.settlement.ordinal)
+            }
+
             Phase.PreRoll -> mix(4)
-            is Phase.Discard -> { mix(5); for (color in game.seatOrder) mix(phase.pending[color] ?: 0) }
-            is Phase.MoveRobber -> { mix(6); mixPhase(phase.returnTo, game) }
+            is Phase.Discard -> {
+                mix(5); for (color in game.seatOrder) mix(phase.pending[color] ?: 0)
+            }
+
+            is Phase.MoveRobber -> {
+                mix(6); mixPhase(phase.returnTo, game)
+            }
+
             Phase.Main -> mix(7)
-            is Phase.RoadBuilding -> { mix(8); mix(phase.remaining); mixPhase(phase.returnTo, game) }
-            is Phase.GameOver -> { mix(9); mix(phase.winner.ordinal) }
+            is Phase.RoadBuilding -> {
+                mix(8); mix(phase.remaining); mixPhase(phase.returnTo, game)
+            }
+
+            is Phase.GameOver -> {
+                mix(9); mix(phase.winner.ordinal)
+            }
         }
     }
 
@@ -186,14 +235,24 @@ class VersionGuardTest {
     private fun formatFingerprint(): Int {
         val blobs = mutableListOf(
             LayoutCodec.encode(fixedLayout()),
-            GameRecord(1, listOf(RED, WHITE, BLUE), 3L, 4L, fixedLayout(), sampleActions().map { RecordedAction(RED, it) }).encode(),
+            GameRecord(
+                1,
+                listOf(RED, WHITE, BLUE),
+                3L,
+                4L,
+                fixedLayout(),
+                sampleActions().map { RecordedAction(RED, it) }).encode(),
         )
         blobs += sampleActions().map { ActionCodec.encode(ORANGE, it) }
         for (phase in samplePhases()) {
             val game = fixedGame(phase)
             val snapshot = SnapshotCodec.encode(game)
             // the decoder must accept every sample, or the sample isn't a state the engine can be in
-            assertContentEquals(snapshot, SnapshotCodec.encode(SnapshotCodec.decode(snapshot)), "$phase")
+            assertContentEquals(
+                snapshot,
+                SnapshotCodec.encode(SnapshotCodec.decode(snapshot)),
+                "$phase"
+            )
             blobs += withoutRulesVersion(snapshot)
             blobs += withoutRulesVersion(SnapshotCodec.encodeView(game.viewFor(WHITE)))
         }
@@ -209,7 +268,11 @@ class VersionGuardTest {
         assertEquals(PlayerColor.entries.toSet(), game.seatOrder.toSet())
         assertEquals(Building.entries.toSet(), game.board.buildings.values.toSet())
         assertEquals(DevelopmentCardType.entries.toSet(), game.devDeck.toSet())
-        assertEquals(Resource.entries.size, Resource.entries.map { game.player(RED).hand[it] }.toSet().size, "distinct counts per resource")
+        assertEquals(
+            Resource.entries.size,
+            Resource.entries.map { game.player(RED).hand[it] }.toSet().size,
+            "distinct counts per resource"
+        )
         assertEquals(Terrain.entries.toSet(), fixedLayout().terrain.values.toSet())
         assertEquals(DiceTotal.entries.toSet(), fixedLayout().numbers.values.toSet())
         assertEquals(FramePiece.entries.toSet(), fixedLayout().frame.toSet())
@@ -226,15 +289,57 @@ class VersionGuardTest {
 
     private fun fixedLayout(): BoardLayout {
         val tiles = listOf(
-            Terrain.HILL, Terrain.FOREST, Terrain.PASTURE, Terrain.FIELDS, Terrain.MOUNTAIN, Terrain.HILL,
-            Terrain.FOREST, Terrain.PASTURE, Terrain.FIELDS, Terrain.DESERT, Terrain.MOUNTAIN, Terrain.HILL,
-            Terrain.FOREST, Terrain.PASTURE, Terrain.FIELDS, Terrain.MOUNTAIN, Terrain.FOREST, Terrain.PASTURE,
+            Terrain.HILL,
+            Terrain.FOREST,
+            Terrain.PASTURE,
+            Terrain.FIELDS,
+            Terrain.MOUNTAIN,
+            Terrain.HILL,
+            Terrain.FOREST,
+            Terrain.PASTURE,
+            Terrain.FIELDS,
+            Terrain.DESERT,
+            Terrain.MOUNTAIN,
+            Terrain.HILL,
+            Terrain.FOREST,
+            Terrain.PASTURE,
+            Terrain.FIELDS,
+            Terrain.MOUNTAIN,
+            Terrain.FOREST,
+            Terrain.PASTURE,
             Terrain.FIELDS,
         )
-        val numbers = listOf(5, 2, 6, 3, 8, 10, 9, 12, 11, 7, 4, 8, 10, 9, 4, 5, 6, 3, 11).map { DiceTotal.fromInt(it) }
+        val numbers = listOf(
+            5,
+            2,
+            6,
+            3,
+            8,
+            10,
+            9,
+            12,
+            11,
+            7,
+            4,
+            8,
+            10,
+            9,
+            4,
+            5,
+            6,
+            3,
+            11
+        ).map { DiceTotal.fromInt(it) }
         val hexes = Hex.entries.sortedWith(compareBy({ it.r }, { it.q }))
         return BoardLayout.of(
-            listOf(FramePiece.GENERIC, FramePiece.WOOL, FramePiece.LUMBER, FramePiece.BRICK, FramePiece.ORE, FramePiece.GRAIN),
+            listOf(
+                FramePiece.GENERIC,
+                FramePiece.WOOL,
+                FramePiece.LUMBER,
+                FramePiece.BRICK,
+                FramePiece.ORE,
+                FramePiece.GRAIN
+            ),
             hexes.zip(tiles).toMap(),
             hexes.zip(numbers).toMap(),
         )
@@ -256,7 +361,11 @@ class VersionGuardTest {
         Action.PlayYearOfPlenty(Resource.ORE, Resource.GRAIN),
         Action.PlayMonopoly(Resource.LUMBER),
         Action.MaritimeTrade(Resource.WOOL, Resource.ORE, 2),
-        Action.ProposeTrade(WHITE, of(Resource.ORE, 1), of(Resource.BRICK to 1, Resource.GRAIN to 1)),
+        Action.ProposeTrade(
+            WHITE,
+            of(Resource.ORE, 1),
+            of(Resource.BRICK to 1, Resource.GRAIN to 1)
+        ),
         Action.AcceptTrade(3),
         Action.CancelTrade(4),
         Action.EndTurn,
@@ -281,11 +390,21 @@ class VersionGuardTest {
     private fun fixedGame(phase: Phase): Game {
         // all four colors, every building, every card type and distinct counts per resource, so reordering any of
         // those enums changes these bytes (see theFormatSamplesUseEveryConstantOfEverySerializedEnum)
-        val game = Game(listOf(RED, WHITE, BLUE, ORANGE), GameBoard(fixedLayout()), GameRandom.fromState(intArrayOf(1, 2, 3, 4)), shuffleDeck = false)
-        game.devDeck.addAll(listOf(
-            DevelopmentCardType.KNIGHT, DevelopmentCardType.MONOPOLY, DevelopmentCardType.VICTORY_POINT,
-            DevelopmentCardType.YEAR_OF_PLENTY, DevelopmentCardType.ROAD_BUILDING,
-        ))
+        val game = Game(
+            listOf(RED, WHITE, BLUE, ORANGE),
+            GameBoard(fixedLayout()),
+            GameRandom.fromState(intArrayOf(1, 2, 3, 4)),
+            shuffleDeck = false
+        )
+        game.devDeck.addAll(
+            listOf(
+                DevelopmentCardType.KNIGHT,
+                DevelopmentCardType.MONOPOLY,
+                DevelopmentCardType.VICTORY_POINT,
+                DevelopmentCardType.YEAR_OF_PLENTY,
+                DevelopmentCardType.ROAD_BUILDING,
+            )
+        )
         game.board.placeBuilding(Vertex.V20, Building.city(RED))
         game.board.placeBuilding(Vertex.V2, Building.settlement(RED))
         game.board.placeBuilding(Vertex.V40, Building.settlement(WHITE))
@@ -297,7 +416,13 @@ class VersionGuardTest {
         game.board.placeRoad(Edge.E30, RED)
         game.board.placeRoad(Edge.E50, WHITE)
         game.board.robber = Hex.K
-        game.player(RED).hand = of(Resource.BRICK to 1, Resource.LUMBER to 2, Resource.ORE to 3, Resource.GRAIN to 4, Resource.WOOL to 5)
+        game.player(RED).hand = of(
+            Resource.BRICK to 1,
+            Resource.LUMBER to 2,
+            Resource.ORE to 3,
+            Resource.GRAIN to 4,
+            Resource.WOOL to 5
+        )
         game.player(WHITE).devCards = DevCardCounts.EMPTY + DevelopmentCardType.KNIGHT
         game.player(BLUE).knightsPlayed = 2
         game.phase = phase
@@ -309,12 +434,14 @@ class VersionGuardTest {
                 game.setupStep = 5
                 game.currentPlayer = ORANGE
             }
+
             is Phase.SetupRoad -> {
                 game.setFirstPlayer(WHITE)
                 game.setupStep = 1
                 game.currentPlayer = BLUE
                 game.board.placeBuilding(Vertex.V10, Building.settlement(BLUE))
             }
+
             else -> {
                 game.setFirstPlayer(WHITE)
                 game.turn = 7
@@ -323,7 +450,8 @@ class VersionGuardTest {
                 game.lastRoll = DiceTotal.SEVEN
                 game.offers += TradeOffer(2, BLUE, RED, of(Resource.BRICK, 1), of(Resource.ORE, 1))
                 game.nextOfferId = 3
-                if (phase is Phase.Discard) game.player(RED).hand = of(Resource.ORE to 5, Resource.WOOL to 4)
+                if (phase is Phase.Discard) game.player(RED).hand =
+                    of(Resource.ORE to 5, Resource.WOOL to 4)
             }
         }
         return game
@@ -335,14 +463,23 @@ class VersionGuardTest {
 
         /** Every enum the codecs write by ordinal, apart from the private tags and the geometric Vertex and Edge. */
         val SERIALIZED_ENUMS = listOf(
-            BlobKind.entries, PlayerColor.entries, Resource.entries, DevelopmentCardType.entries, DiceTotal.entries,
-            Terrain.entries, FramePiece.entries, Building.entries, Hex.entries, Vertex.entries, Edge.entries,
+            BlobKind.entries,
+            PlayerColor.entries,
+            Resource.entries,
+            DevelopmentCardType.entries,
+            DiceTotal.entries,
+            Terrain.entries,
+            FramePiece.entries,
+            Building.entries,
+            Hex.entries,
+            Vertex.entries,
+            Edge.entries,
         )
 
         /** Rules fingerprints by `Game.RULES_VERSION`. */
-        val RULES_FINGERPRINTS = mapOf(1 to 1179605149)
+        val RULES_FINGERPRINTS = mapOf(1 to 1179605149, 2 to 564103760)
 
         /** Format fingerprints by `FORMAT_VERSION`. */
-        val FORMAT_FINGERPRINTS = mapOf(1 to -512077608)
+        val FORMAT_FINGERPRINTS = mapOf(1 to -512077608, 2 to -1919847427)
     }
 }

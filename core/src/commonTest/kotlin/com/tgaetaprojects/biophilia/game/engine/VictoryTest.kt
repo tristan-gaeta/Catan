@@ -16,7 +16,11 @@ class VictoryTest {
 
     /** Gives [color] 4 cities (8 points) on legal, spread-out intersections. */
     private fun buildFourCities(color: PlayerColor) {
-        repeat(4) { game.putCity(color, Vertex.entries.first { game.board.satisfiesDistanceRule(it) }) }
+        repeat(4) {
+            game.putCity(
+                color,
+                Vertex.entries.first { game.board.satisfiesDistanceRule(it) })
+        }
         assertEquals(8, game.publicVictoryPoints(color))
     }
 

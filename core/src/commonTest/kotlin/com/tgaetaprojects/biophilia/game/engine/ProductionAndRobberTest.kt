@@ -55,7 +55,10 @@ class ProductionAndRobberTest {
     @Test
     fun aShortageAffectingOnePlayerPaysWhatIsLeft() {
         val claims = mapOf(RED to of(ORE, 3))
-        assertEquals(mapOf(RED to of(ORE, 2)), settleProduction(claims, ResourceCounts.FULL_BANK.with(ORE, 2)))
+        assertEquals(
+            mapOf(RED to of(ORE, 2)),
+            settleProduction(claims, ResourceCounts.FULL_BANK.with(ORE, 2))
+        )
         assertEquals(emptyMap(), settleProduction(claims, ResourceCounts.FULL_BANK.with(ORE, 0)))
     }
 
@@ -89,7 +92,8 @@ class ProductionAndRobberTest {
         game.give(WHITE, of(ORE, 1))
         game.startTurnFor(RED, Phase.MoveRobber(Phase.Main))
 
-        game.apply(RED, Action.MoveRobber(game.board.robber, null)).rejectedWith(INVALID_ROBBER_MOVE)
+        game.apply(RED, Action.MoveRobber(game.board.robber, null))
+            .rejectedWith(INVALID_ROBBER_MOVE)
         game.apply(RED, Action.MoveRobber(target, null)).rejectedWith(INVALID_VICTIM)
         game.apply(RED, Action.MoveRobber(target, RED)).rejectedWith(INVALID_VICTIM)
         game.apply(RED, Action.MoveRobber(target, BLUE)).rejectedWith(INVALID_VICTIM)
@@ -107,9 +111,15 @@ class ProductionAndRobberTest {
         val occupied = Hex.entries.first { it != game.board.robber }
         game.putSettlement(WHITE, occupied.vertices.getValue(NE))
         game.startTurnFor(RED, Phase.MoveRobber(Phase.Main))
-        assertTrue(GameEvent.Stole(RED, WHITE, null) in game.apply(RED, Action.MoveRobber(occupied, WHITE)).accepted())
+        assertTrue(
+            GameEvent.Stole(RED, WHITE, null) in game.apply(
+                RED,
+                Action.MoveRobber(occupied, WHITE)
+            ).accepted()
+        )
 
-        val empty = Hex.entries.first { it != game.board.robber && game.robberVictims(it).isEmpty() }
+        val empty =
+            Hex.entries.first { it != game.board.robber && game.robberVictims(it).isEmpty() }
         game.startTurnFor(RED, Phase.MoveRobber(Phase.Main))
         game.apply(RED, Action.MoveRobber(empty, null)).accepted()
         assertEquals(empty, game.board.robber)

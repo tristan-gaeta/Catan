@@ -81,7 +81,14 @@ class GameRecord(
             val boardSeed = long()
             val gameSeed = long()
             val layout = readLayout()
-            val actions = List(count(minBitsEach = ActionCodec.MIN_ACTION_BITS)) { readAction().let { (actor, action) -> RecordedAction(actor, action) } }
+            val actions = List(count(minBitsEach = ActionCodec.MIN_ACTION_BITS)) {
+                readAction().let { (actor, action) ->
+                    RecordedAction(
+                        actor,
+                        action
+                    )
+                }
+            }
             GameRecord(rulesVersion, seats, boardSeed, gameSeed, layout, actions)
         }
     }
@@ -91,14 +98,26 @@ class GameRecord(
  * Plays a game while recording it: use [apply] in place of [Game.apply]. Only accepted actions are recorded,
  * since refused ones change nothing.
  */
-class GameRecorder(seats: List<PlayerColor>, private val boardSeed: Long, private val gameSeed: Long) {
+class GameRecorder(
+    seats: List<PlayerColor>,
+    private val boardSeed: Long,
+    private val gameSeed: Long
+) {
     val game = Game(seats, boardSeed, gameSeed)
     private val actions = mutableListOf<RecordedAction>()
 
     fun apply(actor: PlayerColor, action: Action): ActionResult =
-        game.apply(actor, action).also { if (it is ActionResult.Accepted) actions += RecordedAction(actor, action) }
+        game.apply(actor, action)
+            .also { if (it is ActionResult.Accepted) actions += RecordedAction(actor, action) }
 
     /** The record so far; it can be taken at any point, not only once the game is over. */
     fun record(): GameRecord =
-        GameRecord(Game.RULES_VERSION, game.seatOrder, boardSeed, gameSeed, game.board.layout, actions)
+        GameRecord(
+            Game.RULES_VERSION,
+            game.seatOrder,
+            boardSeed,
+            gameSeed,
+            game.board.layout,
+            actions
+        )
 }

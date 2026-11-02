@@ -48,9 +48,11 @@ class BoardLayout private constructor(
     override fun equals(other: Any?): Boolean =
         other is BoardLayout && frame == other.frame && terrain == other.terrain && numbers == other.numbers
 
-    override fun hashCode(): Int = (frame.hashCode() * 31 + terrain.hashCode()) * 31 + numbers.hashCode()
+    override fun hashCode(): Int =
+        (frame.hashCode() * 31 + terrain.hashCode()) * 31 + numbers.hashCode()
 
-    override fun toString(): String = "BoardLayout(frame=$frame, terrain=$terrain, numbers=$numbers)"
+    override fun toString(): String =
+        "BoardLayout(frame=$frame, terrain=$terrain, numbers=$numbers)"
 
     companion object {
         private val terrainTiles = listOf(
@@ -99,7 +101,11 @@ class BoardLayout private constructor(
          * A layout from explicit parts, e.g. decoded from storage. Throws [IllegalArgumentException] unless the frame
          * uses each piece once and the hexes use exactly the base game's tiles and number discs.
          */
-        fun of(frame: List<FramePiece>, terrain: Map<Hex, Terrain>, numbers: Map<Hex, DiceTotal>): BoardLayout {
+        fun of(
+            frame: List<FramePiece>,
+            terrain: Map<Hex, Terrain>,
+            numbers: Map<Hex, DiceTotal>
+        ): BoardLayout {
             require(frame.size == FramePiece.SIDES && frame.toSet() == FramePiece.entries.toSet()) {
                 "The frame must use each piece once: $frame"
             }

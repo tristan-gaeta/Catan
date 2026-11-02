@@ -27,7 +27,13 @@ class BoardLayoutTest {
     fun aFramePieceRunsFromOneCornersLastEdgeToTheNextCornersSecond() {
         // the top side: corner C's north-west edge, both of B's, then A's first two (all counter-clockwise)
         assertEquals(
-            listOf(Hex.C.edges[NW], Hex.B.edges[NE], Hex.B.edges[NW], Hex.A.edges[NE], Hex.A.edges[NW]),
+            listOf(
+                Hex.C.edges[NW],
+                Hex.B.edges[NE],
+                Hex.B.edges[NW],
+                Hex.A.edges[NE],
+                Hex.A.edges[NW]
+            ),
             FramePiece.sideEdges(0)
         )
         // pieces meet where a corner hex's coast turns outward, i.e. at an intersection on only that corner
@@ -40,7 +46,7 @@ class BoardLayoutTest {
 
     @Test
     fun theCoastRunsCounterClockwiseAndEachPieceTurnsLikeItsArtwork() {
-        // in axial coordinates, b lies counter-clockwise of a around the center exactly when this is positive
+        // in axial coordinates, `b` lies counter-clockwise of `a` around the center exactly when this is positive
         fun cross(q1: Int, r1: Int, q2: Int, r2: Int) = r1 * q2 - q1 * r2
 
         val coast = BoardLayout.coastline
@@ -52,9 +58,15 @@ class BoardLayoutTest {
             if (hexA == hexB) {
                 val dirA = Direction.entries.first { hexA.edges[it] == a }
                 val dirB = Direction.entries.first { hexB.edges[it] == b }
-                assertTrue(cross(dirA.q, dirA.r, dirB.q, dirB.r) > 0, "edges $i and ${i + 1} turn clockwise around $hexA")
+                assertTrue(
+                    cross(dirA.q, dirA.r, dirB.q, dirB.r) > 0,
+                    "edges $i and ${i + 1} turn clockwise around $hexA"
+                )
             } else {
-                assertTrue(cross(hexA.q, hexA.r, hexB.q, hexB.r) > 0, "the coast steps clockwise from $hexA to $hexB")
+                assertTrue(
+                    cross(hexA.q, hexA.r, hexB.q, hexB.r) > 0,
+                    "the coast steps clockwise from $hexA to $hexB"
+                )
             }
         }
 
@@ -62,7 +74,8 @@ class BoardLayoutTest {
         // alternate between an intersection shared by two hexes and one on a single hex, starting with two. A piece
         // shifted by one edge, or mirrored, gives a different pattern.
         for (side in 0 until FramePiece.SIDES) {
-            val joins = FramePiece.sideEdges(side).zipWithNext { a, b -> (a.vertices intersect b.vertices).single().hexes.size }
+            val joins = FramePiece.sideEdges(side)
+                .zipWithNext { a, b -> (a.vertices intersect b.vertices).single().hexes.size }
             assertEquals(listOf(2, 1, 2, 1), joins, "side $side")
         }
     }
@@ -81,18 +94,39 @@ class BoardLayoutTest {
             assertEquals(9, ports.size)
             assertEquals(4, ports.values.count { it == PortType.GENERIC })
             assertEquals(PortType.entries.toSet(), ports.values.toSet())
-            assertEquals(18, ports.keys.flatMap { it.vertices }.toSet().size, "seed $seed: harbors share an intersection")
+            assertEquals(
+                18,
+                ports.keys.flatMap { it.vertices }.toSet().size,
+                "seed $seed: harbors share an intersection"
+            )
         }
+    }
+
+    @Test
+    fun thePiecesAreDeclaredInThePrintedFramesOrder() {
+        // the fixed setup on rulebook page 4, sides 0 (top) to 5, counter-clockwise
+        val fixedSetup = listOf(
+            FramePiece.WOOL, FramePiece.ORE, FramePiece.GRAIN,
+            FramePiece.LUMBER, FramePiece.BRICK, FramePiece.GENERIC
+        )
+        val declared = FramePiece.entries
+        assertEquals(fixedSetup, List(FramePiece.SIDES) { declared[(it + 1) % FramePiece.SIDES] })
     }
 
     @Test
     fun theFramePiecesCarryTheRulebooksHarbors() {
         // three pieces with one harbor on the middle edge, three with a 2:1 second and a 3:1 last
         val singles = FramePiece.entries.filter { it.harbors.count { h -> h != null } == 1 }
-        assertEquals(listOf(PortType.GENERIC, PortType.LUMBER, PortType.ORE), singles.map { it.harbors[2] })
+        assertEquals(
+            setOf(PortType.GENERIC, PortType.LUMBER, PortType.ORE),
+            singles.map { it.harbors[2] }.toSet()
+        )
         val doubles = FramePiece.entries - singles.toSet()
         assertTrue(doubles.all { it.harbors[4] == PortType.GENERIC && it.harbors[1]!!.exchangeRate == 2 })
-        assertEquals(setOf(PortType.WOOL, PortType.BRICK, PortType.GRAIN), doubles.map { it.harbors[1] }.toSet())
+        assertEquals(
+            setOf(PortType.WOOL, PortType.BRICK, PortType.GRAIN),
+            doubles.map { it.harbors[1] }.toSet()
+        )
     }
 
     @Test
@@ -113,7 +147,8 @@ class BoardLayoutTest {
         for (seed in 0L until 100L) {
             val layout = BoardLayout.generate(seed)
             val fromSomeCorner = Direction.entries.any { corner ->
-                Hex.spiralInwardCC(corner).filter { it != layout.desert }.map { layout.numbers.getValue(it).value } == discs
+                Hex.spiralInwardCC(corner).filter { it != layout.desert }
+                    .map { layout.numbers.getValue(it).value } == discs
             }
             assertTrue(fromSomeCorner, "seed $seed")
             assertEquals(DiceTotal.SEVEN, layout.numbers[layout.desert])
@@ -127,9 +162,21 @@ class BoardLayoutTest {
         assertEquals(layout, BoardLayout.of(layout.frame, layout.terrain, layout.numbers))
 
         val repeatedPiece = layout.frame.toMutableList().also { it[0] = it[1] }
-        assertFailsWith<IllegalArgumentException> { BoardLayout.of(repeatedPiece, layout.terrain, layout.numbers) }
+        assertFailsWith<IllegalArgumentException> {
+            BoardLayout.of(
+                repeatedPiece,
+                layout.terrain,
+                layout.numbers
+            )
+        }
         val other = Hex.entries.first { it != layout.desert }
         val twoDeserts = layout.terrain.toMutableMap().also { it[other] = Terrain.DESERT }
-        assertFailsWith<IllegalArgumentException> { BoardLayout.of(layout.frame, twoDeserts, layout.numbers) }
+        assertFailsWith<IllegalArgumentException> {
+            BoardLayout.of(
+                layout.frame,
+                twoDeserts,
+                layout.numbers
+            )
+        }
     }
 }

@@ -9,14 +9,18 @@ package com.tgaetaprojects.biophilia.game
  * 3:1 harbor on their last edge. Together that's 4 generic harbors and one 2:1 harbor per resource.
  *
  * Pieces are named after their 2:1 harbor, except [GENERIC], whose only harbor is a 3:1.
+ *
+ * The pieces are declared in the order they connect in the printed frame, counter-clockwise from [GENERIC]. The
+ * fixed setup (rulebook page 4) puts [WOOL] on the top side, side 0. The variable setup shuffles the pieces, so this
+ * order only decides which frame a given board seed produces; changing it requires bumping both versions.
  */
 enum class FramePiece(vararg harbors: PortType?) {
     GENERIC(null, null, PortType.GENERIC, null, null),
-    LUMBER(null, null, PortType.LUMBER, null, null),
-    ORE(null, null, PortType.ORE, null, null),
     WOOL(null, PortType.WOOL, null, null, PortType.GENERIC),
-    BRICK(null, PortType.BRICK, null, null, PortType.GENERIC),
-    GRAIN(null, PortType.GRAIN, null, null, PortType.GENERIC);
+    ORE(null, null, PortType.ORE, null, null),
+    GRAIN(null, PortType.GRAIN, null, null, PortType.GENERIC),
+    LUMBER(null, null, PortType.LUMBER, null, null),
+    BRICK(null, PortType.BRICK, null, null, PortType.GENERIC);
 
     val harbors: List<PortType?> = harbors.toList()
 
