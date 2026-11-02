@@ -5,7 +5,9 @@ import com.tgaetaprojects.biophilia.game.DevelopmentCardType
 import com.tgaetaprojects.biophilia.game.DiceTotal
 import com.tgaetaprojects.biophilia.game.Edge
 import com.tgaetaprojects.biophilia.game.PlayerColor
-import com.tgaetaprojects.biophilia.game.PlayerColor.*
+import com.tgaetaprojects.biophilia.game.PlayerColor.BLUE
+import com.tgaetaprojects.biophilia.game.PlayerColor.RED
+import com.tgaetaprojects.biophilia.game.PlayerColor.WHITE
 import com.tgaetaprojects.biophilia.game.Vertex
 import kotlin.test.assertEquals
 import kotlin.test.assertIs

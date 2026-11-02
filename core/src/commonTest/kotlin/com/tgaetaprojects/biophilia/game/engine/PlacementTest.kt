@@ -4,9 +4,14 @@ import com.tgaetaprojects.biophilia.game.Building
 import com.tgaetaprojects.biophilia.game.Direction.NE
 import com.tgaetaprojects.biophilia.game.Edge
 import com.tgaetaprojects.biophilia.game.Hex
-import com.tgaetaprojects.biophilia.game.PlayerColor.*
+import com.tgaetaprojects.biophilia.game.PlayerColor.RED
+import com.tgaetaprojects.biophilia.game.PlayerColor.WHITE
 import com.tgaetaprojects.biophilia.game.Vertex
-import com.tgaetaprojects.biophilia.game.engine.RuleViolation.*
+import com.tgaetaprojects.biophilia.game.engine.RuleViolation.ILLEGAL_LOCATION
+import com.tgaetaprojects.biophilia.game.engine.RuleViolation.INSUFFICIENT_RESOURCES
+import com.tgaetaprojects.biophilia.game.engine.RuleViolation.NOT_YOUR_TURN
+import com.tgaetaprojects.biophilia.game.engine.RuleViolation.NO_PIECES_LEFT
+import com.tgaetaprojects.biophilia.game.engine.RuleViolation.WRONG_PHASE
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse

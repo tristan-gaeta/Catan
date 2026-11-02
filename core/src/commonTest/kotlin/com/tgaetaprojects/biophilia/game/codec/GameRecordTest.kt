@@ -1,7 +1,9 @@
 package com.tgaetaprojects.biophilia.game.codec
 
 import com.tgaetaprojects.biophilia.game.BoardLayout
-import com.tgaetaprojects.biophilia.game.PlayerColor.*
+import com.tgaetaprojects.biophilia.game.PlayerColor.BLUE
+import com.tgaetaprojects.biophilia.game.PlayerColor.RED
+import com.tgaetaprojects.biophilia.game.PlayerColor.WHITE
 import com.tgaetaprojects.biophilia.game.engine.Action
 import com.tgaetaprojects.biophilia.game.engine.Game
 import com.tgaetaprojects.biophilia.game.engine.GameEvent

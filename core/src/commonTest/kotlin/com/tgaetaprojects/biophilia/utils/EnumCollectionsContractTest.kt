@@ -2,7 +2,10 @@ package com.tgaetaprojects.biophilia.utils
 
 import com.tgaetaprojects.biophilia.game.Edge
 import com.tgaetaprojects.biophilia.game.Resource
-import com.tgaetaprojects.biophilia.game.Resource.*
+import com.tgaetaprojects.biophilia.game.Resource.BRICK
+import com.tgaetaprojects.biophilia.game.Resource.GRAIN
+import com.tgaetaprojects.biophilia.game.Resource.ORE
+import com.tgaetaprojects.biophilia.game.Resource.WOOL
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json

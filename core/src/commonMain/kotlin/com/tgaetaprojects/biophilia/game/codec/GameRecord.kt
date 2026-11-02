@@ -63,7 +63,7 @@ class GameRecord(
         header(BlobKind.RECORD)
         varint(rulesVersion)
         bits(seats.size - 3, 1)
-        for (color in seats) code(color, Codes.COLOR)
+        for (color in seats) code(color)
         long(boardSeed)
         long(gameSeed)
         writeLayout(layout)
@@ -76,13 +76,12 @@ class GameRecord(
         fun decode(bytes: ByteArray): GameRecord = decoding("game record", bytes) {
             header(BlobKind.RECORD)
             val rulesVersion = varint()
-            val seats = List(bits(1) + 3) { code(Codes.COLOR) }
+            val seats = List(bits(1) + 3) { code<PlayerColor>() }
             require(seats.toSet().size == seats.size) { "Duplicate colors $seats" }
             val boardSeed = long()
             val gameSeed = long()
             val layout = readLayout()
-            // the smallest action is an actor and a tag: 7 bits
-            val actions = List(count(minBitsEach = 7)) { readAction().let { (actor, action) -> RecordedAction(actor, action) } }
+            val actions = List(count(minBitsEach = ActionCodec.MIN_ACTION_BITS)) { readAction().let { (actor, action) -> RecordedAction(actor, action) } }
             GameRecord(rulesVersion, seats, boardSeed, gameSeed, layout, actions)
         }
     }

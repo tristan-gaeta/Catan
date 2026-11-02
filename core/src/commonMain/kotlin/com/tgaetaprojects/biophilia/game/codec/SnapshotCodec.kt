@@ -1,11 +1,13 @@
 package com.tgaetaprojects.biophilia.game.codec
 
 import com.tgaetaprojects.biophilia.game.Building
+import com.tgaetaprojects.biophilia.game.DevelopmentCardType
 import com.tgaetaprojects.biophilia.game.DiceTotal
 import com.tgaetaprojects.biophilia.game.Edge
 import com.tgaetaprojects.biophilia.game.GameBoard
 import com.tgaetaprojects.biophilia.game.Hex
 import com.tgaetaprojects.biophilia.game.PlayerColor
+import com.tgaetaprojects.biophilia.game.Resource
 import com.tgaetaprojects.biophilia.game.Vertex
 import com.tgaetaprojects.biophilia.game.codec.LayoutCodec.readLayout
 import com.tgaetaprojects.biophilia.game.codec.LayoutCodec.writeLayout
@@ -39,19 +41,17 @@ object SnapshotCodec {
     private const val CARD_COUNT_WIDTH = 5
     private const val KNIGHTS_WIDTH = 4
 
-    /** One fixed tag per phase. Tags are part of the format: never renumber them, only append. */
-    private object PhaseTag {
-        const val WIDTH = 4
-
-        const val SETUP_SETTLEMENT = 0
-        const val SETUP_ROAD = 1
-        const val PRE_ROLL = 2
-        const val DISCARD = 3
-        const val MOVE_ROBBER = 4
-        const val MAIN = 5
-        const val ROAD_BUILDING = 6
-        const val GAME_OVER = 7
-        const val ROLL_FOR_FIRST_PLAYER = 8
+    /** One tag per phase, written as its ordinal (see [FORMAT_VERSION]). */
+    private enum class PhaseTag {
+        SETUP_SETTLEMENT,
+        SETUP_ROAD,
+        PRE_ROLL,
+        DISCARD,
+        MOVE_ROBBER,
+        MAIN,
+        ROAD_BUILDING,
+        GAME_OVER,
+        ROLL_FOR_FIRST_PLAYER,
     }
 
     // ---- Full snapshots ----
@@ -81,10 +81,10 @@ object SnapshotCodec {
             bits(player.knightsPlayed, KNIGHTS_WIDTH)
         }
         bits(game.devDeck.size, CARD_COUNT_WIDTH)
-        for (card in game.devDeck) code(card, Codes.DEV_CARD)
+        for (card in game.devDeck) code(card)
 
-        optional(game.longestRoadHolder, Codes.COLOR)
-        optional(game.largestArmyHolder, Codes.COLOR)
+        optional(game.longestRoadHolder)
+        optional(game.largestArmyHolder)
         writeOffers(game.tradeOffers)
         varint(game.nextOfferId)
     }.toByteArray()
@@ -118,10 +118,10 @@ object SnapshotCodec {
             player.boughtThisTurn = devCardCounts()
             player.knightsPlayed = bits(KNIGHTS_WIDTH)
         }
-        repeat(bits(CARD_COUNT_WIDTH)) { game.devDeck.add(code(Codes.DEV_CARD)) }
+        repeat(bits(CARD_COUNT_WIDTH)) { game.devDeck.add(code<DevelopmentCardType>()) }
 
-        game.longestRoadHolder = optional(Codes.COLOR)?.also { require(it in seats) }
-        game.largestArmyHolder = optional(Codes.COLOR)?.also { require(it in seats) }
+        game.longestRoadHolder = optional<PlayerColor>()?.also { require(it in seats) }
+        game.largestArmyHolder = optional<PlayerColor>()?.also { require(it in seats) }
         game.offers += readOffers(seats)
         game.nextOfferId = varint()
 
@@ -195,7 +195,7 @@ object SnapshotCodec {
         header(BlobKind.VIEW)
         varint(Game.RULES_VERSION)
         writeSeats(view.seatOrder, view.firstPlayer)
-        code(view.viewer, Codes.COLOR)
+        code(view.viewer)
         writeLayout(view.layout)
 
         varint(view.turn)
@@ -214,8 +214,8 @@ object SnapshotCodec {
         counts(view.devCards)
         counts(view.boughtThisTurn)
 
-        optional(view.longestRoadHolder, Codes.COLOR)
-        optional(view.largestArmyHolder, Codes.COLOR)
+        optional(view.longestRoadHolder)
+        optional(view.largestArmyHolder)
         writeOffers(view.tradeOffers)
     }.toByteArray()
 
@@ -223,7 +223,7 @@ object SnapshotCodec {
         header(BlobKind.VIEW)
         readRulesVersion()
         val (seats, firstPlayer) = readSeats()
-        val viewer = code(Codes.COLOR).also { require(it in seats) { "Viewer $it isn't playing" } }
+        val viewer = code<PlayerColor>().also { require(it in seats) { "Viewer $it isn't playing" } }
         val layout = readLayout()
 
         val turn = varint()
@@ -255,8 +255,8 @@ object SnapshotCodec {
             buildings = board.buildings.toMap().asReadOnly(),
             bank = bank,
             devCardsRemaining = deckSize,
-            longestRoadHolder = optional(Codes.COLOR)?.also { require(it in seats) },
-            largestArmyHolder = optional(Codes.COLOR)?.also { require(it in seats) },
+            longestRoadHolder = optional<PlayerColor>()?.also { require(it in seats) },
+            largestArmyHolder = optional<PlayerColor>()?.also { require(it in seats) },
             tradeOffers = readOffers(seats),
             players = summaries,
             hand = hand,
@@ -277,14 +277,14 @@ object SnapshotCodec {
     /** Seats: 3 or 4 colors, clockwise, then the first player once they've been rolled. */
     private fun BitWriter.writeSeats(seats: List<PlayerColor>, firstPlayer: PlayerColor?) {
         bits(seats.size - 3, 1)
-        for (color in seats) code(color, Codes.COLOR)
-        optional(firstPlayer, Codes.COLOR)
+        for (color in seats) code(color)
+        optional(firstPlayer)
     }
 
     private fun BitReader.readSeats(): Pair<List<PlayerColor>, PlayerColor?> {
-        val seats = List(bits(1) + 3) { code(Codes.COLOR) }
+        val seats = List(bits(1) + 3) { code<PlayerColor>() }
         require(seats.toSet().size == seats.size) { "Duplicate colors $seats" }
-        val first = optional(Codes.COLOR)?.also { require(it in seats) { "First player $it isn't seated" } }
+        val first = optional<PlayerColor>()?.also { require(it in seats) { "First player $it isn't seated" } }
         return seats to first
     }
 
@@ -293,67 +293,67 @@ object SnapshotCodec {
     private fun BitWriter.writeShared(
         current: PlayerColor, phase: Phase, lastRoll: DiceTotal?, devCardPlayed: Boolean, seats: List<PlayerColor>
     ) {
-        code(current, Codes.COLOR)
+        code(current)
         writePhase(phase, seats)
-        optional(lastRoll, Codes.DICE)
+        optional(lastRoll)
         bool(devCardPlayed)
     }
 
     private fun BitReader.readShared(seats: List<PlayerColor>): Shared {
-        val current = code(Codes.COLOR).also { require(it in seats) { "Current player $it isn't playing" } }
-        return Shared(current, readPhase(seats), optional(Codes.DICE), bool())
+        val current = code<PlayerColor>().also { require(it in seats) { "Current player $it isn't playing" } }
+        return Shared(current, readPhase(seats), optional<DiceTotal>(), bool())
     }
 
     /** A phase tag, then the phase's fields; the phases that resume another nest it. */
     private fun BitWriter.writePhase(phase: Phase, seats: List<PlayerColor>) {
         when (phase) {
             is Phase.RollForFirstPlayer -> {
-                bits(PhaseTag.ROLL_FOR_FIRST_PLAYER, PhaseTag.WIDTH)
+                code(PhaseTag.ROLL_FOR_FIRST_PLAYER)
                 for (color in seats) bool(color in phase.contenders)
-                for (color in phase.contenders) optional(phase.rolls[color], Codes.DICE)
+                for (color in phase.contenders) optional(phase.rolls[color])
             }
             is Phase.SetupSettlement -> {
-                bits(PhaseTag.SETUP_SETTLEMENT, PhaseTag.WIDTH)
+                code(PhaseTag.SETUP_SETTLEMENT)
                 bits(phase.round - 1, 1)
             }
             is Phase.SetupRoad -> {
-                bits(PhaseTag.SETUP_ROAD, PhaseTag.WIDTH)
+                code(PhaseTag.SETUP_ROAD)
                 bits(phase.round - 1, 1)
-                vertex(phase.settlement)
+                code(phase.settlement)
             }
-            Phase.PreRoll -> bits(PhaseTag.PRE_ROLL, PhaseTag.WIDTH)
+            Phase.PreRoll -> code(PhaseTag.PRE_ROLL)
             is Phase.Discard -> {
-                bits(PhaseTag.DISCARD, PhaseTag.WIDTH)
+                code(PhaseTag.DISCARD)
                 for (color in seats) bits(phase.pending[color] ?: 0, DISCARD_WIDTH)
             }
             is Phase.MoveRobber -> {
-                bits(PhaseTag.MOVE_ROBBER, PhaseTag.WIDTH)
+                code(PhaseTag.MOVE_ROBBER)
                 writePhase(phase.returnTo, seats)
             }
-            Phase.Main -> bits(PhaseTag.MAIN, PhaseTag.WIDTH)
+            Phase.Main -> code(PhaseTag.MAIN)
             is Phase.RoadBuilding -> {
-                bits(PhaseTag.ROAD_BUILDING, PhaseTag.WIDTH)
+                code(PhaseTag.ROAD_BUILDING)
                 bits(phase.remaining, 2)
                 writePhase(phase.returnTo, seats)
             }
             is Phase.GameOver -> {
-                bits(PhaseTag.GAME_OVER, PhaseTag.WIDTH)
-                code(phase.winner, Codes.COLOR)
+                code(PhaseTag.GAME_OVER)
+                code(phase.winner)
             }
         }
     }
 
-    private fun BitReader.readPhase(seats: List<PlayerColor>): Phase = when (val tag = bits(PhaseTag.WIDTH)) {
+    private fun BitReader.readPhase(seats: List<PlayerColor>): Phase = when (code<PhaseTag>()) {
         PhaseTag.ROLL_FOR_FIRST_PLAYER -> {
             // contenders keep seat order, as the engine does when ties re-roll
             val contenders = seats.filter { bool() }
             require(contenders.size >= 2 || contenders == seats) { "A roll-off needs at least two contenders" }
             val rolls = MutableEnumMap<PlayerColor, DiceTotal>()
-            for (color in contenders) optional(Codes.DICE)?.let { rolls[color] = it }
+            for (color in contenders) optional<DiceTotal>()?.let { rolls[color] = it }
             Phase.RollForFirstPlayer(contenders, rolls.asReadOnly())
         }
         PhaseTag.SETUP_SETTLEMENT -> Phase.SetupSettlement(bits(1) + 1)
-        PhaseTag.SETUP_ROAD -> Phase.SetupRoad(bits(1) + 1, vertex())
+        PhaseTag.SETUP_ROAD -> Phase.SetupRoad(bits(1) + 1, code<Vertex>())
         PhaseTag.PRE_ROLL -> Phase.PreRoll
         PhaseTag.DISCARD -> {
             val pending = MutableEnumMap<PlayerColor, Int>()
@@ -368,8 +368,7 @@ object SnapshotCodec {
             require(remaining in 1..2) { "Road Building with $remaining roads" }
             Phase.RoadBuilding(remaining, readResumablePhase(seats))
         }
-        PhaseTag.GAME_OVER -> Phase.GameOver(code(Codes.COLOR).also { require(it in seats) })
-        else -> throw CodecException("Unknown phase tag $tag")
+        PhaseTag.GAME_OVER -> Phase.GameOver(code<PlayerColor>().also { require(it in seats) })
     }
 
     /** Robber moves and Road Building only ever resume the pre-roll or main phase. */
@@ -377,20 +376,20 @@ object SnapshotCodec {
         readPhase(seats).also { require(it == Phase.PreRoll || it == Phase.Main) { "Can't resume into $it" } }
 
     private fun BitWriter.writeBoard(robber: Hex, roads: Map<Edge, PlayerColor>, buildings: Map<Vertex, Building>) {
-        code(robber, Codes.HEX)
-        for (edge in Edge.entries) optional(roads[edge], Codes.COLOR)
-        for (vertex in Vertex.entries) optional(buildings[vertex], Codes.BUILDING)
+        code(robber)
+        for (edge in Edge.entries) optional(roads[edge])
+        for (vertex in Vertex.entries) optional(buildings[vertex])
     }
 
     private fun BitReader.readBoard(seats: List<PlayerColor>, board: GameBoard) {
-        board.robber = code(Codes.HEX)
+        board.robber = code<Hex>()
         for (edge in Edge.entries) {
-            val color = optional(Codes.COLOR) ?: continue
+            val color = optional<PlayerColor>() ?: continue
             require(color in seats) { "Road for $color, who isn't playing" }
             board.placeRoad(edge, color)
         }
         for (vertex in Vertex.entries) {
-            val building = optional(Codes.BUILDING) ?: continue
+            val building = optional<Building>() ?: continue
             require(building.color in seats) { "Building for ${building.color}, who isn't playing" }
             board.placeBuilding(vertex, building)
         }
@@ -400,16 +399,18 @@ object SnapshotCodec {
         varint(offers.size)
         for (offer in offers) {
             varint(offer.id)
-            code(offer.from, Codes.COLOR)
-            code(offer.to, Codes.COLOR)
+            code(offer.from)
+            code(offer.to)
             counts(offer.give)
             counts(offer.get)
         }
     }
 
-    // an offer is at least an id byte, two colors and two hands of counts: 8 + 4 + 50 bits
-    private fun BitReader.readOffers(seats: List<PlayerColor>): List<TradeOffer> = List(count(minBitsEach = 62)) {
-        TradeOffer(varint(), code(Codes.COLOR), code(Codes.COLOR), resourceCounts(), resourceCounts())
+    /** The smallest possible encoded offer: a one-byte id, two colors and two hands of counts. */
+    private val MIN_OFFER_BITS = 8 + 2 * bitsFor(PlayerColor.entries.size) + 2 * Resource.entries.size * COUNT_WIDTH
+
+    private fun BitReader.readOffers(seats: List<PlayerColor>): List<TradeOffer> = List(count(minBitsEach = MIN_OFFER_BITS)) {
+        TradeOffer(varint(), code<PlayerColor>(), code<PlayerColor>(), resourceCounts(), resourceCounts())
             .also { require(it.from in seats && it.to in seats) { "Offer between players not in the game" } }
     }
 }

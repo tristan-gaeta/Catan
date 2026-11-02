@@ -1,11 +1,19 @@
 package com.tgaetaprojects.biophilia.game.engine
 
-import com.tgaetaprojects.biophilia.game.PlayerColor.*
+import com.tgaetaprojects.biophilia.game.PlayerColor.BLUE
+import com.tgaetaprojects.biophilia.game.PlayerColor.RED
+import com.tgaetaprojects.biophilia.game.PlayerColor.WHITE
 import com.tgaetaprojects.biophilia.game.PortType
 import com.tgaetaprojects.biophilia.game.Resource
-import com.tgaetaprojects.biophilia.game.Resource.*
+import com.tgaetaprojects.biophilia.game.Resource.BRICK
+import com.tgaetaprojects.biophilia.game.Resource.GRAIN
+import com.tgaetaprojects.biophilia.game.Resource.ORE
+import com.tgaetaprojects.biophilia.game.Resource.WOOL
 import com.tgaetaprojects.biophilia.game.engine.ResourceCounts.Companion.of
-import com.tgaetaprojects.biophilia.game.engine.RuleViolation.*
+import com.tgaetaprojects.biophilia.game.engine.RuleViolation.INSUFFICIENT_RESOURCES
+import com.tgaetaprojects.biophilia.game.engine.RuleViolation.INVALID_TRADE
+import com.tgaetaprojects.biophilia.game.engine.RuleViolation.NOT_YOUR_TURN
+import com.tgaetaprojects.biophilia.game.engine.RuleViolation.NO_SUCH_OFFER
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs

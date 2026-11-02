@@ -3,7 +3,9 @@ package com.tgaetaprojects.biophilia.game.engine
 import com.tgaetaprojects.biophilia.game.DevelopmentCardType.KNIGHT
 import com.tgaetaprojects.biophilia.game.Direction.NE
 import com.tgaetaprojects.biophilia.game.Hex
-import com.tgaetaprojects.biophilia.game.PlayerColor.*
+import com.tgaetaprojects.biophilia.game.PlayerColor.BLUE
+import com.tgaetaprojects.biophilia.game.PlayerColor.RED
+import com.tgaetaprojects.biophilia.game.PlayerColor.WHITE
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull

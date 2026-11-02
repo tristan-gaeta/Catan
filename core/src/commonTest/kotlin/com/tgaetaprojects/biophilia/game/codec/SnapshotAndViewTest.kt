@@ -1,26 +1,26 @@
 package com.tgaetaprojects.biophilia.game.codec
 
+import com.tgaetaprojects.biophilia.game.BoardLayout
 import com.tgaetaprojects.biophilia.game.DevelopmentCardType.KNIGHT
 import com.tgaetaprojects.biophilia.game.DevelopmentCardType.MONOPOLY
 import com.tgaetaprojects.biophilia.game.PlayerColor.*
 import com.tgaetaprojects.biophilia.game.Resource.*
-import com.tgaetaprojects.biophilia.game.BoardLayout
 import com.tgaetaprojects.biophilia.game.engine.ActionResult
 import com.tgaetaprojects.biophilia.game.engine.Chance
-import com.tgaetaprojects.biophilia.game.engine.ResourceCounts
-import com.tgaetaprojects.biophilia.game.engine.SeededChance
-import com.tgaetaprojects.biophilia.game.random.GameRandom
 import com.tgaetaprojects.biophilia.game.engine.Game
 import com.tgaetaprojects.biophilia.game.engine.GameEvent
 import com.tgaetaprojects.biophilia.game.engine.Phase
 import com.tgaetaprojects.biophilia.game.engine.RandomBots
+import com.tgaetaprojects.biophilia.game.engine.ResourceCounts
 import com.tgaetaprojects.biophilia.game.engine.ResourceCounts.Companion.of
+import com.tgaetaprojects.biophilia.game.engine.SeededChance
 import com.tgaetaprojects.biophilia.game.engine.accepted
 import com.tgaetaprojects.biophilia.game.engine.give
 import com.tgaetaprojects.biophilia.game.engine.giveDevCard
 import com.tgaetaprojects.biophilia.game.engine.newGame
 import com.tgaetaprojects.biophilia.game.engine.startTurnFor
 import com.tgaetaprojects.biophilia.game.engine.viewFor
+import com.tgaetaprojects.biophilia.game.random.GameRandom
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -110,7 +110,7 @@ class SnapshotAndViewTest {
             header(BlobKind.RECORD)
             varint(Game.RULES_VERSION)
             bits(0, 1)
-            for (color in listOf(RED, WHITE, BLUE)) code(color, Codes.COLOR)
+            for (color in listOf(RED, WHITE, BLUE)) code(color)
             long(1)
             long(2)
             with(LayoutCodec) { writeLayout(BoardLayout.generate(1)) }

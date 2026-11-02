@@ -3,8 +3,14 @@ package com.tgaetaprojects.biophilia.game.codec
 import com.tgaetaprojects.biophilia.game.BoardLayout
 import com.tgaetaprojects.biophilia.game.Edge
 import com.tgaetaprojects.biophilia.game.Hex
-import com.tgaetaprojects.biophilia.game.PlayerColor.*
-import com.tgaetaprojects.biophilia.game.Resource.*
+import com.tgaetaprojects.biophilia.game.PlayerColor.BLUE
+import com.tgaetaprojects.biophilia.game.PlayerColor.ORANGE
+import com.tgaetaprojects.biophilia.game.PlayerColor.RED
+import com.tgaetaprojects.biophilia.game.Resource.BRICK
+import com.tgaetaprojects.biophilia.game.Resource.GRAIN
+import com.tgaetaprojects.biophilia.game.Resource.LUMBER
+import com.tgaetaprojects.biophilia.game.Resource.ORE
+import com.tgaetaprojects.biophilia.game.Resource.WOOL
 import com.tgaetaprojects.biophilia.game.Vertex
 import com.tgaetaprojects.biophilia.game.engine.Action
 import com.tgaetaprojects.biophilia.game.engine.ResourceCounts
@@ -12,7 +18,6 @@ import com.tgaetaprojects.biophilia.game.engine.ResourceCounts.Companion.of
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
 
 class LayoutAndActionCodecTest {
 
@@ -33,7 +38,7 @@ class LayoutAndActionCodecTest {
         assertFailsWith<CodecException> { LayoutCodec.decode(bytes.copyOf(bytes.size - 1)) }
         assertFailsWith<CodecException> { LayoutCodec.decode(bytes + 0) }
         assertFailsWith<CodecException> { LayoutCodec.decode(bytes.copyOf().also { it[0] = 99 }) }
-        assertFailsWith<CodecException> { LayoutCodec.decode(bytes.copyOf().also { it[1] = BlobKind.ACTION.code.toByte() }) }
+        assertFailsWith<CodecException> { LayoutCodec.decode(bytes.copyOf().also { it[1] = BlobKind.ACTION.ordinal.toByte() }) }
         // changing the first frame piece repeats a piece (or names none), which decoding re-validates
         assertFailsWith<CodecException> { LayoutCodec.decode(bytes.copyOf().also { it[2] = (it[2].toInt() xor 0b111).toByte() }) }
     }
@@ -78,7 +83,7 @@ class LayoutAndActionCodecTest {
     fun corruptActionsAreRejected() {
         assertFailsWith<CodecException> { ActionCodec.decode(byteArrayOf()) }
         // tag 31 doesn't exist
-        assertFailsWith<CodecException> { ActionCodec.decode(byteArrayOf(FORMAT_VERSION.toByte(), BlobKind.ACTION.code.toByte(), 0x7C)) }
+        assertFailsWith<CodecException> { ActionCodec.decode(byteArrayOf(FORMAT_VERSION.toByte(), BlobKind.ACTION.ordinal.toByte(), 0x7C)) }
         assertFailsWith<CodecException> { ActionCodec.decode(ActionCodec.encode(RED, Action.BuildRoad(Edge.E5)).dropLast(1).toByteArray()) }
         assertFailsWith<CodecException> { ActionCodec.decode(LayoutCodec.encode(BoardLayout.generate(1))) }
     }

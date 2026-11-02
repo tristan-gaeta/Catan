@@ -1,7 +1,11 @@
 package com.tgaetaprojects.biophilia.game.engine
 
 import com.tgaetaprojects.biophilia.game.Resource
-import com.tgaetaprojects.biophilia.game.Resource.*
+import com.tgaetaprojects.biophilia.game.Resource.BRICK
+import com.tgaetaprojects.biophilia.game.Resource.GRAIN
+import com.tgaetaprojects.biophilia.game.Resource.LUMBER
+import com.tgaetaprojects.biophilia.game.Resource.ORE
+import com.tgaetaprojects.biophilia.game.Resource.WOOL
 
 /**
  * A count of each [Resource] packed into one `Int`, 5 bits per resource. No count can exceed 19 (the whole bank),

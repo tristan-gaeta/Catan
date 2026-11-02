@@ -1,6 +1,11 @@
 package com.tgaetaprojects.biophilia.game
 
-import com.tgaetaprojects.biophilia.game.Direction.*
+import com.tgaetaprojects.biophilia.game.Direction.E
+import com.tgaetaprojects.biophilia.game.Direction.NE
+import com.tgaetaprojects.biophilia.game.Direction.NW
+import com.tgaetaprojects.biophilia.game.Direction.SE
+import com.tgaetaprojects.biophilia.game.Direction.SW
+import com.tgaetaprojects.biophilia.game.Direction.W
 
 /**
  * Enum class for all 54 vertices on the map.

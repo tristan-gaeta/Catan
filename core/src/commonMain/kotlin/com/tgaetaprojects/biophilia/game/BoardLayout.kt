@@ -1,6 +1,12 @@
 package com.tgaetaprojects.biophilia.game
 
-import com.tgaetaprojects.biophilia.game.Terrain.*
+import com.tgaetaprojects.biophilia.game.BoardLayout.Companion.generate
+import com.tgaetaprojects.biophilia.game.Terrain.DESERT
+import com.tgaetaprojects.biophilia.game.Terrain.FIELDS
+import com.tgaetaprojects.biophilia.game.Terrain.FOREST
+import com.tgaetaprojects.biophilia.game.Terrain.HILL
+import com.tgaetaprojects.biophilia.game.Terrain.MOUNTAIN
+import com.tgaetaprojects.biophilia.game.Terrain.PASTURE
 import com.tgaetaprojects.biophilia.game.random.GameRandom
 import com.tgaetaprojects.biophilia.game.random.pickWith
 import com.tgaetaprojects.biophilia.game.random.shuffleWith

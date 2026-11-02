@@ -1,13 +1,25 @@
 package com.tgaetaprojects.biophilia.game.engine
 
-import com.tgaetaprojects.biophilia.game.DevelopmentCardType.*
+import com.tgaetaprojects.biophilia.game.DevelopmentCardType.KNIGHT
+import com.tgaetaprojects.biophilia.game.DevelopmentCardType.MONOPOLY
+import com.tgaetaprojects.biophilia.game.DevelopmentCardType.ROAD_BUILDING
+import com.tgaetaprojects.biophilia.game.DevelopmentCardType.VICTORY_POINT
+import com.tgaetaprojects.biophilia.game.DevelopmentCardType.YEAR_OF_PLENTY
 import com.tgaetaprojects.biophilia.game.DiceTotal
 import com.tgaetaprojects.biophilia.game.Direction.NE
 import com.tgaetaprojects.biophilia.game.Hex
-import com.tgaetaprojects.biophilia.game.PlayerColor.*
-import com.tgaetaprojects.biophilia.game.Resource.*
+import com.tgaetaprojects.biophilia.game.PlayerColor.BLUE
+import com.tgaetaprojects.biophilia.game.PlayerColor.RED
+import com.tgaetaprojects.biophilia.game.PlayerColor.WHITE
+import com.tgaetaprojects.biophilia.game.Resource.BRICK
+import com.tgaetaprojects.biophilia.game.Resource.ORE
+import com.tgaetaprojects.biophilia.game.Resource.WOOL
 import com.tgaetaprojects.biophilia.game.engine.ResourceCounts.Companion.of
-import com.tgaetaprojects.biophilia.game.engine.RuleViolation.*
+import com.tgaetaprojects.biophilia.game.engine.RuleViolation.BANK_SHORTAGE
+import com.tgaetaprojects.biophilia.game.engine.RuleViolation.DECK_EMPTY
+import com.tgaetaprojects.biophilia.game.engine.RuleViolation.DEV_CARD_ALREADY_PLAYED
+import com.tgaetaprojects.biophilia.game.engine.RuleViolation.NO_PLAYABLE_CARD
+import com.tgaetaprojects.biophilia.game.engine.RuleViolation.WRONG_PHASE
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

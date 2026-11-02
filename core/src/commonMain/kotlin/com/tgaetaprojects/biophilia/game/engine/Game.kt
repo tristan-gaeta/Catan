@@ -2,7 +2,11 @@ package com.tgaetaprojects.biophilia.game.engine
 
 import com.tgaetaprojects.biophilia.game.Building
 import com.tgaetaprojects.biophilia.game.DevelopmentCardType
-import com.tgaetaprojects.biophilia.game.DevelopmentCardType.*
+import com.tgaetaprojects.biophilia.game.DevelopmentCardType.KNIGHT
+import com.tgaetaprojects.biophilia.game.DevelopmentCardType.MONOPOLY
+import com.tgaetaprojects.biophilia.game.DevelopmentCardType.ROAD_BUILDING
+import com.tgaetaprojects.biophilia.game.DevelopmentCardType.VICTORY_POINT
+import com.tgaetaprojects.biophilia.game.DevelopmentCardType.YEAR_OF_PLENTY
 import com.tgaetaprojects.biophilia.game.DiceTotal
 import com.tgaetaprojects.biophilia.game.Edge
 import com.tgaetaprojects.biophilia.game.GameBoard
@@ -10,13 +14,29 @@ import com.tgaetaprojects.biophilia.game.Hex
 import com.tgaetaprojects.biophilia.game.PlayerColor
 import com.tgaetaprojects.biophilia.game.Resource
 import com.tgaetaprojects.biophilia.game.Vertex
-import com.tgaetaprojects.biophilia.game.engine.RuleViolation.*
+import com.tgaetaprojects.biophilia.game.engine.Game.Companion.RULES_VERSION
+import com.tgaetaprojects.biophilia.game.engine.RuleViolation.BANK_SHORTAGE
+import com.tgaetaprojects.biophilia.game.engine.RuleViolation.DECK_EMPTY
+import com.tgaetaprojects.biophilia.game.engine.RuleViolation.DEV_CARD_ALREADY_PLAYED
+import com.tgaetaprojects.biophilia.game.engine.RuleViolation.GAME_OVER
+import com.tgaetaprojects.biophilia.game.engine.RuleViolation.ILLEGAL_LOCATION
+import com.tgaetaprojects.biophilia.game.engine.RuleViolation.INSUFFICIENT_RESOURCES
+import com.tgaetaprojects.biophilia.game.engine.RuleViolation.INVALID_DISCARD
+import com.tgaetaprojects.biophilia.game.engine.RuleViolation.INVALID_ROBBER_MOVE
+import com.tgaetaprojects.biophilia.game.engine.RuleViolation.INVALID_TRADE
+import com.tgaetaprojects.biophilia.game.engine.RuleViolation.INVALID_VICTIM
+import com.tgaetaprojects.biophilia.game.engine.RuleViolation.NOT_YOUR_TURN
+import com.tgaetaprojects.biophilia.game.engine.RuleViolation.NO_PIECES_LEFT
+import com.tgaetaprojects.biophilia.game.engine.RuleViolation.NO_PLAYABLE_CARD
+import com.tgaetaprojects.biophilia.game.engine.RuleViolation.NO_SUCH_OFFER
+import com.tgaetaprojects.biophilia.game.engine.RuleViolation.UNKNOWN_PLAYER
+import com.tgaetaprojects.biophilia.game.engine.RuleViolation.WRONG_PHASE
+import com.tgaetaprojects.biophilia.game.random.GameRandom
+import com.tgaetaprojects.biophilia.game.random.shuffleWith
 import com.tgaetaprojects.biophilia.utils.EnumMap
 import com.tgaetaprojects.biophilia.utils.MutableEnumMap
 import com.tgaetaprojects.biophilia.utils.asReadOnly
 import com.tgaetaprojects.biophilia.utils.toEnumMap
-import com.tgaetaprojects.biophilia.game.random.GameRandom
-import com.tgaetaprojects.biophilia.game.random.shuffleWith
 import com.tgaetaprojects.biophilia.utils.toEnumSet
 
 /**

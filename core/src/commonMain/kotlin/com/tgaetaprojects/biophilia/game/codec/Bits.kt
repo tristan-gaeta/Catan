@@ -1,37 +1,43 @@
 package com.tgaetaprojects.biophilia.game.codec
 
-import com.tgaetaprojects.biophilia.game.Edge
-import com.tgaetaprojects.biophilia.game.Vertex
+import com.tgaetaprojects.biophilia.game.DevelopmentCardType
+import com.tgaetaprojects.biophilia.game.Resource
 import com.tgaetaprojects.biophilia.game.engine.DevCardCounts
 import com.tgaetaprojects.biophilia.game.engine.ResourceCounts
+import kotlin.enums.enumEntries
 
 /** Thrown when bytes can't be decoded: truncated, corrupted, the wrong kind of blob, or an unknown format version. */
 class CodecException(message: String, cause: Throwable? = null) : IllegalArgumentException(message, cause)
 
 /**
- * The kinds of top-level blob, each with a fixed code. Every blob starts with [FORMAT_VERSION] and its kind code,
- * one byte each, so a decoder can reject the wrong thing up front.
+ * The kinds of top-level blob. Every blob starts with [FORMAT_VERSION] and its kind's ordinal, one byte each, so a
+ * decoder can reject the wrong thing up front.
  */
-internal enum class BlobKind(val code: Int) {
-    LAYOUT(1),
-    ACTION(2),
-    SNAPSHOT(3),
-    VIEW(4),
-    RECORD(5),
-}
+internal enum class BlobKind { LAYOUT, ACTION, SNAPSHOT, VIEW, RECORD }
 
 /**
  * The version of the byte layouts in this package. Bump it on any change to what an encoding writes;
  * `VersionGuardTest` pins this version's bytes and fails if they change without a bump.
+ *
+ * Enums are written as their ordinal, in just enough bits for their size, so reordering, adding or removing
+ * constants in a serialized enum changes the format too. `VersionGuardTest` catches both: its samples use every
+ * constant, and it pins each serialized enum's size (an appended constant may not change any existing bytes, but
+ * an older reader couldn't decode it). The serialized enums are [BlobKind], `PlayerColor`,
+ * `Resource`, `DevelopmentCardType`, `DiceTotal`, `Terrain`, `FramePiece`, `Building`, `Hex`, `Vertex`, `Edge`,
+ * and the action and phase tags in `ActionCodec` and `SnapshotCodec`. (`Vertex` and `Edge` ordinals are board
+ * positions, assigned in a fixed geometric order, so those two only change if the board does.)
  */
 internal const val FORMAT_VERSION = 1
 
+/** Bits needed to store any of [count] distinct values, e.g. 54 vertices need 6. */
+internal fun bitsFor(count: Int): Int = if (count <= 1) 0 else 32 - (count - 1).countLeadingZeroBits()
+
 /** How many bits each count in [ResourceCounts] and [DevCardCounts] takes on the wire (at most 19 or 14). */
-private const val COUNT_WIDTH = 5
+internal const val COUNT_WIDTH = 5
 
 /**
- * Appends values to a growing byte array, least significant bit first, with no padding between fields. Enums are
- * written through their [WireCodes], never their ordinals.
+ * Appends values to a growing byte array, least significant bit first, with no padding between fields. An enum is
+ * written as its ordinal in exactly as many bits as its enum needs.
  */
 internal class BitWriter {
     private var buffer = ByteArray(64)
@@ -68,29 +74,27 @@ internal class BitWriter {
         bits(rest, 8)
     }
 
-    fun <E : Enum<E>> code(value: E, codes: WireCodes<E>) = bits(codes.code(value), codes.width)
+    inline fun <reified E : Enum<E>> code(value: E) = bits(value.ordinal, bitsFor(enumEntries<E>().size))
 
-    /** An optional enum: a presence bit, then the code if present. */
-    fun <E : Enum<E>> optional(value: E?, codes: WireCodes<E>) {
+    /** An optional enum: a presence bit, then the ordinal if present. */
+    inline fun <reified E : Enum<E>> optional(value: E?) {
         bool(value != null)
-        if (value != null) code(value, codes)
+        if (value != null) code(value)
     }
 
-    fun vertex(value: Vertex) = bits(value.ordinal, Codes.VERTEX_WIDTH)
-    fun edge(value: Edge) = bits(value.ordinal, Codes.EDGE_WIDTH)
-
-    /** Each count in resource code order, so reordering [com.tgaetaprojects.biophilia.game.Resource] changes nothing. */
+    /** Each count in [Resource] order. */
     fun counts(value: ResourceCounts) {
-        for (resource in Codes.RESOURCE.inCodeOrder) bits(value[resource], COUNT_WIDTH)
+        for (resource in Resource.entries) bits(value[resource], COUNT_WIDTH)
     }
 
+    /** Each count in [DevelopmentCardType] order. */
     fun counts(value: DevCardCounts) {
-        for (type in Codes.DEV_CARD.inCodeOrder) bits(value[type], COUNT_WIDTH)
+        for (type in DevelopmentCardType.entries) bits(value[type], COUNT_WIDTH)
     }
 
     fun header(kind: BlobKind) {
         bits(FORMAT_VERSION, 8)
-        bits(kind.code, 8)
+        bits(kind.ordinal, 8)
     }
 
     fun toByteArray(): ByteArray = buffer.copyOf((position + 7) ushr 3)
@@ -146,30 +150,26 @@ internal class BitReader(private val bytes: ByteArray) {
         return count
     }
 
-    fun <E : Enum<E>> code(codes: WireCodes<E>): E = codes.decode(bits(codes.width))
-
-    fun <E : Enum<E>> optional(codes: WireCodes<E>): E? = if (bool()) code(codes) else null
-
-    fun vertex(): Vertex = bits(Codes.VERTEX_WIDTH).let {
-        Vertex.entries.getOrNull(it) ?: throw CodecException("No vertex $it")
+    inline fun <reified E : Enum<E>> code(): E {
+        val entries = enumEntries<E>()
+        val ordinal = bits(bitsFor(entries.size))
+        return entries.getOrNull(ordinal) ?: throw CodecException("No ${E::class.simpleName} with ordinal $ordinal")
     }
 
-    fun edge(): Edge = bits(Codes.EDGE_WIDTH).let {
-        Edge.entries.getOrNull(it) ?: throw CodecException("No edge $it")
-    }
+    inline fun <reified E : Enum<E>> optional(): E? = if (bool()) code<E>() else null
 
     fun resourceCounts(): ResourceCounts =
-        Codes.RESOURCE.inCodeOrder.fold(ResourceCounts.EMPTY) { acc, r -> acc.with(r, bits(COUNT_WIDTH)) }
+        Resource.entries.fold(ResourceCounts.EMPTY) { acc, r -> acc.with(r, bits(COUNT_WIDTH)) }
 
     fun devCardCounts(): DevCardCounts =
-        Codes.DEV_CARD.inCodeOrder.fold(DevCardCounts.EMPTY) { acc, t -> acc.with(t, bits(COUNT_WIDTH)) }
+        DevelopmentCardType.entries.fold(DevCardCounts.EMPTY) { acc, t -> acc.with(t, bits(COUNT_WIDTH)) }
 
     fun header(expected: BlobKind) {
         val version = bits(8)
         if (version != FORMAT_VERSION) throw CodecException("Unsupported format version $version (expected $FORMAT_VERSION)")
-        val code = bits(8)
-        val kind = BlobKind.entries.firstOrNull { it.code == code }
-        if (kind != expected) throw CodecException("Expected a $expected blob but found ${kind ?: "unknown kind $code"}")
+        val ordinal = bits(8)
+        val kind = BlobKind.entries.getOrNull(ordinal)
+        if (kind != expected) throw CodecException("Expected a $expected blob but found ${kind ?: "unknown kind $ordinal"}")
     }
 
     /** Checks that only the zero padding of the last byte is left. */

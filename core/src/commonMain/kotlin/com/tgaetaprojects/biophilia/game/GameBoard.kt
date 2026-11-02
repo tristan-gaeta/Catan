@@ -1,6 +1,6 @@
 package com.tgaetaprojects.biophilia.game
 
-import com.tgaetaprojects.biophilia.utils.*
+import com.tgaetaprojects.biophilia.utils.MutableEnumMap
 
 /**
  *

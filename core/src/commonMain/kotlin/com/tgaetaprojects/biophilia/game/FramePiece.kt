@@ -1,7 +1,5 @@
 package com.tgaetaprojects.biophilia.game
 
-import com.tgaetaprojects.biophilia.game.PortType.*
-
 /**
  * The six sea frame pieces of the 6th edition. Each covers one side of the island, 5 coastal edges, and has its
  * harbors printed on it, so shuffling the pieces around the island is what varies the harbors between games.

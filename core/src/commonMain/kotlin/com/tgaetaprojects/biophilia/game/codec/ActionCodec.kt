@@ -4,33 +4,34 @@ import com.tgaetaprojects.biophilia.game.PlayerColor
 import com.tgaetaprojects.biophilia.game.engine.Action
 
 /**
- * Encodes who did what: the 2-bit actor code, a 5-bit action tag, then the action's operands. Rolling the dice
- * takes 7 bits and building a road 14; only trade offers, which carry two hands of cards, run to about 8 bytes.
+ * Encodes who did what: the 2-bit actor, a 5-bit action tag, then the action's operands. Rolling the dice takes
+ * 7 bits and building a road 14; only trade offers, which carry two hands of cards, run to about 8 bytes.
  */
 object ActionCodec {
-    /** One fixed tag per action type. Tags are part of the format: never renumber them, only append. */
-    private object Tag {
-        const val WIDTH = 5
-
-        const val PLACE_SETTLEMENT = 0
-        const val PLACE_ROAD = 1
-        const val ROLL_DICE = 2
-        const val DISCARD = 3
-        const val MOVE_ROBBER = 4
-        const val BUILD_ROAD = 5
-        const val BUILD_SETTLEMENT = 6
-        const val BUILD_CITY = 7
-        const val BUY_DEV_CARD = 8
-        const val PLAY_KNIGHT = 9
-        const val PLAY_ROAD_BUILDING = 10
-        const val PLAY_YEAR_OF_PLENTY = 11
-        const val PLAY_MONOPOLY = 12
-        const val MARITIME_TRADE = 13
-        const val PROPOSE_TRADE = 14
-        const val ACCEPT_TRADE = 15
-        const val CANCEL_TRADE = 16
-        const val END_TURN = 17
+    /** One tag per action type, written as its ordinal (see [FORMAT_VERSION]). */
+    private enum class Tag {
+        PLACE_SETTLEMENT,
+        PLACE_ROAD,
+        ROLL_DICE,
+        DISCARD,
+        MOVE_ROBBER,
+        BUILD_ROAD,
+        BUILD_SETTLEMENT,
+        BUILD_CITY,
+        BUY_DEV_CARD,
+        PLAY_KNIGHT,
+        PLAY_ROAD_BUILDING,
+        PLAY_YEAR_OF_PLENTY,
+        PLAY_MONOPOLY,
+        MARITIME_TRADE,
+        PROPOSE_TRADE,
+        ACCEPT_TRADE,
+        CANCEL_TRADE,
+        END_TURN,
     }
+
+    /** The smallest possible encoded action: an actor and a tag with no operands. */
+    internal val MIN_ACTION_BITS = bitsFor(PlayerColor.entries.size) + bitsFor(Tag.entries.size)
 
     fun encode(actor: PlayerColor, action: Action): ByteArray = BitWriter().apply {
         header(BlobKind.ACTION)
@@ -43,33 +44,33 @@ object ActionCodec {
     }
 
     internal fun BitWriter.writeAction(actor: PlayerColor, action: Action) {
-        code(actor, Codes.COLOR)
-        bits(tagOf(action), Tag.WIDTH)
+        code(actor)
+        code(tagOf(action))
         when (action) {
-            is Action.PlaceSettlement -> vertex(action.vertex)
-            is Action.PlaceRoad -> edge(action.edge)
+            is Action.PlaceSettlement -> code(action.vertex)
+            is Action.PlaceRoad -> code(action.edge)
             Action.RollDice -> Unit
             is Action.Discard -> counts(action.cards)
             is Action.MoveRobber -> {
-                code(action.hex, Codes.HEX)
-                optional(action.victim, Codes.COLOR)
+                code(action.hex)
+                optional(action.victim)
             }
-            is Action.BuildRoad -> edge(action.edge)
-            is Action.BuildSettlement -> vertex(action.vertex)
-            is Action.BuildCity -> vertex(action.vertex)
+            is Action.BuildRoad -> code(action.edge)
+            is Action.BuildSettlement -> code(action.vertex)
+            is Action.BuildCity -> code(action.vertex)
             Action.BuyDevCard, Action.PlayKnight, Action.PlayRoadBuilding, Action.EndTurn -> Unit
             is Action.PlayYearOfPlenty -> {
-                code(action.first, Codes.RESOURCE)
-                code(action.second, Codes.RESOURCE)
+                code(action.first)
+                code(action.second)
             }
-            is Action.PlayMonopoly -> code(action.resource, Codes.RESOURCE)
+            is Action.PlayMonopoly -> code(action.resource)
             is Action.MaritimeTrade -> {
-                code(action.give, Codes.RESOURCE)
-                code(action.get, Codes.RESOURCE)
+                code(action.give)
+                code(action.get)
                 varint(action.lots)
             }
             is Action.ProposeTrade -> {
-                code(action.to, Codes.COLOR)
+                code(action.to)
                 counts(action.give)
                 counts(action.get)
             }
@@ -79,32 +80,31 @@ object ActionCodec {
     }
 
     internal fun BitReader.readAction(): Pair<PlayerColor, Action> {
-        val actor = code(Codes.COLOR)
-        val action = when (val tag = bits(Tag.WIDTH)) {
-            Tag.PLACE_SETTLEMENT -> Action.PlaceSettlement(vertex())
-            Tag.PLACE_ROAD -> Action.PlaceRoad(edge())
+        val actor = code<PlayerColor>()
+        val action = when (code<Tag>()) {
+            Tag.PLACE_SETTLEMENT -> Action.PlaceSettlement(code())
+            Tag.PLACE_ROAD -> Action.PlaceRoad(code())
             Tag.ROLL_DICE -> Action.RollDice
             Tag.DISCARD -> Action.Discard(resourceCounts())
-            Tag.MOVE_ROBBER -> Action.MoveRobber(code(Codes.HEX), optional(Codes.COLOR))
-            Tag.BUILD_ROAD -> Action.BuildRoad(edge())
-            Tag.BUILD_SETTLEMENT -> Action.BuildSettlement(vertex())
-            Tag.BUILD_CITY -> Action.BuildCity(vertex())
+            Tag.MOVE_ROBBER -> Action.MoveRobber(code(), optional())
+            Tag.BUILD_ROAD -> Action.BuildRoad(code())
+            Tag.BUILD_SETTLEMENT -> Action.BuildSettlement(code())
+            Tag.BUILD_CITY -> Action.BuildCity(code())
             Tag.BUY_DEV_CARD -> Action.BuyDevCard
             Tag.PLAY_KNIGHT -> Action.PlayKnight
             Tag.PLAY_ROAD_BUILDING -> Action.PlayRoadBuilding
-            Tag.PLAY_YEAR_OF_PLENTY -> Action.PlayYearOfPlenty(code(Codes.RESOURCE), code(Codes.RESOURCE))
-            Tag.PLAY_MONOPOLY -> Action.PlayMonopoly(code(Codes.RESOURCE))
-            Tag.MARITIME_TRADE -> Action.MaritimeTrade(code(Codes.RESOURCE), code(Codes.RESOURCE), varint())
-            Tag.PROPOSE_TRADE -> Action.ProposeTrade(code(Codes.COLOR), resourceCounts(), resourceCounts())
+            Tag.PLAY_YEAR_OF_PLENTY -> Action.PlayYearOfPlenty(code(), code())
+            Tag.PLAY_MONOPOLY -> Action.PlayMonopoly(code())
+            Tag.MARITIME_TRADE -> Action.MaritimeTrade(code(), code(), varint())
+            Tag.PROPOSE_TRADE -> Action.ProposeTrade(code(), resourceCounts(), resourceCounts())
             Tag.ACCEPT_TRADE -> Action.AcceptTrade(varint())
             Tag.CANCEL_TRADE -> Action.CancelTrade(varint())
             Tag.END_TURN -> Action.EndTurn
-            else -> throw CodecException("Unknown action tag $tag")
         }
         return actor to action
     }
 
-    private fun tagOf(action: Action): Int = when (action) {
+    private fun tagOf(action: Action): Tag = when (action) {
         is Action.PlaceSettlement -> Tag.PLACE_SETTLEMENT
         is Action.PlaceRoad -> Tag.PLACE_ROAD
         Action.RollDice -> Tag.ROLL_DICE

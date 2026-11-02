@@ -9,7 +9,10 @@ import com.tgaetaprojects.biophilia.game.FramePiece
 import com.tgaetaprojects.biophilia.game.GameBoard
 import com.tgaetaprojects.biophilia.game.Hex
 import com.tgaetaprojects.biophilia.game.PlayerColor
-import com.tgaetaprojects.biophilia.game.PlayerColor.*
+import com.tgaetaprojects.biophilia.game.PlayerColor.BLUE
+import com.tgaetaprojects.biophilia.game.PlayerColor.ORANGE
+import com.tgaetaprojects.biophilia.game.PlayerColor.RED
+import com.tgaetaprojects.biophilia.game.PlayerColor.WHITE
 import com.tgaetaprojects.biophilia.game.Resource
 import com.tgaetaprojects.biophilia.game.Terrain
 import com.tgaetaprojects.biophilia.game.Vertex
@@ -40,8 +43,10 @@ import kotlin.test.fail
  * number and add the new fingerprint under the new version. Keep the old entries as a record of past versions.
  * Bumping a version without a behavior change also fails, until its fingerprint is added.
  *
- * Both fingerprints are built from numbers (wire codes, coordinates, counts), never from names or `toString`, so
- * renaming or reordering an enum doesn't trip them.
+ * Both fingerprints are built from numbers (ordinals, coordinates, counts), never from names or `toString`, so
+ * renaming an enum constant doesn't trip them. Reordering one does, and rightly: ordinals are what the codecs write,
+ * and the engine iterates enums in order (e.g. which card a steal takes), so a reorder changes the format and can
+ * change the rules.
  */
 class VersionGuardTest {
 
@@ -53,26 +58,6 @@ class VersionGuardTest {
     @Test
     fun encodingsArePinnedToTheFormatVersion() {
         checkPinned("format", "FORMAT_VERSION", FORMAT_VERSION, FORMAT_FINGERPRINTS, formatFingerprint())
-    }
-
-    @Test
-    fun everySerializedEnumHasAWireCode() {
-        // loading Codes already fails if a constant has no code; this documents the full set
-        assertEquals(PlayerColor.entries.toSet(), Codes.COLOR.inCodeOrder.toSet())
-        assertEquals(Resource.entries.toSet(), Codes.RESOURCE.inCodeOrder.toSet())
-        assertEquals(DevelopmentCardType.entries.toSet(), Codes.DEV_CARD.inCodeOrder.toSet())
-        assertEquals(DiceTotal.entries.toSet(), Codes.DICE.inCodeOrder.toSet())
-        assertEquals(Terrain.entries.toSet(), Codes.TERRAIN.inCodeOrder.toSet())
-        assertEquals(FramePiece.entries.toSet(), Codes.FRAME.inCodeOrder.toSet())
-        assertEquals(Building.entries.toSet(), Codes.BUILDING.inCodeOrder.toSet())
-        assertEquals(Hex.entries.toSet(), Codes.HEX.inCodeOrder.toSet())
-    }
-
-    @Test
-    fun wireCodesRejectIncompleteOrOversizedTables() {
-        assertFailsWith<IllegalArgumentException> { WireCodes(2, PlayerColor.entries, RED, WHITE, BLUE) }
-        assertFailsWith<IllegalArgumentException> { WireCodes(2, PlayerColor.entries, RED, WHITE, BLUE, BLUE) }
-        assertFailsWith<IllegalArgumentException> { WireCodes(2, Resource.entries, *Resource.entries.toTypedArray()) }
     }
 
     @Test
@@ -127,19 +112,19 @@ class VersionGuardTest {
     }
 
     private fun Fingerprint.mixLayout(layout: BoardLayout) {
-        for (piece in layout.frame) mix(Codes.FRAME.code(piece))
-        for (hex in Codes.HEX.inCodeOrder) {
-            mix(Codes.TERRAIN.code(layout.terrain.getValue(hex)))
+        for (piece in layout.frame) mix(piece.ordinal)
+        for (hex in Hex.entries) {
+            mix(layout.terrain.getValue(hex).ordinal)
             mix(layout.numbers.getValue(hex).value)
         }
-        // harbors by position along the coast: 0 for none, 1 for 3:1, 2 + resource code for 2:1
+        // harbors by position along the coast: 0 for none, 1 for 3:1, 2 + resource ordinal for 2:1
         for (edge in BoardLayout.coastline) {
             val port = layout.ports[edge]
             mix(
                 when {
                     port == null -> 0
                     port.exchangeRate == 3 -> 1
-                    else -> 2 + Codes.RESOURCE.code(port.accepted.single())
+                    else -> 2 + port.accepted.single().ordinal
                 }
             )
         }
@@ -147,13 +132,13 @@ class VersionGuardTest {
 
     private fun Fingerprint.mixState(game: Game) {
         mixPhase(game.phase, game)
-        mix(Codes.COLOR.code(game.currentPlayer))
-        for (color in game.turnOrder) mix(Codes.COLOR.code(color))
+        mix(game.currentPlayer.ordinal)
+        for (color in game.turnOrder) mix(color.ordinal)
         mix(game.turn)
         mix(game.lastRoll?.value ?: 0)
-        mix(Codes.HEX.code(game.board.robber))
-        for (edge in Edge.entries) mix(game.board.roads[edge]?.let { Codes.COLOR.code(it) + 1 } ?: 0)
-        for (vertex in Vertex.entries) mix(game.board.buildings[vertex]?.let { Codes.BUILDING.code(it) + 1 } ?: 0)
+        mix(game.board.robber.ordinal)
+        for (edge in Edge.entries) mix(game.board.roads[edge]?.let { it.ordinal + 1 } ?: 0)
+        for (vertex in Vertex.entries) mix(game.board.buildings[vertex]?.let { it.ordinal + 1 } ?: 0)
         for (color in game.seatOrder) {
             val player = game.player(color)
             mixCounts(player.hand)
@@ -161,11 +146,11 @@ class VersionGuardTest {
             mixCounts(player.boughtThisTurn)
             mix(player.knightsPlayed)
         }
-        for (card in game.devDeck) mix(Codes.DEV_CARD.code(card))
-        mix(game.longestRoadHolder?.let { Codes.COLOR.code(it) + 1 } ?: 0)
-        mix(game.largestArmyHolder?.let { Codes.COLOR.code(it) + 1 } ?: 0)
+        for (card in game.devDeck) mix(card.ordinal)
+        mix(game.longestRoadHolder?.let { it.ordinal + 1 } ?: 0)
+        mix(game.largestArmyHolder?.let { it.ordinal + 1 } ?: 0)
         for (offer in game.tradeOffers) {
-            mix(offer.id); mix(Codes.COLOR.code(offer.from)); mix(Codes.COLOR.code(offer.to))
+            mix(offer.id); mix(offer.from.ordinal); mix(offer.to.ordinal)
             mixCounts(offer.give); mixCounts(offer.get)
         }
     }
@@ -174,7 +159,7 @@ class VersionGuardTest {
         when (phase) {
             is Phase.RollForFirstPlayer -> {
                 mix(1)
-                for (color in phase.contenders) mix(Codes.COLOR.code(color) * 16 + (phase.rolls[color]?.value ?: 0))
+                for (color in phase.contenders) mix(color.ordinal * 16 + (phase.rolls[color]?.value ?: 0))
             }
             is Phase.SetupSettlement -> { mix(2); mix(phase.round) }
             is Phase.SetupRoad -> { mix(3); mix(phase.round); mix(phase.settlement.ordinal) }
@@ -183,16 +168,16 @@ class VersionGuardTest {
             is Phase.MoveRobber -> { mix(6); mixPhase(phase.returnTo, game) }
             Phase.Main -> mix(7)
             is Phase.RoadBuilding -> { mix(8); mix(phase.remaining); mixPhase(phase.returnTo, game) }
-            is Phase.GameOver -> { mix(9); mix(Codes.COLOR.code(phase.winner)) }
+            is Phase.GameOver -> { mix(9); mix(phase.winner.ordinal) }
         }
     }
 
     private fun Fingerprint.mixCounts(counts: ResourceCounts) {
-        for (resource in Codes.RESOURCE.inCodeOrder) mix(counts[resource])
+        for (resource in Resource.entries) mix(counts[resource])
     }
 
     private fun Fingerprint.mixCounts(counts: DevCardCounts) {
-        for (type in Codes.DEV_CARD.inCodeOrder) mix(counts[type])
+        for (type in DevelopmentCardType.entries) mix(counts[type])
     }
 
     // ---- Format ----
@@ -212,7 +197,25 @@ class VersionGuardTest {
             blobs += withoutRulesVersion(snapshot)
             blobs += withoutRulesVersion(SnapshotCodec.encodeView(game.viewFor(WHITE)))
         }
-        return blobs.fold(1) { hash, bytes -> hash * 31 + bytes.contentHashCode() }
+        // appending a constant only changes bytes once it widens the enum, so pin every size directly
+        val sizes = SERIALIZED_ENUMS.map { it.size }
+        return blobs.fold(sizes.hashCode()) { hash, bytes -> hash * 31 + bytes.contentHashCode() }
+    }
+
+    @Test
+    fun theFormatSamplesUseEveryConstantOfEverySerializedEnum() {
+        // with enums written by ordinal, a reorder only shows in the bytes if the samples use the constants it moves
+        val game = fixedGame(Phase.Main)
+        assertEquals(PlayerColor.entries.toSet(), game.seatOrder.toSet())
+        assertEquals(Building.entries.toSet(), game.board.buildings.values.toSet())
+        assertEquals(DevelopmentCardType.entries.toSet(), game.devDeck.toSet())
+        assertEquals(Resource.entries.size, Resource.entries.map { game.player(RED).hand[it] }.toSet().size, "distinct counts per resource")
+        assertEquals(Terrain.entries.toSet(), fixedLayout().terrain.values.toSet())
+        assertEquals(DiceTotal.entries.toSet(), fixedLayout().numbers.values.toSet())
+        assertEquals(FramePiece.entries.toSet(), fixedLayout().frame.toSet())
+        // one sample of each of the 9 phase types and 18 action types, so every tag's ordinal is written
+        assertEquals(9, samplePhases().map { it::class }.toSet().size)
+        assertEquals(18, sampleActions().map { it::class }.toSet().size)
     }
 
     /** Snapshots and views embed the rules version at byte 2; drop it so a rules bump alone doesn't trip this. */
@@ -276,24 +279,35 @@ class VersionGuardTest {
      * consistent with [phase] (set-up and the roll-off happen before turn 1, a discard is half a big hand).
      */
     private fun fixedGame(phase: Phase): Game {
-        val game = Game(listOf(RED, WHITE, BLUE), GameBoard(fixedLayout()), GameRandom.fromState(intArrayOf(1, 2, 3, 4)), shuffleDeck = false)
-        game.devDeck.addAll(listOf(DevelopmentCardType.KNIGHT, DevelopmentCardType.MONOPOLY, DevelopmentCardType.VICTORY_POINT))
+        // all four colors, every building, every card type and distinct counts per resource, so reordering any of
+        // those enums changes these bytes (see theFormatSamplesUseEveryConstantOfEverySerializedEnum)
+        val game = Game(listOf(RED, WHITE, BLUE, ORANGE), GameBoard(fixedLayout()), GameRandom.fromState(intArrayOf(1, 2, 3, 4)), shuffleDeck = false)
+        game.devDeck.addAll(listOf(
+            DevelopmentCardType.KNIGHT, DevelopmentCardType.MONOPOLY, DevelopmentCardType.VICTORY_POINT,
+            DevelopmentCardType.YEAR_OF_PLENTY, DevelopmentCardType.ROAD_BUILDING,
+        ))
         game.board.placeBuilding(Vertex.V20, Building.city(RED))
+        game.board.placeBuilding(Vertex.V2, Building.settlement(RED))
         game.board.placeBuilding(Vertex.V40, Building.settlement(WHITE))
+        game.board.placeBuilding(Vertex.V45, Building.city(WHITE))
+        game.board.placeBuilding(Vertex.V12, Building.settlement(BLUE))
+        game.board.placeBuilding(Vertex.V25, Building.city(BLUE))
+        game.board.placeBuilding(Vertex.V30, Building.settlement(ORANGE))
+        game.board.placeBuilding(Vertex.V50, Building.city(ORANGE))
         game.board.placeRoad(Edge.E30, RED)
         game.board.placeRoad(Edge.E50, WHITE)
         game.board.robber = Hex.K
-        game.player(RED).hand = of(Resource.ORE to 2, Resource.WOOL to 1)
+        game.player(RED).hand = of(Resource.BRICK to 1, Resource.LUMBER to 2, Resource.ORE to 3, Resource.GRAIN to 4, Resource.WOOL to 5)
         game.player(WHITE).devCards = DevCardCounts.EMPTY + DevelopmentCardType.KNIGHT
         game.player(BLUE).knightsPlayed = 2
         game.phase = phase
         when (phase) {
             is Phase.RollForFirstPlayer -> game.currentPlayer = WHITE
             is Phase.SetupSettlement -> {
-                // WHITE, BLUE, RED: the 4th placement is RED's second settlement
+                // WHITE, BLUE, ORANGE, RED: the 6th placement is ORANGE's second settlement
                 game.setFirstPlayer(WHITE)
-                game.setupStep = 3
-                game.currentPlayer = RED
+                game.setupStep = 5
+                game.currentPlayer = ORANGE
             }
             is Phase.SetupRoad -> {
                 game.setFirstPlayer(WHITE)
@@ -319,10 +333,16 @@ class VersionGuardTest {
         /** Test games for the rules fingerprint: 3 players, 4 players, and one whose first roll is tied. */
         val GUARD_GAME_SEEDS = listOf(1L, 2L, 6L)
 
+        /** Every enum the codecs write by ordinal, apart from the private tags and the geometric Vertex and Edge. */
+        val SERIALIZED_ENUMS = listOf(
+            BlobKind.entries, PlayerColor.entries, Resource.entries, DevelopmentCardType.entries, DiceTotal.entries,
+            Terrain.entries, FramePiece.entries, Building.entries, Hex.entries, Vertex.entries, Edge.entries,
+        )
+
         /** Rules fingerprints by `Game.RULES_VERSION`. */
         val RULES_FINGERPRINTS = mapOf(1 to 1179605149)
 
         /** Format fingerprints by `FORMAT_VERSION`. */
-        val FORMAT_FINGERPRINTS = mapOf(1 to -2092564893)
+        val FORMAT_FINGERPRINTS = mapOf(1 to -512077608)
     }
 }

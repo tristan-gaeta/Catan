@@ -1,10 +1,16 @@
 package com.tgaetaprojects.biophilia.game.engine
 
 import com.tgaetaprojects.biophilia.game.DevelopmentCardType
-import com.tgaetaprojects.biophilia.game.DevelopmentCardType.*
+import com.tgaetaprojects.biophilia.game.DevelopmentCardType.KNIGHT
+import com.tgaetaprojects.biophilia.game.DevelopmentCardType.MONOPOLY
+import com.tgaetaprojects.biophilia.game.DevelopmentCardType.ROAD_BUILDING
+import com.tgaetaprojects.biophilia.game.DevelopmentCardType.YEAR_OF_PLENTY
 import com.tgaetaprojects.biophilia.game.Hex
 import com.tgaetaprojects.biophilia.game.PlayerColor
-import com.tgaetaprojects.biophilia.game.PlayerColor.*
+import com.tgaetaprojects.biophilia.game.PlayerColor.BLUE
+import com.tgaetaprojects.biophilia.game.PlayerColor.ORANGE
+import com.tgaetaprojects.biophilia.game.PlayerColor.RED
+import com.tgaetaprojects.biophilia.game.PlayerColor.WHITE
 import com.tgaetaprojects.biophilia.game.Resource
 import com.tgaetaprojects.biophilia.game.random.GameRandom
 import com.tgaetaprojects.biophilia.game.random.pickWith
