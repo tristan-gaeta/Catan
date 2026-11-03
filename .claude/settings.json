@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew :core:jvmTest*)",
+      "Bash(./gradlew :core:allTests*)",
+      "Bash(./gradlew :core:compile*)",
+      "Bash(./gradlew :app:shared:jvmTest*)",
+      "Bash(./gradlew :app:shared:testAndroidHostTest*)",
+      "Bash(./gradlew :app:shared:compile*)",
+      "Bash(./gradlew :server:test*)",
+      "Bash(./gradlew :server:compile*)",
+      "Bash(git add *)",
+      "Bash(git commit *)"
+    ],
+    "ask": [
+      "Bash(git push *)"
+    ],
+    "deny": [
+      "Bash(./gradlew *atd30*)",
+      "Bash(./gradlew *ciGroup*)",
+      "Bash(./gradlew *allDevices*)",
+      "Bash(./gradlew *cleanManagedDevices*)",
+      "Bash(emulator *)",
+      "Bash(*/emulator/emulator *)"
+    ]
+  }
+}
