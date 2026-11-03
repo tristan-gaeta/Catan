@@ -1,6 +1,6 @@
 # Serialization
 
-`game.codec` turns game data into small, hand-written binary blobs. They are used for network IO, for bot queries,
+`game.codec` turns game data into small, handwritten binary blobs. They are used for network IO, for bot queries,
 and eventually for a game database (SQLite for storage, DuckDB for analysis).
 
 | Codec | Encodes | Typical size | Who may see it |

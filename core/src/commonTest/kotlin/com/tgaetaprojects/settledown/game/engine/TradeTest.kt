@@ -59,6 +59,36 @@ class TradeTest {
     }
 
     @Test
+    fun maritimeLotsAreBoundedBeforeTheCostIsComputed() {
+        game.give(RED, of(ORE, 4))
+        // 4 * 2^30 overflows to a cost of 0
+        game.apply(RED, Action.MaritimeTrade(ORE, WOOL, lots = 1 shl 30)).rejectedWith(INVALID_TRADE)
+        game.apply(RED, Action.MaritimeTrade(ORE, WOOL, lots = 20)).rejectedWith(INVALID_TRADE)
+        game.apply(RED, Action.MaritimeTrade(ORE, WOOL, lots = 0)).rejectedWith(INVALID_TRADE)
+        assertEquals(of(ORE, 4), game.player(RED).hand)
+    }
+
+    @Test
+    fun eachPlayerHasAtMostOneOpenOffer() {
+        game.give(RED, of(ORE, 2))
+        game.give(WHITE, of(BRICK, 2))
+
+        val first = game.apply(RED, Action.ProposeTrade(WHITE, of(ORE, 1), of(BRICK, 1))).accepted()
+        val firstOffer = assertIs<GameEvent.TradeProposed>(first.single()).offer
+
+        // a new offer replaces the old one, even when it goes to someone else
+        val second = game.apply(RED, Action.ProposeTrade(BLUE, of(ORE, 1), of(WOOL, 1))).accepted()
+        assertEquals(GameEvent.TradeCancelled(firstOffer, RED), second.first())
+        val secondOffer = assertIs<GameEvent.TradeProposed>(second.last()).offer
+        assertEquals(listOf(secondOffer), game.tradeOffers)
+        game.apply(WHITE, Action.AcceptTrade(firstOffer.id)).rejectedWith(NO_SUCH_OFFER)
+
+        // flooding the current player with counteroffers still leaves one open offer per proposer
+        repeat(50) { game.apply(WHITE, Action.ProposeTrade(RED, of(BRICK, 1), of(ORE, 1))).accepted() }
+        assertEquals(2, game.tradeOffers.size)
+    }
+
+    @Test
     fun domesticTradesAlwaysInvolveTheCurrentPlayer() {
         game.give(RED, of(ORE, 2))
         game.give(WHITE, of(BRICK, 1))

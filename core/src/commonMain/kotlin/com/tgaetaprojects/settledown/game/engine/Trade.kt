@@ -7,6 +7,9 @@ import com.tgaetaprojects.settledown.game.Resource
 /** The maritime rate available to everyone, harbor or not. */
 internal const val BANK_RATE = 4
 
+/** The most lots one maritime trade can take: the bank never holds more than 19 of a resource. */
+internal const val MAX_MARITIME_LOTS = 19
+
 /**
  * The best bank rate [color] gets when giving [resource]: 2 at that resource's harbor, 3 at a generic harbor,
  * 4 otherwise. A harbor counts if the player has a settlement or city on either end of its edge.

@@ -27,8 +27,8 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            // put your Multiplatform dependencies here
-            implementation(libs.kotlinx.serialization.json)
+            // public serializers in utils expose KSerializer, so consumers need the runtime too
+            api(libs.kotlinx.serialization.json)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

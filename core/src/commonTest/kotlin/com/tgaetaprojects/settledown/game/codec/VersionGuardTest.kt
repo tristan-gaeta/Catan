@@ -477,7 +477,7 @@ class VersionGuardTest {
         )
 
         /** Rules fingerprints by `Game.RULES_VERSION`. */
-        val RULES_FINGERPRINTS = mapOf(1 to 1179605149, 2 to 564103760)
+        val RULES_FINGERPRINTS = mapOf(1 to 1179605149, 2 to 564103760, 3 to 564103760)
 
         /** Format fingerprints by `FORMAT_VERSION`. */
         val FORMAT_FINGERPRINTS = mapOf(1 to -512077608, 2 to -1919847427)

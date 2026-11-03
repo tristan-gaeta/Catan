@@ -558,7 +558,8 @@ class Game internal constructor(
         events: MutableList<GameEvent>
     ): RuleViolation? {
         if (phase != Phase.Main) return WRONG_PHASE
-        if (trade.give == trade.get || trade.lots < 1) return INVALID_TRADE
+        // a bound on lots also keeps rate * lots from overflowing
+        if (trade.give == trade.get || trade.lots !in 1..MAX_MARITIME_LOTS) return INVALID_TRADE
         val cost = board.maritimeRate(currentPlayer, trade.give) * trade.lots
         if (current.hand[trade.give] < cost) return INSUFFICIENT_RESOURCES
         if (bank[trade.get] < trade.lots) return BANK_SHORTAGE
@@ -583,6 +584,11 @@ class Game internal constructor(
         if (!isValidTradeShape(trade.give, trade.get)) return INVALID_TRADE
         if (!player(actor).hand.covers(trade.give)) return INSUFFICIENT_RESOURCES
 
+        // one open offer per proposer, so a player can't flood the turn with offers
+        offers.find { it.from == actor }?.let { replaced ->
+            offers.remove(replaced)
+            events += GameEvent.TradeCancelled(replaced, actor)
+        }
         val offer = TradeOffer(nextOfferId++, actor, trade.to, trade.give, trade.get)
         offers += offer
         events += GameEvent.TradeProposed(offer)
@@ -726,6 +732,6 @@ class Game internal constructor(
          * games only replay correctly on the same version, so bump it whenever a change would alter how a recorded
          * game unfolds. `VersionGuardTest` pins this version's behavior and fails if it changes without a bump.
          */
-        const val RULES_VERSION = 2
+        const val RULES_VERSION = 3
     }
 }
