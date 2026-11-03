@@ -43,3 +43,4 @@ these pages in Android Studio's Markdown preview instead, which shows the images
 The engine follows the 6th-edition base-game rules, *CATAN – The Game*. The publisher hosts the rulebook as a free
 PDF. It's linked from [References](references.md) rather than copied here, because the rulebook is copyrighted and
 this repository is pushed to GitHub. To keep a copy at hand, put it in `docs/local/`, which git ignores.
+

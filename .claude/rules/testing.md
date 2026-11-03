@@ -29,3 +29,4 @@ Split a test name into parts with underscores, and write each part in camelCase:
 - When a deliberate change trips `VersionGuardTest`, bump the version and add the new fingerprint under the new
   version. Keep the old entries; never edit a fingerprint in place.
 - Keep throwaway probes and dump tests out of the source tree.
+
