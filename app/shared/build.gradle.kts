@@ -55,3 +55,10 @@ kotlin {
 dependencies {
     androidRuntimeClasspath(libs.compose.uiTooling)
 }
+
+// UI tests save screenshots here; CI uploads them as an artifact.
+tasks.named<Test>("jvmTest") {
+    val screenshots = layout.buildDirectory.dir("screenshots/desktop")
+    outputs.dir(screenshots)
+    systemProperty("screenshotDir", screenshots.get().asFile.absolutePath)
+}

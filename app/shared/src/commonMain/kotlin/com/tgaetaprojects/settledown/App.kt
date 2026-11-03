@@ -1,49 +1,62 @@
 package com.tgaetaprojects.settledown
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.safeContentPadding
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.tooling.preview.Preview
-import org.jetbrains.compose.resources.painterResource
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.tgaetaprojects.settledown.ui.game.GameScreen
+import com.tgaetaprojects.settledown.ui.game.GameSession
+import com.tgaetaprojects.settledown.ui.home.HomeScreen
+import com.tgaetaprojects.settledown.ui.theme.SettledownTheme
+import kotlin.random.Random
 
-import settledown.app.shared.generated.resources.Res
-import settledown.app.shared.generated.resources.compose_multiplatform
+/**
+ * Holds the game across configuration changes such as rotation.
+ *
+ * Every seat is on this device, so the session already holds every secret and the seeds have nothing to hide;
+ * [Random.Default] is enough. A networked game draws its seeds on the server instead.
+ */
+class AppViewModel : ViewModel() {
+    var players by mutableIntStateOf(4)
+    var boardSeed by mutableLongStateOf(Random.nextLong())
+        private set
+    var session by mutableStateOf<GameSession?>(null)
+        private set
+
+    fun shuffleBoard() {
+        boardSeed = Random.nextLong()
+    }
+
+    fun start() {
+        session = GameSession.new(players, boardSeed, gameSeed = Random.nextLong())
+    }
+
+    fun quit() {
+        session = null
+        shuffleBoard()
+    }
+}
 
 @Composable
 @Preview
-fun App() {
-    MaterialTheme {
-        var showContent by remember { mutableStateOf(false) }
-        Column(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.primaryContainer)
-                .safeContentPadding()
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Button(onClick = { showContent = !showContent }) {
-                Text("Click me!")
-            }
-            AnimatedVisibility(showContent) {
-                val greeting = remember { Greeting().greet() }
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Image(painterResource(Res.drawable.compose_multiplatform), null)
-                    Text("Compose: $greeting")
-                }
-            }
+fun App(model: AppViewModel = viewModel { AppViewModel() }) {
+    SettledownTheme {
+        val session = model.session
+        if (session == null) {
+            HomeScreen(
+                players = model.players,
+                boardSeed = model.boardSeed,
+                onPlayersChange = { model.players = it },
+                onShuffleBoard = model::shuffleBoard,
+                onStart = model::start,
+            )
+        } else {
+            GameScreen(session, onNewGame = model::quit)
         }
     }
 }

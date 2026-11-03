@@ -19,9 +19,11 @@ CATAN GmbH.*
     - `game.codec`: compact binary encodings and replayable game records;
     - `game.random`: the portable, seeded random number generator;
     - `utils`: enum-keyed collections.
-* [/app/shared](./app/shared/src) holds the Compose Multiplatform UI shared by the apps:
-    - [commonMain](./app/shared/src/commonMain/kotlin) for every target;
-    - [jvmMain](./app/shared/src/jvmMain/kotlin) and the other platform folders for platform-specific code.
+* [/app/shared](./app/shared/src/commonMain/kotlin) holds the Compose Multiplatform UI shared by the apps, built
+  with Material 3 and drawn entirely in Compose (the board is a `Canvas`):
+    - `ui.home`: the start screen, with player count and board preview;
+    - `ui.game`: the pass-and-play game screen, board drawing and dialogs;
+    - `ui.theme`: the Material 3 color schemes and the fixed colors of terrain, resources and players.
 * [/server](./server/src/main/kotlin) is the Ktor server, which runs the authoritative game.
 
 ### Running the apps
@@ -44,6 +46,9 @@ Use the run button in your IDE's editor gutter, or run tests using Gradle tasks:
 - Desktop tests: `./gradlew :app:shared:jvmTest`
 - Server tests: `./gradlew :server:test`
 - Instrumented smoke tests on a connected device: `./gradlew :app:androidApp:connectedDebugAndroidTest`
+
+The UI tests save screenshots: desktop renders go to `app/shared/build/screenshots/desktop`, and device captures to
+`app/androidApp/build/outputs/connected_android_test_additional_output`. CI uploads both as workflow artifacts.
 
 ---
 
