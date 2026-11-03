@@ -71,8 +71,15 @@ sealed interface GameEvent {
      * bought development card from everyone but the buyer. Everything else in the base game is public.
      */
     fun visibleTo(viewer: PlayerColor): GameEvent = when (this) {
-        is Stole -> if (viewer == thief || viewer == victim) this else copy(resource = null)
-        is DevCardBought -> if (viewer == player) this else copy(card = null)
+        is Stole -> if (viewer == thief || viewer == victim) this else publicView()
+        is DevCardBought -> if (viewer == player) this else publicView()
+        else -> this
+    }
+
+    /** This event as a spectator sees it, with every private detail hidden; e.g. for a log on a shared screen. */
+    fun publicView(): GameEvent = when (this) {
+        is Stole -> copy(resource = null)
+        is DevCardBought -> copy(card = null)
         else -> this
     }
 }

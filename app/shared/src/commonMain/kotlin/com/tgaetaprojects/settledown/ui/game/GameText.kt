@@ -46,13 +46,18 @@ val BuildTool.label: String
 
 val PortType.label: String get() = "${exchangeRate}:1"
 
+/** A one-letter tag for [Resource], shown with its color so it never relies on color alone. */
+val Resource.initial: String get() = label.take(1)
+
 /** e.g. "2 Brick, 1 Wool", or "nothing". */
 fun ResourceCounts.describe(): String =
     if (isEmpty) "nothing" else types.joinToString { "${get(it)} ${it.label}" }
 
-/** What [actor] is asked to do in [phase], for the status line. */
-fun prompt(phase: Phase, actor: PlayerColor): String = when (phase) {
-    is Phase.RollForFirstPlayer -> "${actor.label}, roll to decide who goes first"
+/** What [actor] is asked to do in [phase], for the status line; [tieBreak] while tied players re-roll. */
+fun prompt(phase: Phase, actor: PlayerColor, tieBreak: Boolean = false): String = when (phase) {
+    is Phase.RollForFirstPlayer ->
+        if (tieBreak) "Tie! ${actor.label}, roll again to decide who goes first"
+        else "${actor.label}, roll to decide who goes first"
     is Phase.SetupSettlement -> "${actor.label}, place a free settlement (round ${phase.round})"
     is Phase.SetupRoad -> "${actor.label}, place a free road next to it"
     Phase.PreRoll -> "${actor.label}, roll the dice"

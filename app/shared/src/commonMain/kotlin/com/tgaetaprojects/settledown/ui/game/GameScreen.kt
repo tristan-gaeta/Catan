@@ -1,30 +1,41 @@
 package com.tgaetaprojects.settledown.ui.game
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -43,9 +54,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.tgaetaprojects.settledown.game.DevelopmentCardType
 import com.tgaetaprojects.settledown.game.Hex
@@ -53,6 +69,8 @@ import com.tgaetaprojects.settledown.game.engine.Action
 import com.tgaetaprojects.settledown.game.engine.Phase
 import com.tgaetaprojects.settledown.game.engine.ResourceCounts
 import com.tgaetaprojects.settledown.game.engine.RuleViolation
+import com.tgaetaprojects.settledown.ui.theme.GameColors
+import com.tgaetaprojects.settledown.ui.theme.SettledownTheme
 import kotlinx.coroutines.launch
 
 /** Which pop-up the game screen is showing, besides the discard dialog that [Phase.Discard] forces. */
@@ -61,11 +79,13 @@ private sealed interface Popup {
     data object MaritimeTrade : Popup
     data object YearOfPlenty : Popup
     data object Monopoly : Popup
+    data object LeaveGame : Popup
 }
 
 /**
  * A pass-and-play game: the board, and a panel for whoever must act next. Wide windows put the panel beside the
- * board; phones put it underneath.
+ * board; phones put it underneath. Whenever the device must change hands, a cover hides the next player's cards
+ * until they tap it.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -78,7 +98,14 @@ fun GameScreen(session: GameSession, onNewGame: () -> Unit) {
     }
     val act: (Action) -> Unit = { report(session.act(it)) }
 
+    if (session.needsHandOff) {
+        HandOffCover(session)
+        return
+    }
+
     val view = session.view
+    val targets = session.targets()
+    val dark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
     Scaffold(
         topBar = {
             TopAppBar(
@@ -92,21 +119,28 @@ fun GameScreen(session: GameSession, onNewGame: () -> Unit) {
                         )
                     }
                 },
-                actions = { TextButton(onClick = onNewGame) { Text("New game") } },
+                actions = {
+                    TextButton(
+                        onClick = { if (session.phase is Phase.GameOver) onNewGame() else popup = Popup.LeaveGame },
+                    ) { Text("New game") }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
             )
         },
         snackbarHost = { SnackbarHost(snackbar) },
+        // the panel pads itself for the navigation bar, so its background runs to the bottom edge
+        contentWindowInsets = ScaffoldDefaults.contentWindowInsets.only(
+            WindowInsetsSides.Horizontal + WindowInsetsSides.Top
+        ),
     ) { padding ->
         BoxWithConstraints(Modifier.padding(padding).fillMaxSize()) {
             val wide = maxWidth >= 720.dp && maxWidth > maxHeight
-            val panelMaxHeight = maxHeight * 0.55f
+            val panelMaxHeight = maxHeight * 0.5f
             val board = @Composable { modifier: Modifier ->
                 BoardCanvas(
                     view = view,
-                    targets = session.targets(),
-                    highlight = MaterialTheme.colorScheme.primary,
-                    darkSea = MaterialTheme.colorScheme.surface.luminance() < 0.5f,
+                    targets = targets,
+                    dark = dark,
                     onVertex = { report(session.tapVertex(it)) },
                     onEdge = { report(session.tapEdge(it)) },
                     onHex = { hex ->
@@ -119,19 +153,19 @@ fun GameScreen(session: GameSession, onNewGame: () -> Unit) {
             }
             val panel = @Composable { modifier: Modifier ->
                 Column(
-                    modifier.verticalScroll(rememberScrollState()).padding(16.dp),
+                    modifier.verticalScroll(rememberScrollState()).navigationBarsPadding().padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     StatusCard(session)
-                    ActionPanel(session, act, onPopup = { popup = it }, onNewGame = onNewGame)
                     HandSection(session)
+                    ActionPanel(session, targets, act, onPopup = { popup = it }, onNewGame = onNewGame)
                     PlayersSection(session)
                     LogSection(session)
                 }
             }
             if (wide) {
                 Row(Modifier.fillMaxSize()) {
-                    board(Modifier.weight(1f).fillMaxHeight())
+                    board(Modifier.weight(1f).fillMaxHeight().navigationBarsPadding())
                     Surface(color = MaterialTheme.colorScheme.surfaceContainerLow) {
                         panel(Modifier.width(400.dp).fillMaxHeight())
                     }
@@ -141,7 +175,7 @@ fun GameScreen(session: GameSession, onNewGame: () -> Unit) {
                     board(Modifier.fillMaxWidth().weight(1f))
                     Surface(
                         color = MaterialTheme.colorScheme.surfaceContainerLow,
-                        shape = MaterialTheme.shapes.extraLarge,
+                        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
                     ) {
                         panel(Modifier.fillMaxWidth().heightIn(max = panelMaxHeight))
                     }
@@ -182,38 +216,95 @@ fun GameScreen(session: GameSession, onNewGame: () -> Unit) {
             onDismiss = { popup = null },
         )
 
+        Popup.LeaveGame -> LeaveGameDialog(
+            onLeave = { popup = null; onNewGame() },
+            onDismiss = { popup = null },
+        )
+
         null -> {}
+    }
+}
+
+/** Fills the screen in the next player's color until they take the device, so nobody sees another's cards. */
+@Composable
+private fun HandOffCover(session: GameSession) {
+    val color = session.actor
+    val ink = GameColors.onPlayer(color)
+    Surface(color = GameColors.player(color), contentColor = ink, modifier = Modifier.fillMaxSize()) {
+        Box(Modifier.safeDrawingPadding().padding(24.dp), contentAlignment = Alignment.Center) {
+            Column(
+                Modifier.widthIn(max = 420.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text("Pass the device to", style = MaterialTheme.typography.titleLarge)
+                Text(
+                    color.label,
+                    style = MaterialTheme.typography.displayLarge,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.testTag("handOffPlayer"),
+                )
+                Text(
+                    prompt(session.phase, color),
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Center,
+                )
+                Button(
+                    onClick = session::reveal,
+                    colors = ButtonDefaults.buttonColors(containerColor = ink, contentColor = GameColors.player(color)),
+                    modifier = Modifier.padding(top = 16.dp).height(56.dp).testTag("reveal"),
+                ) { Text("I'm ${color.label}, show my cards", style = MaterialTheme.typography.titleMedium) }
+            }
+        }
     }
 }
 
 @Composable
 private fun StatusCard(session: GameSession) {
     val view = session.view
-    Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Row(
-            Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            PlayerDot(session.actor, size = 20.dp)
-            Text(
-                prompt(session.phase, session.actor),
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.weight(1f).testTag("prompt"),
-            )
-            view.lastRoll?.let { roll ->
-                Surface(shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.surface) {
-                    Text(
-                        roll.value.toString(),
-                        Modifier.padding(horizontal = 12.dp, vertical = 6.dp).testTag("lastRoll"),
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                    )
-                }
+    val playerColor = GameColors.player(session.actor)
+    val container = lerp(MaterialTheme.colorScheme.surfaceContainerHigh, playerColor, 0.22f)
+    Surface(color = container, shape = MaterialTheme.shapes.large, modifier = Modifier.fillMaxWidth()) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.width(8.dp).height(72.dp).background(playerColor))
+            Row(
+                Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Box(
+                    Modifier.size(36.dp)
+                        .background(playerColor, CircleShape)
+                        .border(2.dp, GameColors.pieceOutline, CircleShape)
+                )
+                Text(
+                    prompt(session.phase, session.actor, session.isTieBreak),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.weight(1f).testTag("prompt"),
+                )
+                view.lastRoll?.let { roll -> RollTile(roll.value) }
             }
+        }
+    }
+}
+
+/** This turn's dice total on a die-like tile. The engine reports totals, not the two dice. */
+@Composable
+private fun RollTile(total: Int) {
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = GameColors.token,
+        contentColor = if (total == 6 || total == 8) GameColors.tokenHot else GameColors.tokenText,
+        shadowElevation = 3.dp,
+        modifier = Modifier.semantics { contentDescription = "Rolled $total" },
+    ) {
+        Column(
+            Modifier.size(52.dp).testTag("lastRoll"),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Text("ROLL", style = MaterialTheme.typography.labelSmall, color = GameColors.tokenText.copy(alpha = 0.6f))
+            Text(total.toString(), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
         }
     }
 }
@@ -222,6 +313,7 @@ private fun StatusCard(session: GameSession) {
 @Composable
 private fun ActionPanel(
     session: GameSession,
+    targets: BoardTargets,
     act: (Action) -> Unit,
     onPopup: (Popup) -> Unit,
     onNewGame: () -> Unit,
@@ -249,21 +341,21 @@ private fun ActionPanel(
                 BuildTool.entries.forEachIndexed { i, tool ->
                     SegmentedButton(
                         selected = session.tool == tool,
-                        onClick = { session.tool = if (session.tool == tool) null else tool },
+                        onClick = { session.selectTool(if (session.tool == tool) null else tool) },
                         shape = SegmentedButtonDefaults.itemShape(i, BuildTool.entries.size),
-                        enabled = view.hand.covers(session.cost(tool)),
+                        enabled = session.canBuild(tool),
                         modifier = Modifier.testTag("build-${tool.name.lowercase()}"),
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(tool.label, maxLines = 1)
-                            CostPips(session.cost(tool))
+                            CostPips(tool.cost)
                         }
                     }
                 }
             }
             if (session.tool != null) {
                 Text(
-                    if (session.targets().isEmpty) "There's nowhere to build that." else "Tap a highlighted spot.",
+                    if (targets.isEmpty) "There's nowhere to build that." else "Tap a highlighted spot.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -272,8 +364,11 @@ private fun ActionPanel(
                 FilledTonalButton(
                     onClick = { act(Action.BuyDevCard) },
                     enabled = view.hand.covers(ResourceCounts.DEV_CARD) && view.devCardsRemaining > 0,
-                ) { Text("Buy card (${view.devCardsRemaining})") }
-                FilledTonalButton(onClick = { onPopup(Popup.MaritimeTrade) }) { Text("Trade with bank") }
+                ) { Text("Dev card · ${view.devCardsRemaining} left") }
+                FilledTonalButton(
+                    onClick = { onPopup(Popup.MaritimeTrade) },
+                    enabled = session.canTradeWithBank(),
+                ) { Text("Trade with bank") }
             }
             DevCardButtons(session, act, onPopup)
             Button(onClick = { act(Action.EndTurn) }, Modifier.fillMaxWidth().testTag("endTurn")) {
@@ -361,7 +456,7 @@ private fun PlayersSection(session: GameSession) {
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    PlayerDot(color)
+                    PlayerDot(color, size = 18.dp)
                     Column(Modifier.weight(1f)) {
                         Text(color.label, style = MaterialTheme.typography.titleSmall)
                         val awards = listOfNotNull(
@@ -372,7 +467,7 @@ private fun PlayersSection(session: GameSession) {
                             "${summary.handSize} cards · ${summary.devCardCount} dev · " +
                                     "${summary.knightsPlayed} knights" +
                                     awards.joinToString("") { " · $it" },
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
@@ -394,8 +489,14 @@ private fun LogSection(session: GameSession) {
         Text("Recent", style = MaterialTheme.typography.titleSmall)
         HorizontalDivider()
         for (line in session.log.take(8)) {
-            Text(line, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(line, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        Spacer(Modifier)
     }
+}
+
+@Preview
+@Composable
+private fun GameScreenPreview() {
+    val session = remember { GameSession.demo().apply { selectTool(BuildTool.ROAD) } }
+    SettledownTheme(darkTheme = false) { GameScreen(session, onNewGame = {}) }
 }

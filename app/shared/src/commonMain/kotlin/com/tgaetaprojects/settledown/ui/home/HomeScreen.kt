@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -67,13 +67,16 @@ fun HomeScreen(
                     }
                 }
             } else {
+                // Size the preview to what's left once the title and card fit, so Start stays on screen.
+                val fullHeight = (maxWidth.coerceAtMost(560.dp) - 48.dp) / BOARD_ASPECT
+                val previewHeight = (maxHeight - COMPACT_CHROME).coerceAtMost(fullHeight).coerceAtLeast(160.dp)
                 Column(
                     Modifier.widthIn(max = 560.dp).verticalScroll(rememberScrollState()).padding(24.dp),
-                    verticalArrangement = Arrangement.spacedBy(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    Title(TextAlign.Center)
-                    preview(Modifier.fillMaxWidth().aspectRatio(1.15f))
+                    Title(TextAlign.Center, compact = true)
+                    preview(Modifier.fillMaxWidth().height(previewHeight))
                     settings(Modifier.fillMaxWidth())
                 }
             }
@@ -81,12 +84,18 @@ fun HomeScreen(
     }
 }
 
+/** Roughly the height of everything but the board preview in the compact layout. */
+private val COMPACT_CHROME = 440.dp
+
+/** Width over height of the drawn board, sea frame included. */
+private const val BOARD_ASPECT = 1.15f
+
 @Composable
-private fun Title(align: TextAlign) {
+private fun Title(align: TextAlign, compact: Boolean = false) {
     Column(Modifier.fillMaxWidth()) {
         Text(
             "Settledown",
-            style = MaterialTheme.typography.displayMedium,
+            style = if (compact) MaterialTheme.typography.displaySmall else MaterialTheme.typography.displayMedium,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.primary,
             textAlign = align,
@@ -109,8 +118,7 @@ private fun BoardPreview(boardSeed: Long, modifier: Modifier) {
     BoardCanvas(
         view = view,
         targets = BoardTargets(),
-        highlight = MaterialTheme.colorScheme.primary,
-        darkSea = MaterialTheme.colorScheme.surface.luminance() < 0.5f,
+        dark = MaterialTheme.colorScheme.surface.luminance() < 0.5f,
         onVertex = {},
         onEdge = {},
         onHex = {},
@@ -143,7 +151,7 @@ private fun SetupCard(
                 }
             }
             Text(
-                "Pass the device around: the panel always shows whoever must act next.",
+                "Pass the device around: each player's cards stay hidden until they take it.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

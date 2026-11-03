@@ -175,8 +175,11 @@ class Game internal constructor(
         }
     }
 
-    fun legalCitySpots(color: PlayerColor): List<Vertex> =
-        Vertex.entries.filter { board.canUpgradeToCity(color, it) }
+    /** Which of [color]'s settlements could become cities; none once all their cities are on the board. */
+    fun legalCitySpots(color: PlayerColor): List<Vertex> {
+        if (player(color).citiesLeft == 0) return emptyList()
+        return Vertex.entries.filter { board.canUpgradeToCity(color, it) }
+    }
 
     fun maritimeRate(color: PlayerColor, resource: Resource): Int =
         board.maritimeRate(color, resource)

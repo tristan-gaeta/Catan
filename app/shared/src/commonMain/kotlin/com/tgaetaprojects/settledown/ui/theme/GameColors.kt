@@ -17,6 +17,10 @@ object GameColors {
     val robber = Color(0xFF2E2E33)
     val pieceOutline = Color(0xFF1F1F1F)
 
+    /** Spots a tap may pick: amber, which no player uses, on a dark rim. */
+    val highlight = Color(0xFFFFC107)
+    val highlightRim = Color(0xFF3E2C00)
+
     fun terrain(terrain: Terrain): Color = when (terrain) {
         Terrain.HILL -> Color(0xFFC8693F)
         Terrain.FOREST -> Color(0xFF3C7D3E)
@@ -47,5 +51,9 @@ object GameColors {
         PlayerColor.ORANGE -> Color(0xFFF57C00)
     }
 
-    fun onPlayer(color: PlayerColor): Color = if (color == PlayerColor.WHITE) Color(0xFF1F1F1F) else Color.White
+    /** Text on a [player]-colored background: dark on the light white and orange, white on red and blue. */
+    fun onPlayer(color: PlayerColor): Color = when (color) {
+        PlayerColor.WHITE, PlayerColor.ORANGE -> Color(0xFF1F1F1F)
+        PlayerColor.RED, PlayerColor.BLUE -> Color.White
+    }
 }
