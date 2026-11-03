@@ -18,6 +18,11 @@ dependencies {
 
     implementation(libs.compose.uiToolingPreview)
     debugImplementation(libs.compose.uiTooling)
+
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.espresso.core)
+    androidTestImplementation(libs.androidx.compose.uiTestJunit4)
 }
 
 android {
@@ -30,6 +35,8 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     packaging {
         resources {
@@ -39,6 +46,31 @@ android {
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false
+        }
+    }
+    testOptions {
+        // Keep most UI tests on the JVM (app/shared jvmTest); androidTest is only a small on-device smoke suite.
+        // Locally, run it on a physical device with connectedDebugAndroidTest. Emulators are too heavy for the dev machine,
+        // so these managed devices are for CI. Automated Test Device (ATD) images are headless and stripped down.
+        managedDevices {
+            localDevices {
+                create("atd30") {
+                    device = "Small Phone"
+                    apiLevel = 30
+                    systemImageSource = "aosp-atd"
+                }
+                create("atd34") {
+                    device = "Pixel 6"
+                    apiLevel = 34
+                    systemImageSource = "aosp-atd"
+                }
+            }
+            groups {
+                create("ci") {
+                    targetDevices.add(localDevices["atd30"])
+                    targetDevices.add(localDevices["atd34"])
+                }
+            }
         }
     }
     compileOptions {

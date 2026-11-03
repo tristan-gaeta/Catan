@@ -43,6 +43,7 @@ Use the run button in your IDE's editor gutter, or run tests using Gradle tasks:
 - Android tests: `./gradlew :app:shared:testAndroidHostTest`
 - Desktop tests: `./gradlew :app:shared:jvmTest`
 - Server tests: `./gradlew :server:test`
+- Instrumented smoke tests on a connected device: `./gradlew :app:androidApp:connectedDebugAndroidTest`
 
 ---
 
