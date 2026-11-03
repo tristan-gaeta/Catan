@@ -43,6 +43,9 @@ jobs:
       - uses: gradle/actions/setup-gradle@v6
       # ANDROID_HOME comes from the runner image, so it isn't visible to the `env` expression context.
       - run: echo "SDK_SYSTEM_IMAGES=$ANDROID_HOME/system-images" >> "$GITHUB_ENV"
+      # The runner's SDK doesn't pre-accept the license that covers the ATD system images GMD downloads.
+      - name: Accept Android SDK licenses
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null
       - name: Cache managed devices
         uses: actions/cache@v6
         with:
