@@ -8,7 +8,15 @@ import com.tgaetaprojects.biophilia.game.Direction.SW
 import com.tgaetaprojects.biophilia.game.Direction.W
 
 /**
- * Enum class for all 54 vertices on the map.
+ * The 54 intersections where settlements and cities stand.
+ *
+ * Ordinals are geometric slot ranks: each cell of a radius-3 grid owns its north and south corners, and cells are
+ * numbered row by row, north before south. They only change if the board does, which is why the codec can write a
+ * vertex as its ordinal in 6 bits.
+ *
+ * Diagram: [Vertex ordinals](https://github.com/tristan-gaeta/Catan/blob/main/docs/images/vertex-ordinals.svg).
+ *
+ * See [Board geometry](https://github.com/tristan-gaeta/Catan/blob/main/docs/board-geometry.md#vertex-and-edge-numbering).
  */
 enum class Vertex {
     V0, V1, V2, V3, V4, V5, V6, V7, V8, V9,

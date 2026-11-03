@@ -1,0 +1,142 @@
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 960 580' width='960' height='580' font-family='Helvetica, Arial, sans-serif'>
+<title>Number disc spiral</title>
+<rect width='100%' height='100%' fill='#ffffff'/>
+<polygon points='209.9,82.0 164.9,108.0 164.9,160.0 209.9,186.0 255.0,160.0 255.0,108.0' fill='#f5f1e6' stroke='#9aa5b1' stroke-width='1.2'/>
+<polygon points='300.0,82.0 255.0,108.0 255.0,160.0 300.0,186.0 345.0,160.0 345.0,108.0' fill='#f5f1e6' stroke='#9aa5b1' stroke-width='1.2'/>
+<polygon points='390.1,82.0 345.0,108.0 345.0,160.0 390.1,186.0 435.1,160.0 435.1,108.0' fill='#f5f1e6' stroke='#9aa5b1' stroke-width='1.2'/>
+<polygon points='164.9,160.0 119.9,186.0 119.9,238.0 164.9,264.0 209.9,238.0 209.9,186.0' fill='#f5f1e6' stroke='#9aa5b1' stroke-width='1.2'/>
+<polygon points='255.0,160.0 209.9,186.0 209.9,238.0 255.0,264.0 300.0,238.0 300.0,186.0' fill='#f5f1e6' stroke='#9aa5b1' stroke-width='1.2'/>
+<polygon points='345.0,160.0 300.0,186.0 300.0,238.0 345.0,264.0 390.1,238.0 390.1,186.0' fill='#f5f1e6' stroke='#9aa5b1' stroke-width='1.2'/>
+<polygon points='435.1,160.0 390.1,186.0 390.1,238.0 435.1,264.0 480.1,238.0 480.1,186.0' fill='#f5f1e6' stroke='#9aa5b1' stroke-width='1.2'/>
+<polygon points='119.9,238.0 74.8,264.0 74.8,316.0 119.9,342.0 164.9,316.0 164.9,264.0' fill='#f5f1e6' stroke='#9aa5b1' stroke-width='1.2'/>
+<polygon points='209.9,238.0 164.9,264.0 164.9,316.0 209.9,342.0 255.0,316.0 255.0,264.0' fill='#f5f1e6' stroke='#9aa5b1' stroke-width='1.2'/>
+<polygon points='300.0,238.0 255.0,264.0 255.0,316.0 300.0,342.0 345.0,316.0 345.0,264.0' fill='#f5f1e6' stroke='#9aa5b1' stroke-width='1.2'/>
+<polygon points='390.1,238.0 345.0,264.0 345.0,316.0 390.1,342.0 435.1,316.0 435.1,264.0' fill='#f5f1e6' stroke='#9aa5b1' stroke-width='1.2'/>
+<polygon points='480.1,238.0 435.1,264.0 435.1,316.0 480.1,342.0 525.2,316.0 525.2,264.0' fill='#f5f1e6' stroke='#9aa5b1' stroke-width='1.2'/>
+<polygon points='164.9,316.0 119.9,342.0 119.9,394.0 164.9,420.0 209.9,394.0 209.9,342.0' fill='#f5f1e6' stroke='#9aa5b1' stroke-width='1.2'/>
+<polygon points='255.0,316.0 209.9,342.0 209.9,394.0 255.0,420.0 300.0,394.0 300.0,342.0' fill='#f5f1e6' stroke='#9aa5b1' stroke-width='1.2'/>
+<polygon points='345.0,316.0 300.0,342.0 300.0,394.0 345.0,420.0 390.1,394.0 390.1,342.0' fill='#f5f1e6' stroke='#9aa5b1' stroke-width='1.2'/>
+<polygon points='435.1,316.0 390.1,342.0 390.1,394.0 435.1,420.0 480.1,394.0 480.1,342.0' fill='#f5f1e6' stroke='#9aa5b1' stroke-width='1.2'/>
+<polygon points='209.9,394.0 164.9,420.0 164.9,472.0 209.9,498.0 255.0,472.0 255.0,420.0' fill='#f5f1e6' stroke='#9aa5b1' stroke-width='1.2'/>
+<polygon points='300.0,394.0 255.0,420.0 255.0,472.0 300.0,498.0 345.0,472.0 345.0,420.0' fill='#f5f1e6' stroke='#9aa5b1' stroke-width='1.2'/>
+<polygon points='390.1,394.0 345.0,420.0 345.0,472.0 390.1,498.0 435.1,472.0 435.1,420.0' fill='#f5f1e6' stroke='#9aa5b1' stroke-width='1.2'/>
+<defs><marker id='spiral' viewBox='0 0 10 10' refX='9' refY='5' markerWidth='7' markerHeight='7' orient='auto-start-reverse'><path d='M0,0 L10,5 L0,10 z' fill='#c2410c'/></marker></defs>
+<path d='M390.1,134.0 L300.0,134.0 L209.9,134.0 L164.9,212.0 L119.9,290.0 L164.9,368.0 L209.9,446.0 L300.0,446.0 L390.1,446.0 L435.1,368.0 L480.1,290.0 L435.1,212.0 L345.0,212.0 L255.0,212.0 L209.9,290.0 L255.0,368.0 L345.0,368.0 L390.1,290.0 L300.0,290.0' fill='none' stroke='#c2410c' stroke-width='2.5' opacity='0.6' marker-end='url(#spiral)'/>
+<circle cx='390.1' cy='134.0' r='17' fill='#ffffff' stroke='#c2410c' stroke-width='1.5'/>
+<text x='390.1' y='134.0' font-size='13' fill='#c2410c' font-weight='bold' text-anchor='middle' dominant-baseline='central' >1</text>
+<text x='390.1' y='164.0' font-size='10' fill='#9aa5b1' font-weight='normal' text-anchor='middle' dominant-baseline='central' >C</text>
+<circle cx='300.0' cy='134.0' r='17' fill='#ffffff' stroke='#c2410c' stroke-width='1.5'/>
+<text x='300.0' y='134.0' font-size='13' fill='#c2410c' font-weight='bold' text-anchor='middle' dominant-baseline='central' >2</text>
+<text x='300.0' y='164.0' font-size='10' fill='#9aa5b1' font-weight='normal' text-anchor='middle' dominant-baseline='central' >B</text>
+<circle cx='209.9' cy='134.0' r='17' fill='#ffffff' stroke='#c2410c' stroke-width='1.5'/>
+<text x='209.9' y='134.0' font-size='13' fill='#c2410c' font-weight='bold' text-anchor='middle' dominant-baseline='central' >3</text>
+<text x='209.9' y='164.0' font-size='10' fill='#9aa5b1' font-weight='normal' text-anchor='middle' dominant-baseline='central' >A</text>
+<circle cx='164.9' cy='212.0' r='17' fill='#ffffff' stroke='#c2410c' stroke-width='1.5'/>
+<text x='164.9' y='212.0' font-size='13' fill='#c2410c' font-weight='bold' text-anchor='middle' dominant-baseline='central' >4</text>
+<text x='164.9' y='242.0' font-size='10' fill='#9aa5b1' font-weight='normal' text-anchor='middle' dominant-baseline='central' >D</text>
+<circle cx='119.9' cy='290.0' r='17' fill='#ffffff' stroke='#c2410c' stroke-width='1.5'/>
+<text x='119.9' y='290.0' font-size='13' fill='#c2410c' font-weight='bold' text-anchor='middle' dominant-baseline='central' >5</text>
+<text x='119.9' y='320.0' font-size='10' fill='#9aa5b1' font-weight='normal' text-anchor='middle' dominant-baseline='central' >H</text>
+<circle cx='164.9' cy='368.0' r='17' fill='#ffffff' stroke='#c2410c' stroke-width='1.5'/>
+<text x='164.9' y='368.0' font-size='13' fill='#c2410c' font-weight='bold' text-anchor='middle' dominant-baseline='central' >6</text>
+<text x='164.9' y='398.0' font-size='10' fill='#9aa5b1' font-weight='normal' text-anchor='middle' dominant-baseline='central' >M</text>
+<circle cx='209.9' cy='446.0' r='17' fill='#ffffff' stroke='#c2410c' stroke-width='1.5'/>
+<text x='209.9' y='446.0' font-size='13' fill='#c2410c' font-weight='bold' text-anchor='middle' dominant-baseline='central' >7</text>
+<text x='209.9' y='476.0' font-size='10' fill='#9aa5b1' font-weight='normal' text-anchor='middle' dominant-baseline='central' >Q</text>
+<circle cx='300.0' cy='446.0' r='17' fill='#ffffff' stroke='#c2410c' stroke-width='1.5'/>
+<text x='300.0' y='446.0' font-size='13' fill='#c2410c' font-weight='bold' text-anchor='middle' dominant-baseline='central' >8</text>
+<text x='300.0' y='476.0' font-size='10' fill='#9aa5b1' font-weight='normal' text-anchor='middle' dominant-baseline='central' >R</text>
+<circle cx='390.1' cy='446.0' r='17' fill='#ffffff' stroke='#c2410c' stroke-width='1.5'/>
+<text x='390.1' y='446.0' font-size='13' fill='#c2410c' font-weight='bold' text-anchor='middle' dominant-baseline='central' >9</text>
+<text x='390.1' y='476.0' font-size='10' fill='#9aa5b1' font-weight='normal' text-anchor='middle' dominant-baseline='central' >S</text>
+<circle cx='435.1' cy='368.0' r='17' fill='#ffffff' stroke='#c2410c' stroke-width='1.5'/>
+<text x='435.1' y='368.0' font-size='13' fill='#c2410c' font-weight='bold' text-anchor='middle' dominant-baseline='central' >10</text>
+<text x='435.1' y='398.0' font-size='10' fill='#9aa5b1' font-weight='normal' text-anchor='middle' dominant-baseline='central' >P</text>
+<circle cx='480.1' cy='290.0' r='17' fill='#ffffff' stroke='#c2410c' stroke-width='1.5'/>
+<text x='480.1' y='290.0' font-size='13' fill='#c2410c' font-weight='bold' text-anchor='middle' dominant-baseline='central' >11</text>
+<text x='480.1' y='320.0' font-size='10' fill='#9aa5b1' font-weight='normal' text-anchor='middle' dominant-baseline='central' >L</text>
+<circle cx='435.1' cy='212.0' r='17' fill='#ffffff' stroke='#c2410c' stroke-width='1.5'/>
+<text x='435.1' y='212.0' font-size='13' fill='#c2410c' font-weight='bold' text-anchor='middle' dominant-baseline='central' >12</text>
+<text x='435.1' y='242.0' font-size='10' fill='#9aa5b1' font-weight='normal' text-anchor='middle' dominant-baseline='central' >G</text>
+<circle cx='345.0' cy='212.0' r='17' fill='#ffffff' stroke='#c2410c' stroke-width='1.5'/>
+<text x='345.0' y='212.0' font-size='13' fill='#c2410c' font-weight='bold' text-anchor='middle' dominant-baseline='central' >13</text>
+<text x='345.0' y='242.0' font-size='10' fill='#9aa5b1' font-weight='normal' text-anchor='middle' dominant-baseline='central' >F</text>
+<circle cx='255.0' cy='212.0' r='17' fill='#ffffff' stroke='#c2410c' stroke-width='1.5'/>
+<text x='255.0' y='212.0' font-size='13' fill='#c2410c' font-weight='bold' text-anchor='middle' dominant-baseline='central' >14</text>
+<text x='255.0' y='242.0' font-size='10' fill='#9aa5b1' font-weight='normal' text-anchor='middle' dominant-baseline='central' >E</text>
+<circle cx='209.9' cy='290.0' r='17' fill='#ffffff' stroke='#c2410c' stroke-width='1.5'/>
+<text x='209.9' y='290.0' font-size='13' fill='#c2410c' font-weight='bold' text-anchor='middle' dominant-baseline='central' >15</text>
+<text x='209.9' y='320.0' font-size='10' fill='#9aa5b1' font-weight='normal' text-anchor='middle' dominant-baseline='central' >I</text>
+<circle cx='255.0' cy='368.0' r='17' fill='#ffffff' stroke='#c2410c' stroke-width='1.5'/>
+<text x='255.0' y='368.0' font-size='13' fill='#c2410c' font-weight='bold' text-anchor='middle' dominant-baseline='central' >16</text>
+<text x='255.0' y='398.0' font-size='10' fill='#9aa5b1' font-weight='normal' text-anchor='middle' dominant-baseline='central' >N</text>
+<circle cx='345.0' cy='368.0' r='17' fill='#ffffff' stroke='#c2410c' stroke-width='1.5'/>
+<text x='345.0' y='368.0' font-size='13' fill='#c2410c' font-weight='bold' text-anchor='middle' dominant-baseline='central' >17</text>
+<text x='345.0' y='398.0' font-size='10' fill='#9aa5b1' font-weight='normal' text-anchor='middle' dominant-baseline='central' >O</text>
+<circle cx='390.1' cy='290.0' r='17' fill='#ffffff' stroke='#c2410c' stroke-width='1.5'/>
+<text x='390.1' y='290.0' font-size='13' fill='#c2410c' font-weight='bold' text-anchor='middle' dominant-baseline='central' >18</text>
+<text x='390.1' y='320.0' font-size='10' fill='#9aa5b1' font-weight='normal' text-anchor='middle' dominant-baseline='central' >K</text>
+<circle cx='300.0' cy='290.0' r='17' fill='#ffffff' stroke='#c2410c' stroke-width='1.5'/>
+<text x='300.0' y='290.0' font-size='13' fill='#c2410c' font-weight='bold' text-anchor='middle' dominant-baseline='central' >19</text>
+<text x='300.0' y='320.0' font-size='10' fill='#9aa5b1' font-weight='normal' text-anchor='middle' dominant-baseline='central' >J</text>
+<text x='300.0' y='24.0' font-size='15' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >Hex.spiralInwardCC(NE)</text>
+<text x='600.0' y='150.0' font-size='12' fill='#1f2933' font-weight='normal' text-anchor='start' dominant-baseline='central' >Discs are laid in A–R order along the spiral, skipping the desert:</text>
+<text x='600.0' y='169.0' font-size='12' fill='#1f2933' font-weight='normal' text-anchor='start' dominant-baseline='central' ></text>
+<circle cx='610' cy='195' r='17' fill='#f5f1e6' stroke='#9aa5b1'/>
+<text x='610.0' y='191.0' font-size='13' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >5</text>
+<text x='610.0' y='204.0' font-size='9' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >A</text>
+<circle cx='662' cy='195' r='17' fill='#f5f1e6' stroke='#9aa5b1'/>
+<text x='662.0' y='191.0' font-size='13' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >2</text>
+<text x='662.0' y='204.0' font-size='9' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >B</text>
+<circle cx='714' cy='195' r='17' fill='#f5f1e6' stroke='#9aa5b1'/>
+<text x='714.0' y='191.0' font-size='13' fill='#c2410c' font-weight='bold' text-anchor='middle' dominant-baseline='central' >6</text>
+<text x='714.0' y='204.0' font-size='9' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >C</text>
+<circle cx='766' cy='195' r='17' fill='#f5f1e6' stroke='#9aa5b1'/>
+<text x='766.0' y='191.0' font-size='13' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >3</text>
+<text x='766.0' y='204.0' font-size='9' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >D</text>
+<circle cx='818' cy='195' r='17' fill='#f5f1e6' stroke='#9aa5b1'/>
+<text x='818.0' y='191.0' font-size='13' fill='#c2410c' font-weight='bold' text-anchor='middle' dominant-baseline='central' >8</text>
+<text x='818.0' y='204.0' font-size='9' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >E</text>
+<circle cx='870' cy='195' r='17' fill='#f5f1e6' stroke='#9aa5b1'/>
+<text x='870.0' y='191.0' font-size='13' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >10</text>
+<text x='870.0' y='204.0' font-size='9' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >F</text>
+<circle cx='610' cy='241' r='17' fill='#f5f1e6' stroke='#9aa5b1'/>
+<text x='610.0' y='237.0' font-size='13' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >9</text>
+<text x='610.0' y='250.0' font-size='9' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >G</text>
+<circle cx='662' cy='241' r='17' fill='#f5f1e6' stroke='#9aa5b1'/>
+<text x='662.0' y='237.0' font-size='13' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >12</text>
+<text x='662.0' y='250.0' font-size='9' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >H</text>
+<circle cx='714' cy='241' r='17' fill='#f5f1e6' stroke='#9aa5b1'/>
+<text x='714.0' y='237.0' font-size='13' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >11</text>
+<text x='714.0' y='250.0' font-size='9' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >I</text>
+<circle cx='766' cy='241' r='17' fill='#f5f1e6' stroke='#9aa5b1'/>
+<text x='766.0' y='237.0' font-size='13' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >4</text>
+<text x='766.0' y='250.0' font-size='9' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >J</text>
+<circle cx='818' cy='241' r='17' fill='#f5f1e6' stroke='#9aa5b1'/>
+<text x='818.0' y='237.0' font-size='13' fill='#c2410c' font-weight='bold' text-anchor='middle' dominant-baseline='central' >8</text>
+<text x='818.0' y='250.0' font-size='9' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >K</text>
+<circle cx='870' cy='241' r='17' fill='#f5f1e6' stroke='#9aa5b1'/>
+<text x='870.0' y='237.0' font-size='13' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >10</text>
+<text x='870.0' y='250.0' font-size='9' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >L</text>
+<circle cx='610' cy='287' r='17' fill='#f5f1e6' stroke='#9aa5b1'/>
+<text x='610.0' y='283.0' font-size='13' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >9</text>
+<text x='610.0' y='296.0' font-size='9' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >M</text>
+<circle cx='662' cy='287' r='17' fill='#f5f1e6' stroke='#9aa5b1'/>
+<text x='662.0' y='283.0' font-size='13' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >4</text>
+<text x='662.0' y='296.0' font-size='9' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >N</text>
+<circle cx='714' cy='287' r='17' fill='#f5f1e6' stroke='#9aa5b1'/>
+<text x='714.0' y='283.0' font-size='13' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >5</text>
+<text x='714.0' y='296.0' font-size='9' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >O</text>
+<circle cx='766' cy='287' r='17' fill='#f5f1e6' stroke='#9aa5b1'/>
+<text x='766.0' y='283.0' font-size='13' fill='#c2410c' font-weight='bold' text-anchor='middle' dominant-baseline='central' >6</text>
+<text x='766.0' y='296.0' font-size='9' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >P</text>
+<circle cx='818' cy='287' r='17' fill='#f5f1e6' stroke='#9aa5b1'/>
+<text x='818.0' y='283.0' font-size='13' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >3</text>
+<text x='818.0' y='296.0' font-size='9' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >Q</text>
+<circle cx='870' cy='287' r='17' fill='#f5f1e6' stroke='#9aa5b1'/>
+<text x='870.0' y='283.0' font-size='13' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >11</text>
+<text x='870.0' y='296.0' font-size='9' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >R</text>
+<text x='600.0' y='350.0' font-size='12' fill='#616e7c' font-weight='normal' text-anchor='start' dominant-baseline='central' >The start corner is the one random choice (pickWith);</text>
+<text x='600.0' y='369.0' font-size='12' fill='#616e7c' font-weight='normal' text-anchor='start' dominant-baseline='central' >each of the 6 directions gives a rotated copy of this path.</text>
+<text x='600.0' y='388.0' font-size='12' fill='#616e7c' font-weight='normal' text-anchor='start' dominant-baseline='central' >Small numbers on the path: visiting order 1–19.</text>
+</svg>

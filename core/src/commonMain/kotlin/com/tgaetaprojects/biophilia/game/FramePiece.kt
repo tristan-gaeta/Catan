@@ -13,6 +13,10 @@ package com.tgaetaprojects.biophilia.game
  * The pieces are declared in the order they connect in the printed frame, counter-clockwise from [GENERIC]. The
  * fixed setup (rulebook page 4) puts [WOOL] on the top side, side 0. The variable setup shuffles the pieces, so this
  * order only decides which frame a given board seed produces; changing it requires bumping both versions.
+ *
+ * Diagram: [Frame sides and harbor slots](https://github.com/tristan-gaeta/Catan/blob/main/docs/images/frame-sides.svg).
+ *
+ * See [Board setup](https://github.com/tristan-gaeta/Catan/blob/main/docs/board-setup.md#frame-pieces-and-harbors).
  */
 enum class FramePiece(vararg harbors: PortType?) {
     GENERIC(null, null, PortType.GENERIC, null, null),

@@ -25,6 +25,8 @@ data class RecordedAction(val actor: PlayerColor, val action: Action)
  *
  * Records contain the private game seed, which reveals every roll of the game. Keep them on the server and in the
  * database; never send one to a client while the game is running.
+ *
+ * See [Serialization](https://github.com/tristan-gaeta/Catan/blob/main/docs/serialization.md#records-and-replay).
  */
 class GameRecord(
     val rulesVersion: Int,

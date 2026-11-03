@@ -2,6 +2,14 @@ package com.tgaetaprojects.biophilia.game
 
 import kotlin.math.abs
 
+/**
+ * A hex position in axial coordinates, with `q` in the low 32 bits of [packed] and `r` in the high 32 bits. The cube
+ * coordinate `s = -q - r` is derived on demand.
+ *
+ * The arithmetic follows Red Blob Games' [Hexagonal Grids](https://www.redblobgames.com/grids/hexagons/):
+ * [distances](https://www.redblobgames.com/grids/hexagons/#distances-axial) for [length], and
+ * [rotation](https://www.redblobgames.com/grids/hexagons/#rotation) for [rotateCC].
+ */
 @JvmInline
 value class AxialCoord(val packed: Long) {
     inline val q: Int get() = packed.toInt()

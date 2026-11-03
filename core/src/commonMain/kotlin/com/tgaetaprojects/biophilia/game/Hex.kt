@@ -3,7 +3,19 @@ package com.tgaetaprojects.biophilia.game
 import kotlin.math.abs
 
 /**
+ * The 19 land tiles, in reading order: A is the top-left tile and S the bottom-right.
  *
+ * Tiles are pointy-top hexes in axial coordinates `(q, r)`, with `+q` east and `+r` south-east. The center J is
+ * `(0, 0)`, and the island is every tile within distance 2 of it.
+ *
+ * Diagram: [Axial coordinates of the 19 hexes](https://github.com/tristan-gaeta/Catan/blob/main/docs/images/hex-coordinates.svg).
+ *
+ * [fromCoordinate] looks tiles up in a padded array instead of a map:
+ *
+ * Diagram: [Padded storage grid](https://github.com/tristan-gaeta/Catan/blob/main/docs/images/hex-storage-grid.svg).
+ *
+ * See [Board geometry](https://github.com/tristan-gaeta/Catan/blob/main/docs/board-geometry.md) and Red Blob Games'
+ * [Hexagonal Grids](https://www.redblobgames.com/grids/hexagons/#coordinates-axial).
  */
 enum class Hex(val q: Int, val r: Int) {
     A(0, -2), B(1, -2), C(2, -2), //
@@ -105,6 +117,14 @@ enum class Hex(val q: Int, val r: Int) {
             return list
         }
 
+        /**
+         * All 19 tiles in a spiral that starts at the corner tile two steps out in [direction] and winds
+         * counter-clockwise inward, ending at the center. The number discs are laid along it.
+         *
+         * Diagram: [Number disc spiral](https://github.com/tristan-gaeta/Catan/blob/main/docs/images/number-spiral.svg).
+         *
+         * See Red Blob Games' [spiral rings](https://www.redblobgames.com/grids/hexagons/#rings-spiral).
+         */
         fun spiralInwardCC(direction: Direction) = spiralSequences[direction.ordinal]
     }
 }

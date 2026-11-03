@@ -1,0 +1,34 @@
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 940 300' width='940' height='300' font-family='Helvetica, Arial, sans-serif'>
+<title>Bit layout of an encoded action</title>
+<rect width='100%' height='100%' fill='#ffffff'/>
+<text x='470.0' y='26.0' font-size='15' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >ActionCodec.encode(RED, BuildRoad(E42)): 30 bits in 4 bytes</text>
+<text x='470.0' y='50.0' font-size='12' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >Fields are packed least significant bit first, with no padding between them.</text>
+<rect x='40' y='90' width='208' height='46' fill='#e0e7ff' stroke='#1f2933'/>
+<text x='144.0' y='105.0' font-size='12' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >FORMAT_VERSION</text>
+<text x='144.0' y='122.0' font-size='10' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >8 bits · 2</text>
+<rect x='248' y='90' width='208' height='46' fill='#fce7f3' stroke='#1f2933'/>
+<text x='352.0' y='105.0' font-size='12' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >BlobKind</text>
+<text x='352.0' y='122.0' font-size='10' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >8 bits · ACTION = 1</text>
+<rect x='456' y='90' width='52' height='46' fill='#dcfce7' stroke='#1f2933'/>
+<text x='482.0' y='105.0' font-size='12' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >actor</text>
+<text x='482.0' y='122.0' font-size='10' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >2 bits</text>
+<text x='482.0' y='150.0' font-size='10' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >RED = 0</text>
+<rect x='508' y='90' width='130' height='46' fill='#fef3c7' stroke='#1f2933'/>
+<text x='573.0' y='105.0' font-size='12' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >Tag</text>
+<text x='573.0' y='122.0' font-size='10' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >5 bits · BUILD_ROAD = 5</text>
+<rect x='638' y='90' width='182' height='46' fill='#e0f2fe' stroke='#1f2933'/>
+<text x='729.0' y='105.0' font-size='12' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >edge</text>
+<text x='729.0' y='122.0' font-size='10' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >7 bits · E42 = 42</text>
+<line x1='40' y1='80' x2='40' y2='160' stroke='#c2410c' stroke-dasharray='3 3'/>
+<text x='144.0' y='178.0' font-size='11' fill='#c2410c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >byte 0</text>
+<line x1='248' y1='80' x2='248' y2='160' stroke='#c2410c' stroke-dasharray='3 3'/>
+<text x='352.0' y='178.0' font-size='11' fill='#c2410c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >byte 1</text>
+<line x1='456' y1='80' x2='456' y2='160' stroke='#c2410c' stroke-dasharray='3 3'/>
+<text x='560.0' y='178.0' font-size='11' fill='#c2410c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >byte 2</text>
+<line x1='664' y1='80' x2='664' y2='160' stroke='#c2410c' stroke-dasharray='3 3'/>
+<text x='768.0' y='178.0' font-size='11' fill='#c2410c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >byte 3</text>
+<line x1='872' y1='80' x2='872' y2='160' stroke='#c2410c' stroke-dasharray='3 3'/>
+<text x='40.0' y='225.0' font-size='12' fill='#616e7c' font-weight='normal' text-anchor='start' dominant-baseline='central' >Each enum is written as its ordinal in bitsFor(entries.size) bits: 4 colors → 2, 18 tags → 5, 72 edges → 7.</text>
+<text x='40.0' y='244.0' font-size='12' fill='#616e7c' font-weight='normal' text-anchor='start' dominant-baseline='central' >The last 2 bits of byte 3 are padding. Inside a GameRecord there is no header per action,</text>
+<text x='40.0' y='263.0' font-size='12' fill='#616e7c' font-weight='normal' text-anchor='start' dominant-baseline='central' >so this action costs 14 bits; a whole game averages about 2 bytes per action.</text>
+</svg>

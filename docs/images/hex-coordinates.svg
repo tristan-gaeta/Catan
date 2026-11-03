@@ -1,0 +1,94 @@
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 980 600' width='980' height='600' font-family='Helvetica, Arial, sans-serif'>
+<title>Axial coordinates of the 19 hexes</title>
+<rect width='100%' height='100%' fill='#ffffff'/>
+<polygon points='239.9,92.0 194.9,118.0 194.9,170.0 239.9,196.0 285.0,170.0 285.0,118.0' fill='#f5f1e6' stroke='#9aa5b1' stroke-width='1.2'/>
+<polygon points='330.0,92.0 285.0,118.0 285.0,170.0 330.0,196.0 375.0,170.0 375.0,118.0' fill='#f5f1e6' stroke='#9aa5b1' stroke-width='1.2'/>
+<polygon points='420.1,92.0 375.0,118.0 375.0,170.0 420.1,196.0 465.1,170.0 465.1,118.0' fill='#f5f1e6' stroke='#9aa5b1' stroke-width='1.2'/>
+<polygon points='194.9,170.0 149.9,196.0 149.9,248.0 194.9,274.0 239.9,248.0 239.9,196.0' fill='#f5f1e6' stroke='#9aa5b1' stroke-width='1.2'/>
+<polygon points='285.0,170.0 239.9,196.0 239.9,248.0 285.0,274.0 330.0,248.0 330.0,196.0' fill='#f5f1e6' stroke='#9aa5b1' stroke-width='1.2'/>
+<polygon points='375.0,170.0 330.0,196.0 330.0,248.0 375.0,274.0 420.1,248.0 420.1,196.0' fill='#f5f1e6' stroke='#9aa5b1' stroke-width='1.2'/>
+<polygon points='465.1,170.0 420.1,196.0 420.1,248.0 465.1,274.0 510.1,248.0 510.1,196.0' fill='#f5f1e6' stroke='#9aa5b1' stroke-width='1.2'/>
+<polygon points='149.9,248.0 104.8,274.0 104.8,326.0 149.9,352.0 194.9,326.0 194.9,274.0' fill='#f5f1e6' stroke='#9aa5b1' stroke-width='1.2'/>
+<polygon points='239.9,248.0 194.9,274.0 194.9,326.0 239.9,352.0 285.0,326.0 285.0,274.0' fill='#f5f1e6' stroke='#9aa5b1' stroke-width='1.2'/>
+<polygon points='330.0,248.0 285.0,274.0 285.0,326.0 330.0,352.0 375.0,326.0 375.0,274.0' fill='#f5f1e6' stroke='#9aa5b1' stroke-width='1.2'/>
+<polygon points='420.1,248.0 375.0,274.0 375.0,326.0 420.1,352.0 465.1,326.0 465.1,274.0' fill='#f5f1e6' stroke='#9aa5b1' stroke-width='1.2'/>
+<polygon points='510.1,248.0 465.1,274.0 465.1,326.0 510.1,352.0 555.2,326.0 555.2,274.0' fill='#f5f1e6' stroke='#9aa5b1' stroke-width='1.2'/>
+<polygon points='194.9,326.0 149.9,352.0 149.9,404.0 194.9,430.0 239.9,404.0 239.9,352.0' fill='#f5f1e6' stroke='#9aa5b1' stroke-width='1.2'/>
+<polygon points='285.0,326.0 239.9,352.0 239.9,404.0 285.0,430.0 330.0,404.0 330.0,352.0' fill='#f5f1e6' stroke='#9aa5b1' stroke-width='1.2'/>
+<polygon points='375.0,326.0 330.0,352.0 330.0,404.0 375.0,430.0 420.1,404.0 420.1,352.0' fill='#f5f1e6' stroke='#9aa5b1' stroke-width='1.2'/>
+<polygon points='465.1,326.0 420.1,352.0 420.1,404.0 465.1,430.0 510.1,404.0 510.1,352.0' fill='#f5f1e6' stroke='#9aa5b1' stroke-width='1.2'/>
+<polygon points='239.9,404.0 194.9,430.0 194.9,482.0 239.9,508.0 285.0,482.0 285.0,430.0' fill='#f5f1e6' stroke='#9aa5b1' stroke-width='1.2'/>
+<polygon points='330.0,404.0 285.0,430.0 285.0,482.0 330.0,508.0 375.0,482.0 375.0,430.0' fill='#f5f1e6' stroke='#9aa5b1' stroke-width='1.2'/>
+<polygon points='420.1,404.0 375.0,430.0 375.0,482.0 420.1,508.0 465.1,482.0 465.1,430.0' fill='#f5f1e6' stroke='#9aa5b1' stroke-width='1.2'/>
+<text x='239.9' y='135.0' font-size='20' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >A</text>
+<text x='239.9' y='157.0' font-size='11' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >(0, -2)</text>
+<text x='330.0' y='135.0' font-size='20' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >B</text>
+<text x='330.0' y='157.0' font-size='11' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >(1, -2)</text>
+<text x='420.1' y='135.0' font-size='20' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >C</text>
+<text x='420.1' y='157.0' font-size='11' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >(2, -2)</text>
+<text x='194.9' y='213.0' font-size='20' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >D</text>
+<text x='194.9' y='235.0' font-size='11' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >(-1, -1)</text>
+<text x='285.0' y='213.0' font-size='20' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >E</text>
+<text x='285.0' y='235.0' font-size='11' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >(0, -1)</text>
+<text x='375.0' y='213.0' font-size='20' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >F</text>
+<text x='375.0' y='235.0' font-size='11' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >(1, -1)</text>
+<text x='465.1' y='213.0' font-size='20' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >G</text>
+<text x='465.1' y='235.0' font-size='11' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >(2, -1)</text>
+<text x='149.9' y='291.0' font-size='20' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >H</text>
+<text x='149.9' y='313.0' font-size='11' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >(-2, 0)</text>
+<text x='239.9' y='291.0' font-size='20' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >I</text>
+<text x='239.9' y='313.0' font-size='11' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >(-1, 0)</text>
+<text x='330.0' y='291.0' font-size='20' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >J</text>
+<text x='330.0' y='313.0' font-size='11' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >(0, 0)</text>
+<text x='420.1' y='291.0' font-size='20' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >K</text>
+<text x='420.1' y='313.0' font-size='11' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >(1, 0)</text>
+<text x='510.1' y='291.0' font-size='20' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >L</text>
+<text x='510.1' y='313.0' font-size='11' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >(2, 0)</text>
+<text x='194.9' y='369.0' font-size='20' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >M</text>
+<text x='194.9' y='391.0' font-size='11' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >(-2, 1)</text>
+<text x='285.0' y='369.0' font-size='20' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >N</text>
+<text x='285.0' y='391.0' font-size='11' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >(-1, 1)</text>
+<text x='375.0' y='369.0' font-size='20' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >O</text>
+<text x='375.0' y='391.0' font-size='11' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >(0, 1)</text>
+<text x='465.1' y='369.0' font-size='20' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >P</text>
+<text x='465.1' y='391.0' font-size='11' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >(1, 1)</text>
+<text x='239.9' y='447.0' font-size='20' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >Q</text>
+<text x='239.9' y='469.0' font-size='11' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >(-2, 2)</text>
+<text x='330.0' y='447.0' font-size='20' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >R</text>
+<text x='330.0' y='469.0' font-size='11' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >(-1, 2)</text>
+<text x='420.1' y='447.0' font-size='20' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >S</text>
+<text x='420.1' y='469.0' font-size='11' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >(0, 2)</text>
+<text x='760.0' y='30.0' font-size='15' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >Direction</text>
+<defs><marker id='dir' viewBox='0 0 10 10' refX='9' refY='5' markerWidth='7' markerHeight='7' orient='auto-start-reverse'><path d='M0,0 L10,5 L0,10 z' fill='#1f2933'/></marker></defs>
+<line x1='760' y1='130' x2='787.5' y2='82.4' stroke='#1f2933' stroke-width='1.6' marker-end='url(#dir)'/>
+<text x='801.0' y='52.0' font-size='13' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >NE</text>
+<text x='801.0' y='67.0' font-size='10' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >(1, -1)</text>
+<line x1='760' y1='130' x2='732.5' y2='82.4' stroke='#1f2933' stroke-width='1.6' marker-end='url(#dir)'/>
+<text x='719.0' y='52.0' font-size='13' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >NW</text>
+<text x='719.0' y='67.0' font-size='10' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >(0, -1)</text>
+<line x1='760' y1='130' x2='705.0' y2='130.0' stroke='#1f2933' stroke-width='1.6' marker-end='url(#dir)'/>
+<text x='678.0' y='123.0' font-size='13' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >W</text>
+<text x='678.0' y='138.0' font-size='10' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >(-1, 0)</text>
+<line x1='760' y1='130' x2='732.5' y2='177.6' stroke='#1f2933' stroke-width='1.6' marker-end='url(#dir)'/>
+<text x='719.0' y='194.0' font-size='13' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >SW</text>
+<text x='719.0' y='209.0' font-size='10' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >(-1, 1)</text>
+<line x1='760' y1='130' x2='787.5' y2='177.6' stroke='#1f2933' stroke-width='1.6' marker-end='url(#dir)'/>
+<text x='801.0' y='194.0' font-size='13' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >SE</text>
+<text x='801.0' y='209.0' font-size='10' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >(0, 1)</text>
+<line x1='760' y1='130' x2='815.0' y2='130.0' stroke='#1f2933' stroke-width='1.6' marker-end='url(#dir)'/>
+<text x='842.0' y='123.0' font-size='13' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >E</text>
+<text x='842.0' y='138.0' font-size='10' fill='#616e7c' font-weight='normal' text-anchor='middle' dominant-baseline='central' >(1, 0)</text>
+<defs><marker id='axis' viewBox='0 0 10 10' refX='9' refY='5' markerWidth='7' markerHeight='7' orient='auto-start-reverse'><path d='M0,0 L10,5 L0,10 z' fill='#c2410c'/></marker></defs>
+<line x1='660' y1='250' x2='720.0' y2='250.0' stroke='#c2410c' stroke-width='2.5' marker-end='url(#axis)'/>
+<text x='738.0' y='250.0' font-size='14' fill='#c2410c' font-weight='bold' text-anchor='middle' dominant-baseline='central' >+q</text>
+<line x1='660' y1='250' x2='690.0' y2='302.0' stroke='#c2410c' stroke-width='2.5' marker-end='url(#axis)'/>
+<text x='699.0' y='317.5' font-size='14' fill='#c2410c' font-weight='bold' text-anchor='middle' dominant-baseline='central' >+r</text>
+<text x='630.0' y='340.0' font-size='12' fill='#616e7c' font-weight='normal' text-anchor='start' dominant-baseline='central' >Pointy-top hexes in axial (q, r) coordinates.</text>
+<text x='630.0' y='358.0' font-size='12' fill='#616e7c' font-weight='normal' text-anchor='start' dominant-baseline='central' >The third cube coordinate s = −q − r is implied.</text>
+<text x='630.0' y='376.0' font-size='12' fill='#616e7c' font-weight='normal' text-anchor='start' dominant-baseline='central' ></text>
+<text x='630.0' y='394.0' font-size='12' fill='#616e7c' font-weight='normal' text-anchor='start' dominant-baseline='central' >Hex ordinals are reading order: A is</text>
+<text x='630.0' y='412.0' font-size='12' fill='#616e7c' font-weight='normal' text-anchor='start' dominant-baseline='central' >the top-left tile, S the bottom-right.</text>
+<text x='630.0' y='430.0' font-size='12' fill='#616e7c' font-weight='normal' text-anchor='start' dominant-baseline='central' ></text>
+<text x='630.0' y='448.0' font-size='12' fill='#616e7c' font-weight='normal' text-anchor='start' dominant-baseline='central' >Direction ordinals run counter-clockwise</text>
+<text x='630.0' y='466.0' font-size='12' fill='#616e7c' font-weight='normal' text-anchor='start' dominant-baseline='central' >from NE, so opposite = (ordinal + 3) mod 6.</text>
+</svg>

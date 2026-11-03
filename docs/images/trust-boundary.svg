@@ -1,0 +1,49 @@
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 940 450' width='940' height='450' font-family='Helvetica, Arial, sans-serif'>
+<title>Server and client data</title>
+<rect width='100%' height='100%' fill='#ffffff'/>
+<defs><marker id='arrow' viewBox='0 0 10 10' refX='9' refY='5' markerWidth='7' markerHeight='7' orient='auto-start-reverse'><path d='M0,0 L10,5 L0,10 z' fill='#1f2933'/></marker></defs>
+<rect x='20' y='50' width='430' height='380' rx='14' fill='#fff7ed' stroke='#c2410c' stroke-width='1.5'/>
+<text x='235.0' y='75.0' font-size='15' fill='#c2410c' font-weight='bold' text-anchor='middle' dominant-baseline='central' >Server only</text>
+<rect x='560' y='50' width='360' height='380' rx='14' fill='#eff6ff' stroke='#1d4ed8' stroke-width='1.5'/>
+<text x='740.0' y='75.0' font-size='15' fill='#1d4ed8' font-weight='bold' text-anchor='middle' dominant-baseline='central' >Sent to clients</text>
+<rect x='40' y='100' width='390' height='44' rx='8' fill='#ffffff' stroke='#9aa5b1'/>
+<text x='55.0' y='115.0' font-size='13' fill='#1f2933' font-weight='bold' text-anchor='start' dominant-baseline='central' >gameSeed</text>
+<text x='55.0' y='132.0' font-size='11' fill='#616e7c' font-weight='normal' text-anchor='start' dominant-baseline='central' >decides every roll, draw and steal</text>
+<rect x='40' y='154' width='390' height='44' rx='8' fill='#ffffff' stroke='#9aa5b1'/>
+<text x='55.0' y='169.0' font-size='13' fill='#1f2933' font-weight='bold' text-anchor='start' dominant-baseline='central' >Game</text>
+<text x='55.0' y='186.0' font-size='11' fill='#616e7c' font-weight='normal' text-anchor='start' dominant-baseline='central' >all hands, deck order, generator</text>
+<rect x='40' y='208' width='390' height='44' rx='8' fill='#ffffff' stroke='#9aa5b1'/>
+<text x='55.0' y='223.0' font-size='13' fill='#1f2933' font-weight='bold' text-anchor='start' dominant-baseline='central' >Game.copy(chance)</text>
+<text x='55.0' y='240.0' font-size='11' fill='#616e7c' font-weight='normal' text-anchor='start' dominant-baseline='central' >for bot search; needs its own chance</text>
+<rect x='40' y='262' width='390' height='44' rx='8' fill='#ffffff' stroke='#9aa5b1'/>
+<text x='55.0' y='277.0' font-size='13' fill='#1f2933' font-weight='bold' text-anchor='start' dominant-baseline='central' >SnapshotCodec.encode(game)</text>
+<text x='55.0' y='294.0' font-size='11' fill='#616e7c' font-weight='normal' text-anchor='start' dominant-baseline='central' >full state, resumes exactly</text>
+<rect x='40' y='316' width='390' height='44' rx='8' fill='#ffffff' stroke='#9aa5b1'/>
+<text x='55.0' y='331.0' font-size='13' fill='#1f2933' font-weight='bold' text-anchor='start' dominant-baseline='central' >GameRecord</text>
+<text x='55.0' y='348.0' font-size='11' fill='#616e7c' font-weight='normal' text-anchor='start' dominant-baseline='central' >seeds + actions; replays the game</text>
+<rect x='40' y='370' width='390' height='44' rx='8' fill='#ffffff' stroke='#9aa5b1'/>
+<text x='55.0' y='385.0' font-size='13' fill='#1f2933' font-weight='bold' text-anchor='start' dominant-baseline='central' >ActionResult.Accepted.events</text>
+<text x='55.0' y='402.0' font-size='11' fill='#616e7c' font-weight='normal' text-anchor='start' dominant-baseline='central' >includes what other players drew</text>
+<rect x='580' y='100' width='320' height='44' rx='8' fill='#ffffff' stroke='#9aa5b1'/>
+<text x='595.0' y='115.0' font-size='13' fill='#1f2933' font-weight='bold' text-anchor='start' dominant-baseline='central' >boardSeed / BoardLayout</text>
+<text x='595.0' y='132.0' font-size='11' fill='#616e7c' font-weight='normal' text-anchor='start' dominant-baseline='central' >public; rebuilds the island</text>
+<rect x='580' y='154' width='320' height='44' rx='8' fill='#ffffff' stroke='#9aa5b1'/>
+<text x='595.0' y='169.0' font-size='13' fill='#1f2933' font-weight='bold' text-anchor='start' dominant-baseline='central' >game.viewFor(player)</text>
+<text x='595.0' y='186.0' font-size='11' fill='#616e7c' font-weight='normal' text-anchor='start' dominant-baseline='central' >own hand, others' card counts</text>
+<rect x='580' y='208' width='320' height='44' rx='8' fill='#ffffff' stroke='#9aa5b1'/>
+<text x='595.0' y='223.0' font-size='13' fill='#1f2933' font-weight='bold' text-anchor='start' dominant-baseline='central' >SnapshotCodec.encodeView(view)</text>
+<text x='595.0' y='240.0' font-size='11' fill='#616e7c' font-weight='normal' text-anchor='start' dominant-baseline='central' >a PlayerView as bytes</text>
+<rect x='580' y='262' width='320' height='44' rx='8' fill='#ffffff' stroke='#9aa5b1'/>
+<text x='595.0' y='277.0' font-size='13' fill='#1f2933' font-weight='bold' text-anchor='start' dominant-baseline='central' >accepted.eventsFor(player)</text>
+<text x='595.0' y='294.0' font-size='11' fill='#616e7c' font-weight='normal' text-anchor='start' dominant-baseline='central' >events with hidden cards removed</text>
+<rect x='580' y='316' width='320' height='44' rx='8' fill='#ffffff' stroke='#9aa5b1'/>
+<text x='595.0' y='331.0' font-size='13' fill='#1f2933' font-weight='bold' text-anchor='start' dominant-baseline='central' >ActionCodec</text>
+<text x='595.0' y='348.0' font-size='11' fill='#616e7c' font-weight='normal' text-anchor='start' dominant-baseline='central' >actions in both directions</text>
+<line x1='432' y1='176' x2='576' y2='176' stroke='#1f2933' stroke-width='1.5' marker-end='url(#arrow)'/>
+<text x='504.0' y='164.0' font-size='11' fill='#1f2933' font-weight='normal' text-anchor='middle' dominant-baseline='central' paint-order='stroke' stroke='#ffffff' stroke-width='4'>viewFor</text>
+<line x1='432' y1='392' x2='576' y2='284' stroke='#1f2933' stroke-width='1.5' marker-end='url(#arrow)'/>
+<text x='504.0' y='326.0' font-size='11' fill='#1f2933' font-weight='normal' text-anchor='middle' dominant-baseline='central' paint-order='stroke' stroke='#ffffff' stroke-width='4'>eventsFor</text>
+<line x1='576' y1='338' x2='432' y2='188' stroke='#1f2933' stroke-width='1.5' stroke-dasharray='5 3' marker-end='url(#arrow)'/>
+<text x='520.0' y='262.0' font-size='11' fill='#1f2933' font-weight='normal' text-anchor='middle' dominant-baseline='central' paint-order='stroke' stroke='#ffffff' stroke-width='4'>Action → apply</text>
+<text x='470.0' y='26.0' font-size='16' fill='#1f2933' font-weight='bold' text-anchor='middle' dominant-baseline='central' >Who may see what</text>
+</svg>

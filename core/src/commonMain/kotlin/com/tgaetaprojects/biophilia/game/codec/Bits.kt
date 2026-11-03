@@ -27,6 +27,8 @@ internal enum class BlobKind { LAYOUT, ACTION, SNAPSHOT, VIEW, RECORD }
  * `Resource`, `DevelopmentCardType`, `DiceTotal`, `Terrain`, `FramePiece`, `Building`, `Hex`, `Vertex`, `Edge`,
  * and the action and phase tags in `ActionCodec` and `SnapshotCodec`. (`Vertex` and `Edge` ordinals are board
  * positions, assigned in a fixed geometric order, so those two only change if the board does.)
+ *
+ * See [Serialization](https://github.com/tristan-gaeta/Catan/blob/main/docs/serialization.md#versions-and-guards).
  */
 internal const val FORMAT_VERSION = 2
 

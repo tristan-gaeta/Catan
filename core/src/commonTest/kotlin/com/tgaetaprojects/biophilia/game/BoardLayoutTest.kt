@@ -1,7 +1,11 @@
 package com.tgaetaprojects.biophilia.game
 
+import com.tgaetaprojects.biophilia.game.Direction.E
 import com.tgaetaprojects.biophilia.game.Direction.NE
 import com.tgaetaprojects.biophilia.game.Direction.NW
+import com.tgaetaprojects.biophilia.game.Direction.SE
+import com.tgaetaprojects.biophilia.game.Direction.SW
+import com.tgaetaprojects.biophilia.game.Direction.W
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -111,6 +115,24 @@ class BoardLayoutTest {
         )
         val declared = FramePiece.entries
         assertEquals(fixedSetup, List(FramePiece.SIDES) { declared[(it + 1) % FramePiece.SIDES] })
+    }
+
+    @Test
+    fun theFixedSetupHasThePrintedHarbors() {
+        // read off the artwork on rulebook pages 4 and 5
+        val printed = mapOf(
+            Hex.A.edges.getValue(NW) to PortType.GENERIC,
+            Hex.B.edges.getValue(NE) to PortType.WOOL,
+            Hex.D.edges.getValue(W) to PortType.ORE,
+            Hex.M.edges.getValue(W) to PortType.GRAIN,
+            Hex.Q.edges.getValue(SW) to PortType.GENERIC,
+            Hex.R.edges.getValue(SE) to PortType.LUMBER,
+            Hex.P.edges.getValue(SE) to PortType.BRICK,
+            Hex.L.edges.getValue(E) to PortType.GENERIC,
+            Hex.G.edges.getValue(NE) to PortType.GENERIC,
+        )
+        assertEquals(printed, BoardLayout.fixedSetup.ports)
+        assertEquals(Hex.A, BoardLayout.fixedSetup.desert)
     }
 
     @Test

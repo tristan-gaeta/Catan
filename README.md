@@ -1,21 +1,25 @@
 ## Biophilia
 
-This is a Kotlin Multiplatform project targeting Android, Desktop (JVM), Server.
+Biophilia is a game in the style of CATAN, written in Kotlin Multiplatform for Android, desktop (JVM) and a Ktor
+server. The rules engine is Kotlin-first common code, built for a small memory footprint on the JVM.
 
-* [/app/shared](./app/shared/src) is for code that will be shared across your Compose Multiplatform applications. It
-  contains several subfolders:
-    - [commonMain](./app/shared/src/commonMain/kotlin) is for code that’s common for all targets.
-    - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name. For
-      example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-      the [iosMain](./app/shared/src/iosMain/kotlin) folder would be the right place for such calls. Similarly, if you
-      want to edit the Desktop (JVM) specific part, the [jvmMain](./app/shared/src/jvmMain/kotlin)
-      folder is the appropriate location.
+![A generated board](docs/images/sample-board.svg)
 
-* [/core](./core/src) is for the code that will be shared between all targets in the project. The most important
-  subfolder is [commonMain](./core/src/commonMain/kotlin). If preferred, you can add code to the platform-specific
-  folders here too.
+**Documentation:** start at [docs/README.md](docs/README.md). It covers the hex geometry, board setup, rules engine and
+serialization formats, with diagrams and references.
 
-* [/server](./server/src/main/kotlin) is for the Ktor server application.
+### Modules
+
+* [/core](./core/src/commonMain/kotlin) holds the game itself, shared by every target:
+    - `game`: the board graph (`Hex`, `Vertex`, `Edge`) and layout generation;
+    - `game.engine`: the rules engine (`Game`, `Action`, `Phase`, `PlayerView`);
+    - `game.codec`: compact binary encodings and replayable game records;
+    - `game.random`: the portable, seeded random number generator;
+    - `utils`: enum-keyed collections.
+* [/app/shared](./app/shared/src) holds the Compose Multiplatform UI shared by the apps:
+    - [commonMain](./app/shared/src/commonMain/kotlin) for every target;
+    - [jvmMain](./app/shared/src/jvmMain/kotlin) and the other platform folders for platform-specific code.
+* [/server](./server/src/main/kotlin) is the Ktor server, which runs the authoritative game.
 
 ### Running the apps
 

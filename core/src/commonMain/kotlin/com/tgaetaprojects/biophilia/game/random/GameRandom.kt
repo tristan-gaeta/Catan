@@ -11,6 +11,9 @@ package com.tgaetaprojects.biophilia.game.random
  * The whole state is four `Int`s (16 bytes), exposed by [state] so a snapshot can resume the exact sequence.
  * Changing anything here, or the order in which the engine draws numbers, changes every recorded game, so it
  * requires bumping `Game.RULES_VERSION`.
+ *
+ * See the paper, [Scrambled Linear Pseudorandom Number Generators](https://arxiv.org/abs/1805.01407), and the
+ * reference code at [prng.di.unimi.it](https://prng.di.unimi.it/).
  */
 class GameRandom private constructor(
     private var s0: Int,
@@ -42,7 +45,10 @@ class GameRandom private constructor(
         return result
     }
 
-    /** A uniform integer in `0 until bound`, using Lemire's unbiased multiply-and-reject method. */
+    /**
+     * A uniform integer in `0 until bound`, using Lemire's unbiased multiply-and-reject method
+     * ([Fast Random Integer Generation in an Interval](https://arxiv.org/abs/1805.10941)).
+     */
     fun nextInt(bound: Int): Int {
         require(bound > 0) { "bound must be positive, was $bound" }
         val b = bound.toLong()

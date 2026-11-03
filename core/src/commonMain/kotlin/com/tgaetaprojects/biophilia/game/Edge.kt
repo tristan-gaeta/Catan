@@ -1,7 +1,14 @@
 package com.tgaetaprojects.biophilia.game
 
 /**
- * Enum class for the 72 edges of the board
+ * The 72 paths between intersections, where roads go. The 30 [isCoastal] ones also carry the harbors.
+ *
+ * Ordinals are geometric slot ranks: each cell of a radius-3 grid owns its NE, NW and W sides, numbered cell by cell
+ * in that order. The coastal edges are outlined in blue:
+ *
+ * Diagram: [Edge ordinals](https://github.com/tristan-gaeta/Catan/blob/main/docs/images/edge-ordinals.svg).
+ *
+ * See [Board geometry](https://github.com/tristan-gaeta/Catan/blob/main/docs/board-geometry.md#vertex-and-edge-numbering).
  */
 enum class Edge {
     E0, E1, E2, E3, E4, E5, E6, E7, E8, E9,

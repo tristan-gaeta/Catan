@@ -22,6 +22,10 @@ import com.tgaetaprojects.biophilia.utils.asReadOnly
  * generator changes.
  *
  * The desert carries [DiceTotal.SEVEN] as a "never produces" marker, since no hex produces on a 7.
+ *
+ * Diagram: [A generated board](https://github.com/tristan-gaeta/Catan/blob/main/docs/images/sample-board.svg).
+ *
+ * See [Board setup](https://github.com/tristan-gaeta/Catan/blob/main/docs/board-setup.md).
  */
 class BoardLayout private constructor(
     /** The frame piece on each side of the island, by side (see [FramePiece.sideEdges]). */
@@ -73,6 +77,31 @@ class BoardLayout private constructor(
 
         /** All 30 coastal edges, counter-clockwise around the island, side by side. */
         val coastline: List<Edge> = (0 until FramePiece.SIDES).flatMap { FramePiece.sideEdges(it) }
+
+        /**
+         * The rulebook's fixed setup for first games (page 4): the printed frame with [FramePiece.WOOL] on the top
+         * side, and a set arrangement of terrain and number discs (not the spiral).
+         *
+         * Diagram: [The fixed setup](https://github.com/tristan-gaeta/Catan/blob/main/docs/images/fixed-setup.svg).
+         */
+        val fixedSetup: BoardLayout = run {
+            // row by row, as printed
+            val hexes = listOf(
+                Hex.A to (DESERT to 7), Hex.B to (FIELDS to 8), Hex.C to (PASTURE to 11),
+                Hex.D to (HILL to 6), Hex.E to (PASTURE to 3),
+                Hex.F to (FOREST to 4), Hex.G to (MOUNTAIN to 9),
+                Hex.H to (FOREST to 10), Hex.I to (FIELDS to 5), Hex.J to (HILL to 12),
+                Hex.K to (FOREST to 11), Hex.L to (PASTURE to 5),
+                Hex.M to (FIELDS to 2), Hex.N to (HILL to 9),
+                Hex.O to (MOUNTAIN to 4), Hex.P to (FOREST to 8),
+                Hex.Q to (MOUNTAIN to 6), Hex.R to (FIELDS to 3), Hex.S to (PASTURE to 10),
+            )
+            of(
+                frame = List(FramePiece.SIDES) { FramePiece.entries[(it + 1) % FramePiece.SIDES] },
+                terrain = hexes.associate { (hex, tile) -> hex to tile.first },
+                numbers = hexes.associate { (hex, tile) -> hex to DiceTotal.fromInt(tile.second) },
+            )
+        }
 
         /**
          * The rulebook's variable setup for [boardSeed], with random draws in this order:

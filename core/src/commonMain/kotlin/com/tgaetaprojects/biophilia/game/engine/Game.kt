@@ -49,6 +49,10 @@ import com.tgaetaprojects.biophilia.utils.toEnumSet
  * Players and bots get [viewFor] instead. The same seeds and the same actions always replay to the same game, as
  * long as [RULES_VERSION] is unchanged.
  *
+ * Diagram: [Who may see what](https://github.com/tristan-gaeta/Catan/blob/main/docs/images/trust-boundary.svg).
+ *
+ * See [Rules engine](https://github.com/tristan-gaeta/Catan/blob/main/docs/rules-engine.md).
+ *
  * @param seats 3 or 4 distinct colors in seating (clockwise) order. Who starts is decided by dice in
  *   [Phase.RollForFirstPlayer]; play then goes clockwise from them.
  */

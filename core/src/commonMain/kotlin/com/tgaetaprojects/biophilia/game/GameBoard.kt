@@ -3,7 +3,6 @@ package com.tgaetaprojects.biophilia.game
 import com.tgaetaprojects.biophilia.utils.MutableEnumMap
 
 /**
- *
  * The game board is 19 hex tiles arranged (pointy side up) in a hexagon. Tiles are ordered
  * using axial coordinates (q,r) where the center is (0,0) and +q is east and +r is
  * south-east.

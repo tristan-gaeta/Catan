@@ -6,6 +6,8 @@ import com.tgaetaprojects.biophilia.game.engine.Action
 /**
  * Encodes who did what: the 2-bit actor, a 5-bit action tag, then the action's operands. Rolling the dice takes
  * 7 bits and building a road 14; only trade offers, which carry two hands of cards, run to about 8 bytes.
+ *
+ * Diagram: [Bit layout of an encoded action](https://github.com/tristan-gaeta/Catan/blob/main/docs/images/action-bits.svg).
  */
 object ActionCodec {
     /** One tag per action type, written as its ordinal (see [FORMAT_VERSION]). */

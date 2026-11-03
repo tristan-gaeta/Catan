@@ -14,7 +14,8 @@ import com.tgaetaprojects.biophilia.utils.asReadOnly
  * full, and only totals for everyone else's hidden cards. It never contains the deck order or the game's random
  * state, so it is safe to send to that player's client or hand to a bot playing that seat.
  *
- * Built by [Game.viewFor]; encoded by `SnapshotCodec.encodeView`.
+ * Built by [Game.viewFor]; encoded by `SnapshotCodec.encodeView`. See
+ * [what may leave the server](https://github.com/tristan-gaeta/Catan/blob/main/docs/rules-engine.md#what-may-leave-the-server).
  */
 data class PlayerView(
     val viewer: PlayerColor,

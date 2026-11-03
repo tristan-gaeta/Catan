@@ -4,7 +4,13 @@ import com.tgaetaprojects.biophilia.game.DiceTotal
 import com.tgaetaprojects.biophilia.game.PlayerColor
 import com.tgaetaprojects.biophilia.game.Vertex
 
-/** Where the game is, and so which [Action]s are accepted next. */
+/**
+ * Where the game is, and so which [Action]s are accepted next.
+ *
+ * Diagram: [Engine phases](https://github.com/tristan-gaeta/Catan/blob/main/docs/images/engine-phases.svg).
+ *
+ * See [Rules engine](https://github.com/tristan-gaeta/Catan/blob/main/docs/rules-engine.md#phases).
+ */
 sealed interface Phase {
     /**
      * Before set-up: each of [contenders] rolls the dice, in seat order; [rolls] holds the rolls so far. The highest
