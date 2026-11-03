@@ -8,6 +8,9 @@ server. The rules engine is Kotlin-first common code, built for a small memory f
 **Documentation:** start at [docs/README.md](docs/README.md). It covers the hex geometry, board setup, rules engine and
 serialization formats, with diagrams and references.
 
+*Biophilia is an independent fan project. It is not affiliated with or endorsed by CATAN GmbH. CATAN is a trademark of
+CATAN GmbH.*
+
 ### Modules
 
 * [/core](./core/src/commonMain/kotlin) holds the game itself, shared by every target:
