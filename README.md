@@ -48,7 +48,8 @@ Use the run button in your IDE's editor gutter, or run tests using Gradle tasks:
 - Instrumented smoke tests on a connected device: `./gradlew :app:androidApp:connectedDebugAndroidTest`
 
 The UI tests save screenshots: desktop renders go to `app/shared/build/screenshots/desktop`, and device captures to
-`app/androidApp/build/outputs/connected_android_test_additional_output`. CI uploads both as workflow artifacts.
+`app/androidApp/build/outputs/connected_android_test_additional_output` (or
+`managed_device_android_test_additional_output` for managed devices). CI uploads both as workflow artifacts.
 
 ---
 

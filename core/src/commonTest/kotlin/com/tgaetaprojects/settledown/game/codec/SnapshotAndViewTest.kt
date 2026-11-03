@@ -241,6 +241,14 @@ class SnapshotAndViewTest {
     }
 
     @Test
+    fun publicView_privateEvents_hideDetailsFromEveryone() {
+        assertEquals(GameEvent.Stole(RED, WHITE, null, tookCard = true), GameEvent.Stole(RED, WHITE, ORE).publicView())
+        assertEquals(GameEvent.DevCardBought(RED, null), GameEvent.DevCardBought(RED, KNIGHT).publicView())
+        val produced = GameEvent.ResourcesProduced(mapOf(RED to of(ORE, 1)))
+        assertEquals(produced, produced.publicView())
+    }
+
+    @Test
     fun aViewCanBeTakenInAnyPhase() {
         val game = newGame()
         game.startTurnFor(RED, Phase.MoveRobber(Phase.PreRoll))

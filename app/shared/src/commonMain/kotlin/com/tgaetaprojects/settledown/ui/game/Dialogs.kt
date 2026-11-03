@@ -36,7 +36,9 @@ fun DiscardDialog(player: PlayerColor, hand: ResourceCounts, owed: Int, onDiscar
                 Text("A 7 was rolled and you hold ${hand.total} cards.")
                 Spacer(Modifier.height(4.dp))
                 for (r in Resource.entries) {
-                    ResourceStepper(r, picked[r], max = minOf(hand[r], picked[r] + owed - picked.total)) {
+                    ResourceStepper(
+                        r, picked[r], max = minOf(hand[r], picked[r] + owed - picked.total), held = hand[r],
+                    ) {
                         picked = picked.with(r, it)
                     }
                 }
@@ -175,5 +177,17 @@ fun MonopolyDialog(onPick: (Resource) -> Unit, onDismiss: () -> Unit) {
             Button(onClick = { onPick(p!!) }, enabled = p != null) { Text("Take") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+    )
+}
+
+/** Confirms leaving a game in progress, which can't be undone. */
+@Composable
+fun LeaveGameDialog(onLeave: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Leave this game?") },
+        text = { Text("The game in progress will be lost.") },
+        confirmButton = { TextButton(onClick = onLeave) { Text("Leave") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Keep playing") } },
     )
 }

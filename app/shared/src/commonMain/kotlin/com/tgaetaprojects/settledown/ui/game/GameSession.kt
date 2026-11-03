@@ -20,7 +20,11 @@ import com.tgaetaprojects.settledown.game.engine.RuleViolation
 import com.tgaetaprojects.settledown.game.engine.viewFor
 
 /** What the current player is about to build with a tap on the board in [Phase.Main]. */
-enum class BuildTool { ROAD, SETTLEMENT, CITY }
+enum class BuildTool(val cost: ResourceCounts) {
+    ROAD(ResourceCounts.ROAD),
+    SETTLEMENT(ResourceCounts.SETTLEMENT),
+    CITY(ResourceCounts.CITY),
+}
 
 /** The spots a tap on the board may pick right now. */
 data class BoardTargets(
@@ -36,6 +40,9 @@ data class BoardTargets(
  * whoever must move next ([actor]). The screen draws from [view], the actor's [PlayerView], which is replaced after
  * every accepted action so Compose sees the change.
  *
+ * Everyone sees the screen, so the shared [log] only shows public events, and [needsHandOff] asks the screen to hide
+ * the next player's cards until they take the device.
+ *
  * A networked client will hold only a [PlayerView]; the legal-spot queries here are the part that would then move
  * behind the server.
  */
@@ -43,32 +50,77 @@ class GameSession(private val game: Game) {
     var view: PlayerView by mutableStateOf(game.viewFor(actorOf(game)))
         private set
 
-    /** The newest events first, as the acting player saw them. */
+    /** The newest events first, with private details (stolen and bought cards) hidden. */
     val log = mutableStateListOf<String>()
 
-    /** What [Phase.Main] taps build. Cleared after every accepted action. */
+    /** What [Phase.Main] taps build; set through [selectTool]. Cleared after every accepted action. */
     var tool: BuildTool? by mutableStateOf(null)
+        private set
+
+    /** The player who last confirmed they hold the device. */
+    var revealedTo: PlayerColor? by mutableStateOf(null)
+        private set
 
     /** Who must act next: the roller, the next player owing a discard, or the current player. */
     val actor: PlayerColor get() = view.viewer
 
     val phase: Phase get() = view.phase
 
+    /**
+     * Whether the device must be passed before the panel shows [actor]'s cards. The opening roll-off and the end of
+     * the game reveal nothing private, so they don't ask.
+     */
+    val needsHandOff: Boolean
+        get() = phase !is Phase.RollForFirstPlayer && phase !is Phase.GameOver && actor != revealedTo
+
+    /** True while tied players re-roll for who goes first, even when every player tied. */
+    var isTieBreak: Boolean by mutableStateOf(false)
+        private set
+
+    /** [actor] has the device; show their cards. */
+    fun reveal() {
+        revealedTo = actor
+    }
+
     /** Applies [action] as [actor] and returns why it was refused, or `null` if it was accepted. */
     fun act(action: Action): RuleViolation? {
-        val actor = actor
         return when (val result = game.apply(actor, action)) {
             is ActionResult.Rejected -> result.violation
             is ActionResult.Accepted -> {
-                val names = result.eventsFor(actor).map { describe(it) }
-                log.addAll(0, names.asReversed())
+                val lines = result.events.map { describe(it.publicView()) }
+                log.addAll(0, lines.asReversed())
                 while (log.size > LOG_LIMIT) log.removeAt(log.lastIndex)
                 tool = null
+                // A roll that leaves no rolls recorded must have ended in a tie: the tied players start over.
+                val p = game.phase
+                isTieBreak = p is Phase.RollForFirstPlayer && (isTieBreak || p.rolls.isEmpty())
                 view = game.viewFor(actorOf(game))
                 null
             }
         }
     }
+
+    /** Selects [tool] for the next board tap, or clears it; a tool the actor can't build now is ignored. */
+    fun selectTool(tool: BuildTool?) {
+        this.tool = tool?.takeIf { phase == Phase.Main && canBuild(it) }
+    }
+
+    /** Whether the actor has the cards and a piece left for [tool]. */
+    fun canBuild(tool: BuildTool): Boolean {
+        val player = game.player(actor)
+        val piecesLeft = when (tool) {
+            BuildTool.ROAD -> player.roadsLeft
+            BuildTool.SETTLEMENT -> player.settlementsLeft
+            BuildTool.CITY -> player.citiesLeft
+        }
+        return piecesLeft > 0 && view.hand.covers(tool.cost)
+    }
+
+    /** Whether the actor can make at least one trade with the bank now: enough to give, and something to get. */
+    fun canTradeWithBank(): Boolean =
+        phase == Phase.Main && Resource.entries.any { give ->
+            view.hand[give] >= maritimeRate(give) && Resource.entries.any { it != give && view.bank[it] > 0 }
+        }
 
     fun targets(): BoardTargets {
         val actor = actor
@@ -76,7 +128,7 @@ class GameSession(private val game: Game) {
             is Phase.SetupSettlement -> BoardTargets(vertices = game.legalSettlementSpots(actor).toSet())
             is Phase.SetupRoad, is Phase.RoadBuilding -> BoardTargets(edges = game.legalRoadSpots(actor).toSet())
             is Phase.MoveRobber -> BoardTargets(hexes = Hex.entries.toSet() - view.robber)
-            Phase.Main -> when (tool) {
+            Phase.Main -> when (tool?.takeIf(::canBuild)) {
                 BuildTool.ROAD -> BoardTargets(edges = game.legalRoadSpots(actor).toSet())
                 BuildTool.SETTLEMENT -> BoardTargets(vertices = game.legalSettlementSpots(actor).toSet())
                 BuildTool.CITY -> BoardTargets(vertices = game.legalCitySpots(actor).toSet())
@@ -117,13 +169,6 @@ class GameSession(private val game: Game) {
     /** The actor's points, hidden victory point cards included; others only see [PlayerView.publicVictoryPoints]. */
     fun ownVictoryPoints(): Int = game.totalVictoryPoints(actor)
 
-    /** The cost of a [tool], for showing next to it. */
-    fun cost(tool: BuildTool): ResourceCounts = when (tool) {
-        BuildTool.ROAD -> ResourceCounts.ROAD
-        BuildTool.SETTLEMENT -> ResourceCounts.SETTLEMENT
-        BuildTool.CITY -> ResourceCounts.CITY
-    }
-
     companion object {
         private const val LOG_LIMIT = 60
 
@@ -136,35 +181,45 @@ class GameSession(private val game: Game) {
             GameSession(Game(PlayerColor.entries.take(players), boardSeed, gameSeed))
 
         /**
-         * A game played forward a few turns by a simple greedy script, for previews and screenshot tests. It ends in
-         * [Phase.Main] of a later turn, with buildings, roads and cards to show.
+         * A game played forward by a simple greedy script, for previews and screenshot tests. It stops in
+         * [Phase.Main] on turn [turns] or later, at the first turn where the actor can build a road, with the device
+         * already handed to them.
          */
         fun demo(turns: Int = 10): GameSession {
             val session = new(players = 4, boardSeed = 2026L, gameSeed = 7L)
             session.playScripted(turns)
+            session.reveal()
             return session
         }
     }
 }
 
-/** Plays greedily until turn [turns] has been rolled; deterministic for a given game. */
-internal fun GameSession.playScripted(turns: Int) {
+/**
+ * Plays greedily until it is [Phase.Main] on turn [turns] or later and the actor could build a road somewhere, or
+ * until [stopWhen] holds; deterministic for a given game.
+ */
+internal fun GameSession.playScripted(turns: Int, stopWhen: GameSession.() -> Boolean = { false }) {
     var steps = 0
-    while (steps++ < 2_000) {
+    while (steps++ < 5_000) {
+        if (stopWhen()) return
         val p = phase
-        val hand = view.hand
         val violation = when (p) {
             is Phase.RollForFirstPlayer, Phase.PreRoll -> act(Action.RollDice)
             is Phase.SetupSettlement -> tapVertex(targets().vertices.maxBy { pips(it) * 100 - it.ordinal })
             is Phase.SetupRoad, is Phase.RoadBuilding -> tapEdge(targets().edges.minBy { it.ordinal })
-            is Phase.Discard -> act(Action.Discard(firstCards(hand, p.pending.getValue(actor))))
+            is Phase.Discard -> act(Action.Discard(firstCards(view.hand, p.pending.getValue(actor))))
             is Phase.MoveRobber -> {
                 val hex = targets().hexes.maxBy { robberVictims(it).size * 100 - it.ordinal }
                 act(Action.MoveRobber(hex, robberVictims(hex).minByOrNull { it.ordinal }))
             }
 
             Phase.Main -> {
-                if (view.turn >= turns) return
+                if (view.turn >= turns && canBuild(BuildTool.ROAD)) {
+                    selectTool(BuildTool.ROAD)
+                    val canPlace = !targets().isEmpty
+                    selectTool(null)
+                    if (canPlace) return
+                }
                 buildSomething() ?: act(Action.EndTurn)
             }
 
@@ -176,27 +231,27 @@ internal fun GameSession.playScripted(turns: Int) {
 }
 
 private fun GameSession.buildSomething(): RuleViolation? {
-    val hand = view.hand
     for (tool in listOf(BuildTool.CITY, BuildTool.SETTLEMENT, BuildTool.ROAD)) {
-        if (!hand.covers(cost(tool))) continue
-        this.tool = tool
+        selectTool(tool)
+        if (this.tool == null) continue
         val targets = targets()
         val pick = targets.vertices.maxByOrNull { pips(it) * 100 - it.ordinal }
         if (pick != null) return tapVertex(pick)
         val road = targets.edges.minByOrNull { it.ordinal }
         if (road != null) return tapEdge(road)
     }
-    tool = null
+    selectTool(null)
     return null
 }
 
 private fun GameSession.pips(vertex: Vertex): Int =
-    vertex.hexes.sumOf { hex -> view.layout.numbers.getValue(hex).let { pipCount(it.value) } }
+    vertex.hexes.sumOf { hex -> pipCount(view.layout.numbers.getValue(hex).value) }
 
 /** The dots under a number disc: how many of the 36 dice outcomes roll [total]. */
 internal fun pipCount(total: Int): Int = if (total == 7) 0 else 6 - kotlin.math.abs(7 - total)
 
-private fun firstCards(hand: ResourceCounts, count: Int): ResourceCounts {
+/** The first [count] cards of [hand], in resource order; the scripted player's discard. */
+internal fun firstCards(hand: ResourceCounts, count: Int): ResourceCounts {
     var left = count
     var cards = ResourceCounts.EMPTY
     for (r in Resource.entries) {

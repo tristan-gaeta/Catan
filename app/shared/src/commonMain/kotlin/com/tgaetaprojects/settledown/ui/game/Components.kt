@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.tgaetaprojects.settledown.game.PlayerColor
 import com.tgaetaprojects.settledown.game.Resource
 import com.tgaetaprojects.settledown.game.engine.ResourceCounts
@@ -52,7 +53,7 @@ fun ResourceCard(resource: Resource, count: Int, modifier: Modifier = Modifier) 
     ) {
         Column(Modifier.padding(vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(count.toString(), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            Text(resource.label, style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center)
+            Text(resource.label, style = MaterialTheme.typography.labelMedium, textAlign = TextAlign.Center)
         }
     }
 }
@@ -65,27 +66,45 @@ fun HandRow(hand: ResourceCounts, modifier: Modifier = Modifier) {
     }
 }
 
-/** A cost as small colored pips, one per card. */
+/** A cost as small colored chips, one per card, each tagged with its resource's initial. */
 @Composable
 fun CostPips(cost: ResourceCounts, modifier: Modifier = Modifier) {
     Row(modifier, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
         for (r in cost.types) repeat(cost[r]) {
             Box(
                 Modifier
-                    .size(8.dp)
-                    .background(GameColors.resource(r), RoundedCornerShape(2.dp))
-                    .border(0.5.dp, Color.Black.copy(alpha = 0.3f), RoundedCornerShape(2.dp))
-            )
+                    .size(14.dp)
+                    .background(GameColors.resource(r), RoundedCornerShape(3.dp))
+                    .border(0.5.dp, Color.Black.copy(alpha = 0.3f), RoundedCornerShape(3.dp)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    r.initial,
+                    color = GameColors.onResource(r),
+                    fontSize = 9.sp,
+                    lineHeight = 9.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
         }
     }
 }
 
-/** A labeled count with − and + buttons, kept within `0..max`. */
+/** A labeled count with − and + buttons, kept within `0..max`; [held] shows how many the player has, if given. */
 @Composable
-fun ResourceStepper(resource: Resource, value: Int, max: Int, onChange: (Int) -> Unit) {
+fun ResourceStepper(resource: Resource, value: Int, max: Int, held: Int? = null, onChange: (Int) -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         Box(Modifier.size(16.dp).background(GameColors.resource(resource), RoundedCornerShape(4.dp)))
-        Text(resource.label, Modifier.width(64.dp), style = MaterialTheme.typography.bodyLarge)
+        Column(Modifier.width(72.dp)) {
+            Text(resource.label, style = MaterialTheme.typography.bodyLarge)
+            if (held != null) {
+                Text(
+                    "have $held",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
         FilledTonalIconButton(onClick = { onChange(value - 1) }, enabled = value > 0) { Text("−") }
         Text(
             value.toString(), Modifier.width(28.dp),

@@ -29,7 +29,7 @@ jobs:
         with:
           name: desktop-screenshots
           path: app/shared/build/screenshots
-          if-no-files-found: ignore
+          if-no-files-found: warn
 
   instrumented-tests:
     # Don't spend emulator minutes when the cheap host tests already fail.
@@ -78,4 +78,4 @@ jobs:
         with:
           name: device-screenshots
           path: app/androidApp/build/outputs/managed_device_android_test_additional_output
-          if-no-files-found: ignore
+          if-no-files-found: warn

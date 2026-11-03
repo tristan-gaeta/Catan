@@ -101,4 +101,13 @@ class PlacementTest {
         game.startTurnFor(RED, Phase.PreRoll)
         game.apply(RED, Action.BuildRoad(home.edges.first())).rejectedWith(WRONG_PHASE)
     }
+
+    @Test
+    fun legalCitySpots_noCitiesLeft_isEmpty() {
+        game.putSettlement(RED, home)
+        assertEquals(listOf(home), game.legalCitySpots(RED))
+
+        game.player(RED).citiesLeft = 0
+        assertEquals(emptyList(), game.legalCitySpots(RED))
+    }
 }
