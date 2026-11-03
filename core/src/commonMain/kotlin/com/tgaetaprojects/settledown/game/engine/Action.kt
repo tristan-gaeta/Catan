@@ -50,12 +50,13 @@ sealed interface Action {
     /** Same timing as [PlayKnight]. */
     data class PlayMonopoly(val resource: Resource) : Action
 
-    /** [Phase.Main]: give `rate * lots` of [give] to the bank for [lots] of [get]. */
+    /** [Phase.Main]: give `rate * lots` of [give] to the bank for [lots] of [get], at most 19 lots. */
     data class MaritimeTrade(val give: Resource, val get: Resource, val lots: Int = 1) : Action
 
     /**
      * [Phase.Main]: offer [to] the cards in [give] for the cards in [get]. The current player may offer to anyone;
-     * other players may only make (counter)offers to the current player.
+     * other players may only make (counter)offers to the current player. Each player has at most one open offer:
+     * a new one replaces the proposer's previous offer, whoever it was made to.
      */
     data class ProposeTrade(
         val to: PlayerColor,

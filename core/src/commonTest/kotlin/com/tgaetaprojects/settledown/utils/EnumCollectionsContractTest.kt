@@ -6,8 +6,11 @@ import com.tgaetaprojects.settledown.game.Resource.BRICK
 import com.tgaetaprojects.settledown.game.Resource.GRAIN
 import com.tgaetaprojects.settledown.game.Resource.ORE
 import com.tgaetaprojects.settledown.game.Resource.WOOL
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 import kotlin.test.Test
@@ -167,6 +170,20 @@ class EnumCollectionsContractTest {
         assertEquals(Json.encodeToString(mapOf(BRICK to 1, ORE to 2)), json)
         assertEquals(map, Json.decodeFromString(serializer, json))
         assertEquals(enumMapOf(), Json.decodeFromString(serializer, "{}"))
+    }
+
+    @Test
+    @OptIn(ExperimentalSerializationApi::class)
+    fun emptyEnumMapsDecodeWithoutLookingUpClassNames() {
+        // a key serial name that names no class, as after R8 renames the enum
+        val renamed = object : KSerializer<Resource> by serializer<Resource>() {
+            override val descriptor = SerialDescriptor("a.Renamed", serializer<Resource>().descriptor)
+        }
+        val decoded = Json.decodeFromString(EnumMapSerializer(renamed, Int.serializer()), "{}")
+        assertTrue(decoded.isEmpty())
+        decoded as MutableEnumMap<Resource, Int>
+        decoded[ORE] = 1
+        assertEquals(enumMapOf(ORE to 1), decoded)
     }
 
     @Test

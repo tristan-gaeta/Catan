@@ -39,6 +39,7 @@ options:
 
 Use the run button in your IDE's editor gutter, or run tests using Gradle tasks:
 
+- Rules engine and codec tests (JVM and Android host): `./gradlew :core:allTests`
 - Android tests: `./gradlew :app:shared:testAndroidHostTest`
 - Desktop tests: `./gradlew :app:shared:jvmTest`
 - Server tests: `./gradlew :server:test`
