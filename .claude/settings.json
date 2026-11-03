@@ -15,14 +15,6 @@
     ],
     "ask": [
       "Bash(git push *)"
-    ],
-    "deny": [
-      "Bash(./gradlew *atd30*)",
-      "Bash(./gradlew *ciGroup*)",
-      "Bash(./gradlew *allDevices*)",
-      "Bash(./gradlew *cleanManagedDevices*)",
-      "Bash(emulator *)",
-      "Bash(*/emulator/emulator *)"
     ]
   }
 }

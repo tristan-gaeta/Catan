@@ -1,0 +1,5 @@
+# Gitignored files Claude Code copies into each new worktree.
+# The Android SDK path, which Android builds need.
+local.properties
+# Personal Claude instructions for this machine.
+.claude/rules/*.local.md

@@ -31,8 +31,8 @@ Review what the caller names. With no target, review the uncommitted changes (`g
 
 ## How to check
 
-- Run only the narrowest Gradle task that covers the change (usually `./gradlew :core:jvmTest`); the machine has two
-  cores. Never run emulator or managed-device tasks.
+- Run only the narrowest Gradle task that covers the change (usually `./gradlew :core:jvmTest`), and follow any
+  machine-specific rules loaded from `.claude/rules/*.local.md`.
 - If the Android Studio MCP tools are available and you are reviewing the main checkout, use `get_file_problems` on
   each changed file. In a worktree its results describe `main`, so skip it there.
 

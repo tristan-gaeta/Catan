@@ -5,7 +5,7 @@ independent fan project, early in development. The rules engine is plain Kotlin 
 small memory footprint on the JVM. Follow the 6th-edition base-game rulebook exactly. If you have a copy, keep it in
 `docs/local/`, which git ignores; it is copyrighted, so never commit it or quote it at length.
 
-Start with [docs/README.md](docs/README.md) for the geometry, board setup, rules engine and serialization formats.
+Start with [docs/README.md](../docs/README.md) for the geometry, board setup, rules engine and serialization formats.
 
 ## Modules
 
@@ -17,22 +17,9 @@ Start with [docs/README.md](docs/README.md) for the geometry, board setup, rules
 
 ## Building and testing
 
-The dev machine is a 2-core laptop, so every Gradle run is slow. Run the narrowest task that checks the change.
-
-| Change in | Run |
-|---|---|
-| `core` (inner loop) | `./gradlew :core:jvmTest`, or one class with `--tests '*BoardLayoutTest'` |
-| `core`, before committing | `./gradlew :core:allTests` |
-| `app/shared` | `./gradlew :app:shared:jvmTest :app:shared:testAndroidHostTest` |
-| `server` | `./gradlew :server:test` |
-| Android build | `./gradlew :app:androidApp:assembleDebug` |
-
-- Never start an Android emulator or a Gradle Managed Device task on this machine; they belong in CI. Run instrumented
-  tests on the USB-connected phone (`connectedDebugAndroidTest`) and ask before installing anything onto it.
-- To check a file you edited, prefer the Android Studio MCP server's `get_file_problems` over a Gradle build: the IDE
-  has already analyzed it. It serves the project open in Android Studio (the main checkout), so in a worktree its
-  results describe `main`, not your branch.
-- Don't add throwaway probes or dump tests to the source tree; use the scratchpad.
+The run and test commands for each module are in the [README](../README.md). Test conventions are in
+[rules/testing.md](rules/testing.md). Machine-specific build guidance, if any, lives in a gitignored
+`rules/*.local.md` file.
 
 ## Conventions
 
