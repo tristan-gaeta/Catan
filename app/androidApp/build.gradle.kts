@@ -23,6 +23,12 @@ dependencies {
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.espresso.core)
     androidTestImplementation(libs.androidx.compose.uiTestJunit4)
+    androidTestImplementation(libs.androidx.test.services.storage)
+    // Hosts the empty activity createComposeRule() renders into.
+    debugImplementation(libs.androidx.compose.uiTestManifest)
+    // The test storage service lets tests save screenshots that Gradle pulls back into
+    // build/outputs/*_android_test_additional_output.
+    androidTestUtil(libs.androidx.test.services)
 }
 
 android {
@@ -37,6 +43,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunnerArguments["useTestStorageService"] = "true"
     }
     packaging {
         resources {

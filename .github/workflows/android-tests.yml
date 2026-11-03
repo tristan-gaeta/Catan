@@ -23,6 +23,13 @@ jobs:
           java-version: 21
       - uses: gradle/actions/setup-gradle@v6
       - run: ./gradlew :core:allTests :app:shared:jvmTest :app:shared:testAndroidHostTest :server:test
+      # Desktop renders from the Compose UI tests, for reviewing UI changes.
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: desktop-screenshots
+          path: app/shared/build/screenshots
+          if-no-files-found: ignore
 
   instrumented-tests:
     # Don't spend emulator minutes when the cheap host tests already fail.
@@ -65,3 +72,10 @@ jobs:
           path: |
             app/androidApp/build/outputs/androidTest-results
             app/androidApp/build/reports/androidTests
+      # Screenshots the tests saved on each managed device through the test storage service.
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: device-screenshots
+          path: app/androidApp/build/outputs/managed_device_android_test_additional_output
+          if-no-files-found: ignore
