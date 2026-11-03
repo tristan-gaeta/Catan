@@ -35,8 +35,8 @@ Every vertex and edge number in these pictures comes from the real enums, throug
 
 KDoc comments link to these diagrams instead of embedding them. Android Studio's quick documentation can't display
 images: its KDoc renderer has no case for Markdown images and escapes raw HTML. It also can't follow relative file
-links, so the KDoc links point at the files on GitHub's `main` branch, which open in your browser. Until this work is
-merged into `main`, open these pages in Android Studio's Markdown preview instead, which shows the images.
+links, so the KDoc links point at the files on GitHub's `main` branch, which open in your browser. Offline, open
+these pages in Android Studio's Markdown preview instead, which shows the images.
 
 ## The rulebook
 
