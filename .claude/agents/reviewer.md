@@ -27,7 +27,8 @@ Review what the caller names. With no target, review the uncommitted changes (`g
 4. **Memory footprint.** `core` should stay allocation-light on the JVM: prefer the enum-keyed collections in `utils`
    and primitive-backed types over boxed collections in hot paths.
 5. **Tests.** New behavior has tests in the matching test source set (`core/src/commonTest` for the engine and codecs,
-   `app/shared/src/*Test` for the UI, `server/src/test` for the server), named as `.claude/rules/testing.md` says. No throwaway probes or dump tests are left behind.
+   `app/shared/src/*Test` for the UI, `server/src/test` for the server), named as `.claude/rules/testing.md` says. No
+   throwaway probes or dump tests are left behind.
 6. **Docs and KDoc.** KDoc and `docs/` still match the code. Diagram links are absolute GitHub `main` links. Spelling is
    American.
 
