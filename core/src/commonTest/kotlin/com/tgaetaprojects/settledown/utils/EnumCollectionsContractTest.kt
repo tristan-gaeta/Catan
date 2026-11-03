@@ -30,13 +30,13 @@ class EnumCollectionsContractTest {
     @Test
     fun setEqualityIsSymmetricWithOtherSets() {
         val set = enumSetOf(ORE, BRICK)
-        assertEqualBothWays<Set<Resource>>(set, setOf(BRICK, ORE))
-        assertEqualBothWays<Set<Resource>>(set, hashSetOf(ORE, BRICK))
+        assertEqualBothWays(set, setOf(BRICK, ORE))
+        assertEqualBothWays(set, hashSetOf(ORE, BRICK))
         assertEqualBothWays<Set<Resource>>(set, mutableEnumSetOf(BRICK, ORE))
         assertEqualBothWays<Set<Resource>>(enumSetOf(), emptySet())
 
-        assertNotEquals<Set<Resource>>(set, setOf(BRICK))
-        assertNotEquals<Set<Resource>>(setOf(BRICK, GRAIN), set)
+        assertNotEquals(set, setOf(BRICK))
+        assertNotEquals(setOf(BRICK, GRAIN), set)
         assertNotEquals<Any>(set, listOf(BRICK, ORE))
     }
 
@@ -44,8 +44,8 @@ class EnumCollectionsContractTest {
     fun largeEnumSetsHonourTheContract() {
         // More than 64 constants, so java.util.EnumSet switches to its long[] implementation
         val edges = Edge.entries.filter { it.ordinal % 3 == 0 }
-        assertEqualBothWays<Set<Edge>>(edges.toEnumSet(), edges.toSet())
-        assertEqualBothWays<Set<Edge>>(enumSetAllOf<Edge>(), Edge.entries.toSet())
+        assertEqualBothWays(edges.toEnumSet(), edges.toSet())
+        assertEqualBothWays(enumSetAllOf<Edge>(), Edge.entries.toSet())
     }
 
     @Test
@@ -92,13 +92,13 @@ class EnumCollectionsContractTest {
     @Test
     fun mapEqualityIsSymmetricWithOtherMaps() {
         val map = enumMapOf(ORE to 2, BRICK to 1)
-        assertEqualBothWays<Map<Resource, Int>>(map, mapOf(BRICK to 1, ORE to 2))
-        assertEqualBothWays<Map<Resource, Int>>(map, hashMapOf(ORE to 2, BRICK to 1))
+        assertEqualBothWays(map, mapOf(BRICK to 1, ORE to 2))
+        assertEqualBothWays(map, hashMapOf(ORE to 2, BRICK to 1))
         assertEqualBothWays<Map<Resource, Int>>(map, mutableEnumMapOf(BRICK to 1, ORE to 2))
         assertEqualBothWays<Map<Resource, Int>>(enumMapOf(), emptyMap())
 
-        assertNotEquals<Map<Resource, Int>>(map, mapOf(BRICK to 1, ORE to 3))
-        assertNotEquals<Map<Resource, Int>>(mapOf(BRICK to 1), map)
+        assertNotEquals(map, mapOf(BRICK to 1, ORE to 3))
+        assertNotEquals(mapOf(BRICK to 1), map)
         assertEquals(mapOf(BRICK to 1, ORE to 2).entries, map.entries)
     }
 
