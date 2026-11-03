@@ -45,7 +45,9 @@ The run and test commands for each module are in the [README](../README.md). Tes
   the branch when pushing (`git push -u origin <branch>`).
 - Before pushing to a branch that has a PR, check the PR is still open (`gh pr view --json state`). If it has merged
   or closed, put the commit on a new branch from `origin/main` and open a new PR.
-- Merge only when the user asks. Then enable auto-merge (`gh pr merge --auto --merge`); never use `--admin`.
-- Auto-merge only waits for required checks, currently just `host-tests`. On any PR where `instrumented-tests` runs,
-  wait for it to pass before enabling auto-merge. Rerun once if it looks like a flake, and report it if it still fails.
+- Merge only when the user asks, with `gh pr merge --merge --match-head-commit <sha>`. Add `--auto` if a required check
+  is pending. Never use `--admin`.
+- Auto-merge only waits for required checks, currently just `host-tests`. Until `instrumented-tests` is required, don't
+  merge or enable auto-merge on a PR until that job has passed or been skipped. Rerun it once if it looks like a flake,
+  and report it if it still fails.
 - Pushing to `main`, force-pushing and rewriting pushed history need the user's approval.
