@@ -40,4 +40,12 @@ The run and test commands for each module are in the [README](../README.md). Tes
 - Commit subjects are imperative and capitalized ("Add seeded serialization and 6th-edition setup"). The body explains
   what changed and why, wrapped at about 76 columns.
 - Before committing a non-trivial change, have the `reviewer` subagent review the diff, then fix what it confirms.
-- The user pushes. Don't push or open PRs unless asked.
+  Changes to only docs or comments, and one-line fixes, don't need it.
+- Work on `claude/*` branches. On those branches, push and open a PR without asking once the work is committed. Name
+  the branch when pushing (`git push -u origin <branch>`).
+- Before pushing to a branch that has a PR, check the PR is still open (`gh pr view --json state`). If it has merged
+  or closed, put the commit on a new branch from `origin/main` and open a new PR.
+- Merge only when the user asks. Then enable auto-merge (`gh pr merge --auto --merge`); never use `--admin`.
+- Auto-merge only waits for required checks, currently just `host-tests`. On any PR where `instrumented-tests` runs,
+  wait for it to pass before enabling auto-merge. Rerun once if it looks like a flake, and report it if it still fails.
+- Pushing to `main`, force-pushing and rewriting pushed history need the user's approval.

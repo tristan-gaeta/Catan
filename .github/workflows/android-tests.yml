@@ -4,6 +4,7 @@ on:
   pull_request:
   push:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -13,19 +14,42 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # A required check, so it always runs and detects changes itself. A path-filtered workflow never
+  # reports, which leaves the pull request stuck, and a job skipped because a separate detection job
+  # failed counts as passed. Here a failed detection fails this job.
   host-tests:
     runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.changes.outputs.code }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          # A pull request checks out its merge commit, whose first parent is the base branch.
+          fetch-depth: 2
+      # Only pull requests can skip. Every run on main is full: a newer run cancels an older one, so
+      # a docs merge must not replace the tests of the code merge before it.
+      - name: Detect docs-only pull requests
+        id: changes
+        if: github.event_name == 'pull_request'
+        run: |
+          # Without --no-renames, moving code into docs/ would list only the docs path.
+          changed=$(git diff --no-renames --name-only HEAD^1 HEAD)
+          echo "$changed"
+          if ! grep -qvE '^(docs/|\.claude/)|\.md$' <<< "$changed"; then
+            echo "code=false" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/setup-java@v6
+        if: steps.changes.outputs.code != 'false'
         with:
           distribution: temurin
           java-version: 21
       - uses: gradle/actions/setup-gradle@v6
-      - run: ./gradlew :core:allTests :app:shared:jvmTest :app:shared:testAndroidHostTest :server:test
+        if: steps.changes.outputs.code != 'false'
+      - if: steps.changes.outputs.code != 'false'
+        run: ./gradlew :core:allTests :app:shared:jvmTest :app:shared:testAndroidHostTest :server:test
       # Desktop renders from the Compose UI tests, for reviewing UI changes.
       - uses: actions/upload-artifact@v7
-        if: always()
+        if: always() && steps.changes.outputs.code != 'false'
         with:
           name: desktop-screenshots
           path: app/shared/build/screenshots
@@ -34,6 +58,7 @@ jobs:
   instrumented-tests:
     # Don't spend emulator minutes when the cheap host tests already fail.
     needs: host-tests
+    if: needs.host-tests.outputs.code != 'false'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -60,6 +85,12 @@ jobs:
             ~/.android/avd/gradle-managed
             ${{ env.SDK_SYSTEM_IMAGES }}
           key: gmd-${{ runner.os }}-${{ hashFiles('app/androidApp/build.gradle.kts') }}
+      # Install before Gradle, which fails on a cache hit (the cache has no emulator) and can break the
+      # SDK on a miss (both setup tasks install the emulator at once). Match the managedDevices images.
+      - name: Install emulator and system images
+        run: >
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          emulator "system-images;android-30;aosp_atd;x86" "system-images;android-34;aosp_atd;x86_64"
       # No sharding: the ci group already boots two emulators, which is all a 4-vCPU runner handles reliably.
       - name: Run managed device tests
         run: >
