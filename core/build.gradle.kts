@@ -10,7 +10,7 @@ kotlin {
     jvm()
 
     android {
-        namespace = "com.tgaetaprojects.biophilia.core"
+        namespace = "com.tgaetaprojects.settledown.core"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         minSdk = libs.versions.android.minSdk.get().toInt()
 

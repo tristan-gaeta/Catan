@@ -21,11 +21,11 @@ dependencies {
 }
 
 android {
-    namespace = "com.tgaetaprojects.biophilia"
+    namespace = "com.tgaetaprojects.settledown"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "com.tgaetaprojects.biophilia"
+        applicationId = "com.tgaetaprojects.settledown"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1

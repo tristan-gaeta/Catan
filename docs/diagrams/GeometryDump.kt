@@ -1,4 +1,4 @@
-package com.tgaetaprojects.biophilia.game
+package com.tgaetaprojects.settledown.game
 
 import kotlin.test.Test
 

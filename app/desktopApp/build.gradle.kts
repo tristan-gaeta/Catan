@@ -17,11 +17,11 @@ dependencies {
 
 compose.desktop {
     application {
-        mainClass = "com.tgaetaprojects.biophilia.MainKt"
+        mainClass = "com.tgaetaprojects.settledown.MainKt"
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "com.tgaetaprojects.biophilia"
+            packageName = "com.tgaetaprojects.settledown"
             packageVersion = "1.0.0"
         }
     }

@@ -1,6 +1,6 @@
-## Biophilia
+## Settledown
 
-Biophilia is a game in the style of CATAN, written in Kotlin Multiplatform for Android, desktop (JVM) and a Ktor
+Settledown is a game in the style of CATAN, written in Kotlin Multiplatform for Android, desktop (JVM) and a Ktor
 server. The rules engine is Kotlin-first common code, built for a small memory footprint on the JVM.
 
 ![A generated board](docs/images/sample-board.svg)
@@ -8,7 +8,7 @@ server. The rules engine is Kotlin-first common code, built for a small memory f
 **Documentation:** start at [docs/README.md](docs/README.md). It covers the hex geometry, board setup, rules engine and
 serialization formats, with diagrams and references.
 
-*Biophilia is an independent fan project. It is not affiliated with or endorsed by CATAN GmbH. CATAN is a trademark of
+*Settledown is an independent fan project. It is not affiliated with or endorsed by CATAN GmbH. CATAN is a trademark of
 CATAN GmbH.*
 
 ### Modules

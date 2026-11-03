@@ -11,7 +11,7 @@ kotlin {
     jvm()
 
     android {
-        namespace = "com.tgaetaprojects.biophilia.app.shared"
+        namespace = "com.tgaetaprojects.settledown.app.shared"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         minSdk = libs.versions.android.minSdk.get().toInt()
 

@@ -1,7 +1,7 @@
-# Biophilia documentation
+# Settledown documentation
 
-Biophilia is a Kotlin Multiplatform game in the style of CATAN. All the game logic lives in
-[`core`](../core/src/commonMain/kotlin/com/tgaetaprojects/biophilia). It is plain Kotlin in `commonMain`, built to keep
+Settledown is a Kotlin Multiplatform game in the style of CATAN. All the game logic lives in
+[`core`](../core/src/commonMain/kotlin/com/tgaetaprojects/settledown). It is plain Kotlin in `commonMain`, built to keep
 a small memory footprint on the JVM. The apps in [`app`](../app) and the Ktor [`server`](../server) build on it.
 
 These pages explain the ideas behind the code. Use the KDoc for details of individual classes. Most KDoc comments in

@@ -3,10 +3,10 @@ plugins {
     alias(ktorLibs.plugins.ktor)
 }
 
-group = "com.tgaetaprojects.biophilia"
+group = "com.tgaetaprojects.settledown"
 version = "1.0.0"
 application {
-    mainClass = "com.tgaetaprojects.biophilia.ApplicationKt"
+    mainClass = "com.tgaetaprojects.settledown.ApplicationKt"
 }
 
 dependencies {

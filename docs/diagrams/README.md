@@ -17,12 +17,12 @@ code uses. It holds:
 
 Regenerate it whenever the board geometry or the board generator changes. Both changes also trip `VersionGuardTest`.
 
-1. Copy `GeometryDump.kt` into `core/src/jvmTest/kotlin/com/tgaetaprojects/biophilia/game/`. It isn't compiled where
+1. Copy `GeometryDump.kt` into `core/src/jvmTest/kotlin/com/tgaetaprojects/settledown/game/`. It isn't compiled where
    it is.
 2. Run it:
 
    ```bash
-   ./gradlew :core:jvmTest --tests 'com.tgaetaprojects.biophilia.game.GeometryDump'
+   ./gradlew :core:jvmTest --tests 'com.tgaetaprojects.settledown.game.GeometryDump'
    ```
 
 3. Delete the copy, then run `generate.py`.

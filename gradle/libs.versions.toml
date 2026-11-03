@@ -1,7 +1,10 @@
 [versions]
 agp = "9.3.3"
+# Compile and target the newest API (Google Play requires a recent targetSdk); reach as far back as the
+# dependencies allow.
+# minSdk 23 (Android 6.0) is the floor set by Compose Multiplatform's components-resources.
 android-compileSdk = "37"
-android-minSdk = "35"
+android-minSdk = "23"
 android-targetSdk = "37"
 androidx-activity = "1.13.0"
 androidx-appcompat = "1.8.0"

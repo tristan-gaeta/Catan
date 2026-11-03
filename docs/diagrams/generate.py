@@ -16,7 +16,7 @@ HERE = Path(__file__).resolve().parent
 OUT = HERE.parent / "images"
 DATA = json.loads((HERE / "geometry.json").read_text(encoding="utf-8"))
 # the current wire format version, read from the source so the bit-layout diagram never goes stale
-BITS_KT = HERE.parents[1] / "core/src/commonMain/kotlin/com/tgaetaprojects/biophilia/game/codec/Bits.kt"
+BITS_KT = HERE.parents[1] / "core/src/commonMain/kotlin/com/tgaetaprojects/settledown/game/codec/Bits.kt"
 FORMAT_VERSION = re.search(r"const val FORMAT_VERSION = (\d+)", BITS_KT.read_text(encoding="utf-8")).group(1)
 
 SQRT3 = math.sqrt(3)
