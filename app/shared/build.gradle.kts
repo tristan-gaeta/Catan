@@ -44,6 +44,11 @@ kotlin {
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
+        jvmTest.dependencies {
+            // Skiko native runtime so Compose UI tests run on the desktop JVM, no emulator needed.
+            implementation(compose.desktop.currentOs)
+            implementation(libs.compose.uiTest)
+        }
     }
 }
 
