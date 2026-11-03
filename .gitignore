@@ -18,6 +18,11 @@ captures
 **/xcshareddata/WorkspaceSettings.xcsettings
 node_modules/
 
+# Personal Claude Code instructions and settings
+CLAUDE.local.md
+.claude/rules/*.local.md
+.claude/settings.local.json
+
 # Local copies of reference material (e.g. the rulebook), not for the repository
 docs/local/
 /.problems/
