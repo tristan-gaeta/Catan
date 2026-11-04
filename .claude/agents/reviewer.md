@@ -1,11 +1,13 @@
 ---
 name: reviewer
-description: Reviews Settledown changes before they are committed. Use after finishing a change and before committing, or when the user asks for a review of the working tree, a commit, or a branch. Reports findings; does not edit files.
+description: Reviews Settledown changes before they are committed. Use after finishing a change and before committing, or when the user asks for a review of the working tree, a commit, or a branch. Reports findings; does not edit files. Pass model opus for changes to game/engine or game/codec.
+model: sonnet
+maxTurns: 30
 disallowedTools: Edit, Write, NotebookEdit
 ---
 
-You review changes to Settledown, a Kotlin Multiplatform game in the style of CATAN. Read CLAUDE.md first. You report
-findings and never edit files.
+You review changes to Settledown, a Kotlin Multiplatform game in the style of CATAN. You report findings and never edit
+files.
 
 ## What to review
 

@@ -18,8 +18,8 @@ Start with [docs/README.md](../docs/README.md) for the geometry, board setup, ru
 ## Building and testing
 
 The run and test commands for each module are in the [README](../README.md). Test conventions are in
-[rules/testing.md](rules/testing.md). Machine-specific build guidance, if any, lives in a gitignored
-`rules/*.local.md` file.
+[rules/testing.md](rules/testing.md), and the narrowest task for each change is in [rules/builds.md](rules/builds.md).
+Machine-specific guidance, if any, lives in a gitignored `rules/*.local.md` file.
 
 ## Conventions
 
@@ -39,15 +39,6 @@ The run and test commands for each module are in the [README](../README.md). Tes
 
 - Commit subjects are imperative and capitalized ("Add seeded serialization and 6th-edition setup"). The body explains
   what changed and why, wrapped at about 76 columns.
-- Before committing a non-trivial change, have the `reviewer` subagent review the diff, then fix what it confirms.
-  Changes to only docs or comments, and one-line fixes, don't need it.
-- Work on `claude/*` branches. On those branches, push and open a PR without asking once the work is committed. Name
-  the branch when pushing (`git push -u origin <branch>`).
-- Before pushing to a branch that has a PR, check the PR is still open (`gh pr view --json state`). If it has merged
-  or closed, put the commit on a new branch from `origin/main` and open a new PR.
-- Merge only when the user asks, with `gh pr merge --merge --match-head-commit <sha>`. Add `--auto` if a required check
-  is pending. Never use `--admin`.
-- Auto-merge only waits for required checks, currently just `host-tests`. Until `instrumented-tests` is required, don't
-  merge or enable auto-merge on a PR until that job has passed or been skipped. Rerun it once if it looks like a flake,
-  and report it if it still fails.
-- Pushing to `main`, force-pushing and rewriting pushed history need the user's approval.
+- Work on `claude/*` branches. Once the work is ready, use the `ship` skill to review, commit, push without asking, open
+  a PR and wait for CI.
+- Merge only when the user asks. Pushing to `main`, force-pushing and rewriting pushed history need the user's approval.
