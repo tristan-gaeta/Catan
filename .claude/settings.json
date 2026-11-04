@@ -12,8 +12,10 @@
       "Bash(./gradlew :server:compile*)",
       "Bash(git add *)",
       "Bash(git commit *)",
+      "Bash(git fetch *)",
       "Bash(git push origin claude/*)",
       "Bash(git push -u origin claude/*)",
+      "Bash(.claude/scripts/ci-digest.sh *)",
       "Bash(gh pr create *)",
       "Bash(gh pr view *)",
       "Bash(gh pr checks *)",
@@ -33,6 +35,36 @@
       "Bash(git push -d*)",
       "Bash(git push --force*)",
       "Bash(git push --delete*)"
+    ],
+    "deny": [
+      "Bash(gh pr merge *--admin*)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/check-main-fresh.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Bash(git push *)",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/guard-pr-state.sh",
+            "timeout": 15
+          }
+        ]
+      }
     ]
   }
 }
