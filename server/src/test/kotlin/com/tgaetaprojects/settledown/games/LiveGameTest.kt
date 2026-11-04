@@ -227,8 +227,15 @@ class LiveGameTest {
         val (players, gameId) = startGame(3)
         players[0].webSocket("/games/$gameId/ws") {
             firstUpdate()
-            // refused actions count too: flooding is the problem, whatever the content
-            repeat(50) { send(Frame.Binary(true, WireCodec.encode(ClientAction(it + 1, Action.EndTurn)))) }
+            // refused actions count too: flooding is the problem, whatever the content. Send without suspending and
+            // stop at the close, because the server closing in the middle of this is exactly what's being tested.
+            var seq = 0
+            withTimeout(10.seconds) {
+                while (!closeReason.isCompleted) {
+                    outgoing.trySend(Frame.Binary(true, WireCodec.encode(ClientAction(++seq, Action.EndTurn))))
+                    delay(1)
+                }
+            }
             assertEquals(WireCodec.CLOSE_PROTOCOL_ERROR, closeReason.await()?.code)
         }
     }
