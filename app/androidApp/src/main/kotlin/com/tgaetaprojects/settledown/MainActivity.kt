@@ -9,6 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+import com.tgaetaprojects.settledown.online.OnlineConfig
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -16,10 +17,19 @@ class MainActivity : ComponentActivity() {
         drawEdgeToEdge()
 
         setContent {
-            App()
+            App(onlineConfig = onlineConfig())
         }
     }
 }
+
+private fun onlineConfig(): OnlineConfig? =
+    BuildConfig.SERVER_URL.takeIf { it.isNotEmpty() }?.let { url ->
+        OnlineConfig(
+            serverUrl = url,
+            googleClientId = BuildConfig.GOOGLE_CLIENT_ID.takeIf { it.isNotEmpty() },
+            devUser = BuildConfig.DEV_USER.takeIf { it.isNotEmpty() },
+        )
+    }
 
 /**
  * Draws behind both system bars with no scrim; the game screen pads its panel for the navigation bar. Device tests

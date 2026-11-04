@@ -19,10 +19,12 @@ import com.tgaetaprojects.settledown.game.Vertex
 import com.tgaetaprojects.settledown.game.engine.Action
 import com.tgaetaprojects.settledown.game.engine.DevCardCounts
 import com.tgaetaprojects.settledown.game.engine.Game
+import com.tgaetaprojects.settledown.game.engine.GameEvent
 import com.tgaetaprojects.settledown.game.engine.Phase
 import com.tgaetaprojects.settledown.game.engine.RandomBots
 import com.tgaetaprojects.settledown.game.engine.ResourceCounts
 import com.tgaetaprojects.settledown.game.engine.ResourceCounts.Companion.of
+import com.tgaetaprojects.settledown.game.engine.RuleViolation
 import com.tgaetaprojects.settledown.game.engine.TradeOffer
 import com.tgaetaprojects.settledown.game.engine.viewFor
 import com.tgaetaprojects.settledown.game.random.GameRandom
@@ -244,6 +246,12 @@ class VersionGuardTest {
                 sampleActions().map { RecordedAction(RED, it) }).encode(),
         )
         blobs += sampleActions().map { ActionCodec.encode(ORANGE, it) }
+        blobs += sampleActions().map { WireCodec.encode(ClientAction(5, it)) }
+        blobs += EventCodec.encode(sampleEvents())
+        blobs += RuleViolation.entries.map { WireCodec.encode(ServerMessage.Refused(6, it)) }
+        blobs += WireCodec.encode(ServerMessage.Presence(setOf(RED, ORANGE)))
+        blobs += WireCodec.encode(ServerMessage.Deadline(setOf(WHITE, BLUE), 30_000))
+        blobs += updateAfterItsView()
         for (phase in samplePhases()) {
             val game = fixedGame(phase)
             val snapshot = SnapshotCodec.encode(game)
@@ -276,9 +284,50 @@ class VersionGuardTest {
         assertEquals(Terrain.entries.toSet(), fixedLayout().terrain.values.toSet())
         assertEquals(DiceTotal.entries.toSet(), fixedLayout().numbers.values.toSet())
         assertEquals(FramePiece.entries.toSet(), fixedLayout().frame.toSet())
-        // one sample of each of the 9 phase types and 18 action types, so every tag's ordinal is written
+        // one sample of each of the 9 phase types, 18 action types and 22 event types, so every tag's ordinal is written
         assertEquals(9, samplePhases().map { it::class }.toSet().size)
         assertEquals(18, sampleActions().map { it::class }.toSet().size)
+        assertEquals(22, sampleEvents().map { it::class }.toSet().size)
+    }
+
+    /**
+     * What an update adds after its view. The view itself is pinned as its own blob, and it holds the rules version,
+     * so pinning the whole update would make a rules bump alone trip the format guard.
+     */
+    private fun updateAfterItsView(): ByteArray {
+        val view = fixedGame(Phase.Main).viewFor(WHITE)
+        val update = WireCodec.encode(ServerMessage.Update(view, sampleEvents(), 8))
+        return update.copyOfRange(SnapshotCodec.encodeView(view).size, update.size)
+    }
+
+    private fun sampleEvents(): List<GameEvent> {
+        val offer = TradeOffer(2, BLUE, RED, of(Resource.BRICK, 1), of(Resource.ORE, 1))
+        return listOf(
+            GameEvent.TurnOrderDecided(listOf(WHITE, BLUE, ORANGE, RED)),
+            GameEvent.TurnStarted(BLUE, 7),
+            GameEvent.DiceRolled(RED, DiceTotal.EIGHT),
+            GameEvent.ResourcesProduced(mapOf(RED to of(Resource.ORE, 2), ORANGE to of(Resource.WOOL, 1))),
+            GameEvent.StartingResources(WHITE, of(Resource.BRICK to 1, Resource.GRAIN to 2)),
+            GameEvent.Discarded(BLUE, of(Resource.LUMBER, 4)),
+            GameEvent.RobberMoved(RED, Hex.K),
+            GameEvent.Stole(RED, WHITE, Resource.ORE),
+            GameEvent.Stole(RED, WHITE, null, tookCard = true),
+            GameEvent.RoadBuilt(RED, Edge.E30, free = true),
+            GameEvent.SettlementBuilt(WHITE, Vertex.V20, free = false),
+            GameEvent.CityBuilt(BLUE, Vertex.V22),
+            GameEvent.DevCardBought(ORANGE, DevelopmentCardType.KNIGHT),
+            GameEvent.DevCardBought(ORANGE, null),
+            GameEvent.DevCardPlayed(RED, DevelopmentCardType.MONOPOLY),
+            GameEvent.YearOfPlenty(RED, of(Resource.ORE, Resource.BRICK)),
+            GameEvent.Monopolized(RED, Resource.WOOL, mapOf(WHITE to 3)),
+            GameEvent.MaritimeTraded(WHITE, of(Resource.WOOL, 4), of(Resource.ORE, 1)),
+            GameEvent.TradeProposed(offer),
+            GameEvent.TradeAccepted(offer),
+            GameEvent.TradeCancelled(offer, RED),
+            GameEvent.LongestRoadChanged(RED, 5),
+            GameEvent.LargestArmyChanged(BLUE, 3),
+            GameEvent.GameWon(ORANGE, 10),
+        )
     }
 
     /** Snapshots and views embed the rules version at byte 2; drop it so a rules bump alone doesn't trip this. */
@@ -461,7 +510,7 @@ class VersionGuardTest {
         /** Test games for the rules fingerprint: 3 players, 4 players, and one whose first roll is tied. */
         val GUARD_GAME_SEEDS = listOf(1L, 2L, 6L)
 
-        /** Every enum the codecs write by ordinal, apart from the private tags and the geometric Vertex and Edge. */
+        /** Every enum the codecs write by ordinal. */
         val SERIALIZED_ENUMS = listOf(
             BlobKind.entries,
             PlayerColor.entries,
@@ -474,12 +523,17 @@ class VersionGuardTest {
             Hex.entries,
             Vertex.entries,
             Edge.entries,
+            RuleViolation.entries,
+            ActionCodec.Tag.entries,
+            SnapshotCodec.PhaseTag.entries,
+            EventCodec.Tag.entries,
+            WireCodec.Tag.entries,
         )
 
         /** Rules fingerprints by `Game.RULES_VERSION`. */
         val RULES_FINGERPRINTS = mapOf(1 to 1179605149, 2 to 564103760, 3 to 564103760)
 
         /** Format fingerprints by `FORMAT_VERSION`. */
-        val FORMAT_FINGERPRINTS = mapOf(1 to -512077608, 2 to -1919847427)
+        val FORMAT_FINGERPRINTS = mapOf(1 to -512077608, 2 to -1919847427, 3 to 421339757)
     }
 }

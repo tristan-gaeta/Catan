@@ -24,6 +24,7 @@ jobs:
   # failed counts as passed. Here a failed detection fails this job.
   host-tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     outputs:
       code: ${{ steps.changes.outputs.code }}
     steps:
@@ -53,7 +54,8 @@ jobs:
       - uses: gradle/actions/setup-gradle@v6
         if: steps.changes.outputs.code != 'false'
       - if: steps.changes.outputs.code != 'false'
-        run: ./gradlew :core:allTests :app:shared:jvmTest :app:shared:testAndroidHostTest :server:test
+        # The desktop launcher has no tests of its own, so compile it to catch breaks.
+        run: ./gradlew :core:allTests :app:shared:jvmTest :app:shared:testAndroidHostTest :server:test :app:desktopApp:compileKotlin
       # Desktop renders from the Compose UI tests, for reviewing UI changes.
       - uses: actions/upload-artifact@v7
         if: always() && steps.changes.outputs.code != 'false'

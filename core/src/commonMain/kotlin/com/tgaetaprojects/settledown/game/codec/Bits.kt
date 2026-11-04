@@ -14,7 +14,7 @@ class CodecException(message: String, cause: Throwable? = null) :
  * The kinds of top-level blob. Every blob starts with [FORMAT_VERSION] and its kind's ordinal, one byte each, so a
  * decoder can reject the wrong thing up front.
  */
-internal enum class BlobKind { LAYOUT, ACTION, SNAPSHOT, VIEW, RECORD }
+internal enum class BlobKind { LAYOUT, ACTION, SNAPSHOT, VIEW, RECORD, EVENTS, CLIENT_MESSAGE, SERVER_MESSAGE }
 
 /**
  * The version of the byte layouts in this package. Bump it on any change to what an encoding writes;
@@ -25,12 +25,12 @@ internal enum class BlobKind { LAYOUT, ACTION, SNAPSHOT, VIEW, RECORD }
  * constant, and it pins each serialized enum's size (an appended constant may not change any existing bytes, but
  * an older reader couldn't decode it). The serialized enums are [BlobKind], `PlayerColor`,
  * `Resource`, `DevelopmentCardType`, `DiceTotal`, `Terrain`, `FramePiece`, `Building`, `Hex`, `Vertex`, `Edge`,
- * and the action and phase tags in `ActionCodec` and `SnapshotCodec`. (`Vertex` and `Edge` ordinals are board
- * positions, assigned in a fixed geometric order, so those two only change if the board does.)
+ * `RuleViolation`, and the tags in `ActionCodec`, `SnapshotCodec`, `EventCodec` and `WireCodec`. (`Vertex` and `Edge`
+ * ordinals are board positions, assigned in a fixed geometric order, so those two only change if the board does.)
  *
  * See [Serialization](https://github.com/tristan-gaeta/Catan/blob/main/docs/serialization.md#versions-and-guards).
  */
-internal const val FORMAT_VERSION = 2
+internal const val FORMAT_VERSION = 3
 
 /** Bits needed to store any of [count] distinct values, e.g. 54 vertices need 6. */
 internal fun bitsFor(count: Int): Int =

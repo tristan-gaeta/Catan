@@ -4,14 +4,15 @@ import com.tgaetaprojects.settledown.game.PlayerColor
 import com.tgaetaprojects.settledown.game.engine.Action
 
 /**
- * Encodes who did what: the 2-bit actor, a 5-bit action tag, then the action's operands. Rolling the dice takes
- * 7 bits and building a road 14; only trade offers, which carry two hands of cards, run to about 8 bytes.
+ * Encodes who did what: the 2-bit actor, a 5-bit action tag, then the action's operands. Before the 2-byte header
+ * of a standalone blob, rolling the dice takes 7 bits and building a road 14; only trade offers, which carry two
+ * hands of cards, run to about 8 bytes.
  *
  * Diagram: [Bit layout of an encoded action](https://github.com/tristan-gaeta/Catan/blob/main/docs/images/action-bits.svg).
  */
 object ActionCodec {
     /** One tag per action type, written as its ordinal (see [FORMAT_VERSION]). */
-    private enum class Tag {
+    internal enum class Tag {
         PLACE_SETTLEMENT,
         PLACE_ROAD,
         ROLL_DICE,
@@ -47,6 +48,11 @@ object ActionCodec {
 
     internal fun BitWriter.writeAction(actor: PlayerColor, action: Action) {
         code(actor)
+        writeActionBody(action)
+    }
+
+    /** The action without its actor, for messages where the sender decides who is acting. */
+    internal fun BitWriter.writeActionBody(action: Action) {
         code(tagOf(action))
         when (action) {
             is Action.PlaceSettlement -> code(action.vertex)
@@ -87,27 +93,28 @@ object ActionCodec {
 
     internal fun BitReader.readAction(): Pair<PlayerColor, Action> {
         val actor = code<PlayerColor>()
-        val action = when (code<Tag>()) {
-            Tag.PLACE_SETTLEMENT -> Action.PlaceSettlement(code())
-            Tag.PLACE_ROAD -> Action.PlaceRoad(code())
-            Tag.ROLL_DICE -> Action.RollDice
-            Tag.DISCARD -> Action.Discard(resourceCounts())
-            Tag.MOVE_ROBBER -> Action.MoveRobber(code(), optional())
-            Tag.BUILD_ROAD -> Action.BuildRoad(code())
-            Tag.BUILD_SETTLEMENT -> Action.BuildSettlement(code())
-            Tag.BUILD_CITY -> Action.BuildCity(code())
-            Tag.BUY_DEV_CARD -> Action.BuyDevCard
-            Tag.PLAY_KNIGHT -> Action.PlayKnight
-            Tag.PLAY_ROAD_BUILDING -> Action.PlayRoadBuilding
-            Tag.PLAY_YEAR_OF_PLENTY -> Action.PlayYearOfPlenty(code(), code())
-            Tag.PLAY_MONOPOLY -> Action.PlayMonopoly(code())
-            Tag.MARITIME_TRADE -> Action.MaritimeTrade(code(), code(), varint())
-            Tag.PROPOSE_TRADE -> Action.ProposeTrade(code(), resourceCounts(), resourceCounts())
-            Tag.ACCEPT_TRADE -> Action.AcceptTrade(varint())
-            Tag.CANCEL_TRADE -> Action.CancelTrade(varint())
-            Tag.END_TURN -> Action.EndTurn
-        }
-        return actor to action
+        return actor to readActionBody()
+    }
+
+    internal fun BitReader.readActionBody(): Action = when (code<Tag>()) {
+        Tag.PLACE_SETTLEMENT -> Action.PlaceSettlement(code())
+        Tag.PLACE_ROAD -> Action.PlaceRoad(code())
+        Tag.ROLL_DICE -> Action.RollDice
+        Tag.DISCARD -> Action.Discard(resourceCounts())
+        Tag.MOVE_ROBBER -> Action.MoveRobber(code(), optional())
+        Tag.BUILD_ROAD -> Action.BuildRoad(code())
+        Tag.BUILD_SETTLEMENT -> Action.BuildSettlement(code())
+        Tag.BUILD_CITY -> Action.BuildCity(code())
+        Tag.BUY_DEV_CARD -> Action.BuyDevCard
+        Tag.PLAY_KNIGHT -> Action.PlayKnight
+        Tag.PLAY_ROAD_BUILDING -> Action.PlayRoadBuilding
+        Tag.PLAY_YEAR_OF_PLENTY -> Action.PlayYearOfPlenty(code(), code())
+        Tag.PLAY_MONOPOLY -> Action.PlayMonopoly(code())
+        Tag.MARITIME_TRADE -> Action.MaritimeTrade(code(), code(), varint())
+        Tag.PROPOSE_TRADE -> Action.ProposeTrade(code(), resourceCounts(), resourceCounts())
+        Tag.ACCEPT_TRADE -> Action.AcceptTrade(varint())
+        Tag.CANCEL_TRADE -> Action.CancelTrade(varint())
+        Tag.END_TURN -> Action.EndTurn
     }
 
     private fun tagOf(action: Action): Tag = when (action) {

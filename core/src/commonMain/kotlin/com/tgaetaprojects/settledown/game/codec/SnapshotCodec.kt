@@ -42,7 +42,7 @@ object SnapshotCodec {
     private const val KNIGHTS_WIDTH = 4
 
     /** One tag per phase, written as its ordinal (see [FORMAT_VERSION]). */
-    private enum class PhaseTag {
+    internal enum class PhaseTag {
         SETUP_SETTLEMENT,
         SETUP_ROAD,
         PRE_ROLL,
@@ -158,6 +158,10 @@ object SnapshotCodec {
             game.devDeck.size + game.players.sumOf { it.devCards.total + it.knightsPlayed }
         require(devCards <= 25) { "More than 25 development cards" }
 
+        require(game.tradeOffers.all { it.id < game.nextOfferId }) {
+            "Next offer id ${game.nextOfferId} would reuse an open offer's id"
+        }
+
         checkPhase(game)
     }
 
@@ -197,6 +201,12 @@ object SnapshotCodec {
                 }
             }
 
+            is Phase.RoadBuilding -> {
+                require(game.turn >= 1) { "Road Building only happens during play" }
+                val roadsLeft = game.player(game.currentPlayer).roadsLeft
+                require(phase.remaining <= roadsLeft) { "${phase.remaining} free roads to place with $roadsLeft left" }
+            }
+
             else -> require(game.turn >= 1) { "${phase::class.simpleName} only happens during play" }
         }
     }
@@ -205,6 +215,15 @@ object SnapshotCodec {
 
     fun encodeView(view: PlayerView): ByteArray = BitWriter().apply {
         header(BlobKind.VIEW)
+        writeView(view)
+    }.toByteArray()
+
+    fun decodeView(bytes: ByteArray): PlayerView = decoding("player view", bytes) {
+        header(BlobKind.VIEW)
+        readView()
+    }
+
+    internal fun BitWriter.writeView(view: PlayerView) {
         varint(Game.RULES_VERSION)
         writeSeats(view.seatOrder, view.firstPlayer)
         code(view.viewer)
@@ -235,10 +254,9 @@ object SnapshotCodec {
         optional(view.longestRoadHolder)
         optional(view.largestArmyHolder)
         writeOffers(view.tradeOffers)
-    }.toByteArray()
+    }
 
-    fun decodeView(bytes: ByteArray): PlayerView = decoding("player view", bytes) {
-        header(BlobKind.VIEW)
+    internal fun BitReader.readView(): PlayerView {
         readRulesVersion()
         val (seats, firstPlayer) = readSeats()
         val viewer =
@@ -265,7 +283,7 @@ object SnapshotCodec {
         val devCards = devCardCounts()
         val bought = devCardCounts()
 
-        PlayerView(
+        return PlayerView(
             viewer = viewer,
             seatOrder = seats,
             firstPlayer = firstPlayer,
@@ -287,7 +305,13 @@ object SnapshotCodec {
             hand = hand,
             devCards = devCards,
             boughtThisTurn = bought
-        )
+        ).also { view ->
+            for (color in seats) {
+                require(view.settlementsLeft(color) >= 0 && view.citiesLeft(color) >= 0 && view.roadsLeft(color) >= 0) {
+                    "$color has more pieces on the board than exist"
+                }
+            }
+        }
     }
 
     // ---- Shared sections ----
@@ -405,20 +429,26 @@ object SnapshotCodec {
             Phase.Discard(pending.asReadOnly())
         }
 
-        PhaseTag.MOVE_ROBBER -> Phase.MoveRobber(readResumablePhase(seats))
+        PhaseTag.MOVE_ROBBER -> Phase.MoveRobber(readResumablePhase())
         PhaseTag.MAIN -> Phase.Main
         PhaseTag.ROAD_BUILDING -> {
             val remaining = bits(2)
             require(remaining in 1..2) { "Road Building with $remaining roads" }
-            Phase.RoadBuilding(remaining, readResumablePhase(seats))
+            Phase.RoadBuilding(remaining, readResumablePhase())
         }
 
         PhaseTag.GAME_OVER -> Phase.GameOver(code<PlayerColor>().also { require(it in seats) })
     }
 
-    /** Robber moves and Road Building only ever resume the pre-roll or main phase. */
-    private fun BitReader.readResumablePhase(seats: List<PlayerColor>): Phase =
-        readPhase(seats).also { require(it == Phase.PreRoll || it == Phase.Main) { "Can't resume into $it" } }
+    /**
+     * Robber moves and Road Building only ever resume the pre-roll or main phase. Those have no fields, so this reads
+     * just the tag; recursing here would let corrupt data nest phases until the stack overflows.
+     */
+    private fun BitReader.readResumablePhase(): Phase = when (val tag = code<PhaseTag>()) {
+        PhaseTag.PRE_ROLL -> Phase.PreRoll
+        PhaseTag.MAIN -> Phase.Main
+        else -> throw CodecException("Can't resume into $tag")
+    }
 
     private fun BitWriter.writeBoard(
         robber: Hex,
@@ -446,28 +476,38 @@ object SnapshotCodec {
 
     private fun BitWriter.writeOffers(offers: List<TradeOffer>) {
         varint(offers.size)
-        for (offer in offers) {
-            varint(offer.id)
-            code(offer.from)
-            code(offer.to)
-            counts(offer.give)
-            counts(offer.get)
-        }
+        for (offer in offers) writeOffer(offer)
+    }
+
+    internal fun BitWriter.writeOffer(offer: TradeOffer) {
+        varint(offer.id)
+        code(offer.from)
+        code(offer.to)
+        counts(offer.give)
+        counts(offer.get)
     }
 
     /** The smallest possible encoded offer: a one-byte id, two colors and two hands of counts. */
     private val MIN_OFFER_BITS =
         8 + 2 * bitsFor(PlayerColor.entries.size) + 2 * Resource.entries.size * COUNT_WIDTH
 
+    internal fun BitReader.readOffer(): TradeOffer =
+        TradeOffer(
+            varint(),
+            code<PlayerColor>(),
+            code<PlayerColor>(),
+            resourceCounts(),
+            resourceCounts()
+        ).also {
+            require(it.from != it.to) { "${it.from} can't make an offer to themselves" }
+        }
+
     private fun BitReader.readOffers(seats: List<PlayerColor>): List<TradeOffer> =
         List(count(minBitsEach = MIN_OFFER_BITS)) {
-            TradeOffer(
-                varint(),
-                code<PlayerColor>(),
-                code<PlayerColor>(),
-                resourceCounts(),
-                resourceCounts()
-            )
-                .also { require(it.from in seats && it.to in seats) { "Offer between players not in the game" } }
+            readOffer().also {
+                require(it.from in seats && it.to in seats) { "Offer between players not in the game" }
+            }
+        }.also { offers ->
+            require(offers.distinctBy { it.id }.size == offers.size) { "Duplicate offer ids in $offers" }
         }
 }

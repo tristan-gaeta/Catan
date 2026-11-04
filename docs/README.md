@@ -2,7 +2,8 @@
 
 Settledown is a Kotlin Multiplatform game in the style of CATAN. All the game logic lives in
 [`core`](../core/src/commonMain/kotlin/com/tgaetaprojects/settledown). It is plain Kotlin in `commonMain`, built to keep
-a small memory footprint on the JVM. The apps in [`app`](../app) and the Ktor [`server`](../server) build on it.
+a small memory footprint on the JVM. The apps in [`app`](../app) build on it, and the Ktor [`server`](../server) runs
+it for online games.
 
 These pages explain the ideas behind the code. Use the KDoc for details of individual classes. Most KDoc comments in
 `core` link back to the page and diagram that explain them.
@@ -15,6 +16,7 @@ These pages explain the ideas behind the code. Use the KDoc for details of indiv
 | [Board setup](board-setup.md) | Frame pieces and harbors, the terrain shuffle, and the number spiral | `FramePiece`, `BoardLayout` |
 | [Rules engine](rules-engine.md) | Phases, actions, validation, randomness, and what may leave the server | `game.engine`, `game.random` |
 | [Serialization](serialization.md) | The bit-packed formats, records and replay, and the version guards | `game.codec` |
+| [Server](server.md) | Running and deploying it, accounts, rooms, live games and turn timers | `server` |
 | [References](references.md) | The rulebook, hex-grid articles and algorithm papers this code follows | — |
 
 ## Diagrams

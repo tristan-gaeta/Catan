@@ -65,7 +65,9 @@ Clients get only:
 * `accepted.eventsFor(player)`, the events with other players' hidden cards removed;
 * the public `boardSeed` or `BoardLayout`.
 
-A bot playing a seat should plan from its `PlayerView`, just like a human client.
+A bot playing a seat should plan from its `PlayerView`, just like a human client. The board is public, so a view
+answers the same legal-move questions as `Game` (`legalSettlementSpots`, `legalRoadSpots`, `robberVictims` and so on)
+using the same placement code, with no round trip to the server.
 
 ## Compact values
 

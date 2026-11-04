@@ -2,10 +2,13 @@ package com.tgaetaprojects.settledown.game.engine
 
 import com.tgaetaprojects.settledown.game.BoardLayout
 import com.tgaetaprojects.settledown.game.Building
+import com.tgaetaprojects.settledown.game.DevelopmentCardType
 import com.tgaetaprojects.settledown.game.DiceTotal
 import com.tgaetaprojects.settledown.game.Edge
+import com.tgaetaprojects.settledown.game.GameBoard
 import com.tgaetaprojects.settledown.game.Hex
 import com.tgaetaprojects.settledown.game.PlayerColor
+import com.tgaetaprojects.settledown.game.Resource
 import com.tgaetaprojects.settledown.game.Vertex
 import com.tgaetaprojects.settledown.utils.asReadOnly
 
@@ -57,6 +60,73 @@ data class PlayerView(
         buildings.values.filter { it.color == color }.sumOf { it.victoryPoints } +
                 (if (longestRoadHolder == color) 2 else 0) +
                 (if (largestArmyHolder == color) 2 else 0)
+
+    // ---- Queries for clients; the board is public, so these match the same queries on Game ----
+
+    /** The public pieces rebuilt into a board, so these queries share the engine's placement rules. */
+    private val board: GameBoard by lazy {
+        GameBoard(layout).also { board ->
+            for ((edge, color) in roads) board.placeRoad(edge, color)
+            for ((vertex, building) in buildings) board.placeBuilding(vertex, building)
+            board.robber = robber
+        }
+    }
+
+    /** Whether the game is waiting on [viewer]: to discard, or otherwise because it's their turn. */
+    val mustAct: Boolean
+        get() = when (val p = phase) {
+            is Phase.Discard -> viewer in p.pending
+            is Phase.GameOver -> false
+            else -> currentPlayer == viewer
+        }
+
+    /** Throws for a color that isn't playing, like [Game.player]. */
+    fun settlementsLeft(color: PlayerColor): Int {
+        requireSeated(color)
+        return PlayerState.SETTLEMENTS - buildings.values.count { it == Building.settlement(color) }
+    }
+
+    /** Throws for a color that isn't playing, like [Game.player]. */
+    fun citiesLeft(color: PlayerColor): Int {
+        requireSeated(color)
+        return PlayerState.CITIES - buildings.values.count { it == Building.city(color) }
+    }
+
+    /** Throws for a color that isn't playing, like [Game.player]. */
+    fun roadsLeft(color: PlayerColor): Int {
+        requireSeated(color)
+        return PlayerState.ROADS - roads.values.count { it == color }
+    }
+
+    private fun requireSeated(color: PlayerColor) {
+        require(color in seatOrder) { "$color is not playing" }
+    }
+
+    /** See [Game.legalSettlementSpots]. */
+    fun legalSettlementSpots(color: PlayerColor = viewer): List<Vertex> =
+        board.legalSettlementSpots(color, settlementsLeft(color), phase)
+
+    /** See [Game.legalRoadSpots]. */
+    fun legalRoadSpots(color: PlayerColor = viewer): List<Edge> =
+        board.legalRoadSpots(color, roadsLeft(color), phase, currentPlayer)
+
+    /** See [Game.legalCitySpots]. */
+    fun legalCitySpots(color: PlayerColor = viewer): List<Vertex> =
+        board.legalCitySpots(color, citiesLeft(color))
+
+    /** See [Game.maritimeRate]. */
+    fun maritimeRate(resource: Resource, color: PlayerColor = viewer): Int =
+        board.maritimeRate(color, resource)
+
+    /** See [Game.robberVictims]. */
+    fun robberVictims(hex: Hex): Set<PlayerColor> = board.robberVictims(hex, currentPlayer)
+
+    /** How many of [viewer]'s cards of [type] could be played, ignoring timing: held minus bought this turn. */
+    fun playableCount(type: DevelopmentCardType): Int = devCards[type] - boughtThisTurn[type]
+
+    /** [viewer]'s real score: [publicVictoryPoints] plus their own hidden victory point cards. */
+    val ownVictoryPoints: Int
+        get() = publicVictoryPoints(viewer) + devCards[DevelopmentCardType.VICTORY_POINT]
 }
 
 /** What everyone at the table can see about one player. */

@@ -1,0 +1,17 @@
+version: 2
+updates:
+  # Grouped into one PR a week. Check that androidx-compose-ui still matches Compose; see libs.versions.toml.
+  - package-ecosystem: gradle
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      gradle:
+        patterns: ["*"]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      github-actions:
+        patterns: ["*"]

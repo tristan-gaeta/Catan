@@ -47,6 +47,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -71,6 +72,7 @@ import com.tgaetaprojects.settledown.game.engine.ResourceCounts
 import com.tgaetaprojects.settledown.game.engine.RuleViolation
 import com.tgaetaprojects.settledown.ui.theme.GameColors
 import com.tgaetaprojects.settledown.ui.theme.SettledownTheme
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /** Which pop-up the game screen is showing, besides the discard dialog that [Phase.Discard] forces. */
@@ -83,13 +85,21 @@ private sealed interface Popup {
 }
 
 /**
- * A pass-and-play game: the board, and a panel for whoever must act next. Wide windows put the panel beside the
- * board; phones put it underneath. Whenever the device must change hands, a cover hides the next player's cards
- * until they tap it.
+ * A game in progress: the board, and a panel for the player this screen acts for. Wide windows put the panel beside
+ * the board; phones put it underneath. In a pass-and-play game, a cover hides the next player's cards until they take
+ * the device.
+ *
+ * @param leaveLabel what the top bar's button says; it calls [onNewGame], after showing [leaveWarning] if the game is
+ *   still going.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GameScreen(session: GameSession, onNewGame: () -> Unit) {
+fun GameScreen(
+    session: GameController,
+    onNewGame: () -> Unit,
+    leaveLabel: String = "New game",
+    leaveWarning: String = "The game in progress will be lost.",
+) {
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var popup by remember { mutableStateOf<Popup?>(null) }
@@ -97,6 +107,9 @@ fun GameScreen(session: GameSession, onNewGame: () -> Unit) {
         if (violation != null) scope.launch { snackbar.showSnackbar(violation.message()) }
     }
     val act: (Action) -> Unit = { report(session.act(it)) }
+    LaunchedEffect(session.refusal) { session.refusal?.let { snackbar.showSnackbar(it.violation.message()) } }
+    // a choice being made when the turn moved on, say when the timer ran out, can no longer be played
+    LaunchedEffect(session.canAct) { if (!session.canAct && popup != Popup.LeaveGame) popup = null }
 
     if (session.needsHandOff) {
         HandOffCover(session)
@@ -122,7 +135,7 @@ fun GameScreen(session: GameSession, onNewGame: () -> Unit) {
                 actions = {
                     TextButton(
                         onClick = { if (session.phase is Phase.GameOver) onNewGame() else popup = Popup.LeaveGame },
-                    ) { Text("New game") }
+                    ) { Text(leaveLabel) }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
             )
@@ -156,6 +169,7 @@ fun GameScreen(session: GameSession, onNewGame: () -> Unit) {
                     modifier.verticalScroll(rememberScrollState()).navigationBarsPadding().padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
+                    session.notice?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.testTag("sessionNotice")) }
                     StatusCard(session)
                     HandSection(session)
                     ActionPanel(session, targets, act, onPopup = { popup = it }, onNewGame = onNewGame)
@@ -185,7 +199,7 @@ fun GameScreen(session: GameSession, onNewGame: () -> Unit) {
     }
 
     val phase = session.phase
-    if (phase is Phase.Discard) {
+    if (phase is Phase.Discard && session.canAct) {
         DiscardDialog(session.actor, view.hand, phase.pending.getValue(session.actor)) {
             act(Action.Discard(it))
         }
@@ -217,6 +231,7 @@ fun GameScreen(session: GameSession, onNewGame: () -> Unit) {
         )
 
         Popup.LeaveGame -> LeaveGameDialog(
+            warning = leaveWarning,
             onLeave = { popup = null; onNewGame() },
             onDismiss = { popup = null },
         )
@@ -227,7 +242,7 @@ fun GameScreen(session: GameSession, onNewGame: () -> Unit) {
 
 /** Fills the screen in the next player's color until they take the device, so nobody sees another's cards. */
 @Composable
-private fun HandOffCover(session: GameSession) {
+private fun HandOffCover(session: GameController) {
     val color = session.actor
     val ink = GameColors.onPlayer(color)
     Surface(color = GameColors.player(color), contentColor = ink, modifier = Modifier.fillMaxSize()) {
@@ -260,9 +275,9 @@ private fun HandOffCover(session: GameSession) {
 }
 
 @Composable
-private fun StatusCard(session: GameSession) {
+private fun StatusCard(session: GameController) {
     val view = session.view
-    val playerColor = GameColors.player(session.actor)
+    val playerColor = GameColors.player(session.spotlight)
     val container = lerp(MaterialTheme.colorScheme.surfaceContainerHigh, playerColor, 0.22f)
     Surface(color = container, shape = MaterialTheme.shapes.large, modifier = Modifier.fillMaxWidth()) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -278,14 +293,33 @@ private fun StatusCard(session: GameSession) {
                         .border(2.dp, GameColors.pieceOutline, CircleShape)
                 )
                 Text(
-                    prompt(session.phase, session.actor, session.isTieBreak),
+                    session.statusText,
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.weight(1f).testTag("prompt"),
                 )
+                session.deadline?.let { Countdown(it) }
                 view.lastRoll?.let { roll -> RollTile(roll.value) }
             }
         }
     }
+}
+
+/** The seconds left before the server moves for whoever it's waiting on. */
+@Composable
+private fun Countdown(deadline: TurnDeadline) {
+    var seconds by remember(deadline) { mutableStateOf(deadline.secondsLeft()) }
+    LaunchedEffect(deadline) {
+        while (true) {
+            seconds = deadline.secondsLeft()
+            delay(250)
+        }
+    }
+    Text(
+        "${seconds}s",
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier.testTag("countdown"),
+    )
 }
 
 /** This turn's dice total on a die-like tile. The engine reports totals, not the two dice. */
@@ -312,13 +346,14 @@ private fun RollTile(total: Int) {
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ActionPanel(
-    session: GameSession,
+    session: GameController,
     targets: BoardTargets,
     act: (Action) -> Unit,
     onPopup: (Popup) -> Unit,
     onNewGame: () -> Unit,
 ) {
     val view = session.view
+    if (!session.canAct && session.phase !is Phase.GameOver) return
     when (val phase = session.phase) {
         is Phase.RollForFirstPlayer -> Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             if (phase.rolls.isNotEmpty()) {
@@ -389,7 +424,7 @@ private fun ActionPanel(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun DevCardButtons(session: GameSession, act: (Action) -> Unit, onPopup: (Popup) -> Unit) {
+private fun DevCardButtons(session: GameController, act: (Action) -> Unit, onPopup: (Popup) -> Unit) {
     val held = DevelopmentCardType.entries.filter {
         it != DevelopmentCardType.VICTORY_POINT && session.view.devCards[it] > 0
     }
@@ -414,10 +449,10 @@ private fun DevCardButtons(session: GameSession, act: (Action) -> Unit, onPopup:
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun HandSection(session: GameSession) {
+private fun HandSection(session: GameController) {
     val view = session.view
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("${session.actor.label}'s hand", style = MaterialTheme.typography.titleSmall)
+        Text("${session.nameOf(session.actor)}'s hand", style = MaterialTheme.typography.titleSmall)
         HandRow(view.hand)
         val cards = DevelopmentCardType.entries.filter { view.devCards[it] > 0 }
         if (cards.isNotEmpty()) {
@@ -438,7 +473,7 @@ private fun HandSection(session: GameSession) {
 }
 
 @Composable
-private fun PlayersSection(session: GameSession) {
+private fun PlayersSection(session: GameController) {
     val view = session.view
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text("Players", style = MaterialTheme.typography.titleSmall)
@@ -458,7 +493,8 @@ private fun PlayersSection(session: GameSession) {
                 ) {
                     PlayerDot(color, size = 18.dp)
                     Column(Modifier.weight(1f)) {
-                        Text(color.label, style = MaterialTheme.typography.titleSmall)
+                        val offline = if (session.isConnected(color) == false) " (away)" else ""
+                        Text(session.nameOf(color) + offline, style = MaterialTheme.typography.titleSmall)
                         val awards = listOfNotNull(
                             "Longest road".takeIf { view.longestRoadHolder == color },
                             "Largest army".takeIf { view.largestArmyHolder == color },
@@ -483,7 +519,7 @@ private fun PlayersSection(session: GameSession) {
 }
 
 @Composable
-private fun LogSection(session: GameSession) {
+private fun LogSection(session: GameController) {
     if (session.log.isEmpty()) return
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text("Recent", style = MaterialTheme.typography.titleSmall)

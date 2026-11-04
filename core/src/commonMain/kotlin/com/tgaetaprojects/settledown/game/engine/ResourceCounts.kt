@@ -68,6 +68,19 @@ value class ResourceCounts private constructor(private val packedBits: Int) {
         error("unreachable")
     }
 
+    /** The first [count] cards, in ordinal order; a simple legal discard. There must be at least that many. */
+    fun firstCards(count: Int): ResourceCounts {
+        require(count in 0..total) { "Can't take $count cards from $this" }
+        var left = count
+        var cards = EMPTY
+        for (r in Resource.entries) {
+            val take = minOf(left, get(r))
+            cards = cards.with(r, take)
+            left -= take
+        }
+        return cards
+    }
+
     override fun toString(): String =
         Resource.entries.filter { get(it) > 0 }
             .joinToString(prefix = "{", postfix = "}") { "$it=${get(it)}" }

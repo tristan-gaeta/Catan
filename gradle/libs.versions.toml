@@ -9,6 +9,8 @@ android-targetSdk = "37"
 androidx-activity = "1.13.0"
 # Must match the androidx Compose UI version that composeMultiplatform resolves to on Android.
 androidx-compose-ui = "1.12.1"
+androidx-credentials = "1.5.0"
+googleid = "1.1.1"
 androidx-lifecycle = "2.11.0"
 # ui-test-junit4 pulls espresso-core 3.5.0, which crashes on new Android (InputManager.getInstance was removed).
 androidx-test-espresso = "3.7.0"
@@ -20,11 +22,15 @@ kotlin = "2.4.21"
 kotlinx-coroutines = "1.11.0"
 kotlinx-serialization = "1.12.0"
 logback = "1.6.6"
+sqlite-jdbc = "3.50.3.0"
 material3 = "1.11.0-alpha07"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-testJunit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
+androidx-credentials = { module = "androidx.credentials:credentials", version.ref = "androidx-credentials" }
+androidx-credentials-playServices = { module = "androidx.credentials:credentials-play-services-auth", version.ref = "androidx-credentials" }
+googleid = { module = "com.google.android.libraries.identity.googleid:googleid", version.ref = "googleid" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
 androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidx-test-runner" }
 androidx-test-espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "androidx-test-espresso" }
@@ -45,6 +51,7 @@ compose-uiToolingPreview = { module = "org.jetbrains.compose.ui:ui-tooling-previ
 kotlinx-coroutinesSwing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+sqlite-jdbc = { module = "org.xerial:sqlite-jdbc", version.ref = "sqlite-jdbc" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

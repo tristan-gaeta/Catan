@@ -6,8 +6,10 @@ and eventually for a game database (SQLite for storage, DuckDB for analysis).
 | Codec | Encodes | Typical size | Who may see it |
 |-------|---------|-------------:|----------------|
 | `LayoutCodec` | a `BoardLayout` | 21 bytes | anyone |
-| `ActionCodec` | one `(actor, Action)` | 3–4 bytes; a trade offer about 8 | anyone |
+| `ActionCodec` | one `(actor, Action)` | 3–4 bytes; a trade offer about 10 | anyone |
 | `SnapshotCodec.encodeView` | a `PlayerView` | a little under a full snapshot | that player |
+| `EventCodec` | a list of `GameEvent`s | a few bytes each | whoever `eventsFor` redacted them for |
+| `WireCodec` | one live-game message | see [below](#live-game-messages) | sender and that seat |
 | `SnapshotCodec.encode` | a whole `Game` | about 150 bytes, at most 200 in tests | server only |
 | `GameRecord.encode` | seeds, layout and every action | about 1 KB per game | server only |
 
@@ -37,6 +39,27 @@ a record from another rules version, or one whose layout doesn't match its board
 records only accepted actions.
 
 Inside a record, actions have no per-action header. A typical action costs about 2 bytes.
+
+`GameRecorder.resume` continues recording from a record by replaying it, which is how a restarted server gets its
+games back.
+
+## Live-game messages
+
+`WireCodec` is the format of the frames between a client and the server during a game:
+
+| Direction | Message | Carries |
+|---|---|---|
+| Client to server | `ClientAction` | a client-chosen sequence number and an action |
+| Server to client | `Update` | that seat's whole `PlayerView`, the events since the last update, and the newest accepted sequence number |
+| Server to client | `Refused` | the sequence number and the `RuleViolation` |
+| Server to client | `Presence` | which seats are connected |
+| Server to client | `Deadline` | who the timer is waiting on, and the time left |
+
+`ClientAction` has no actor, unlike `ActionCodec`. The server acts for the seat the connection belongs to, so a client
+can't claim another seat. Each `Update` holds the whole view, so a client that missed one has nothing to repair.
+
+Clients send `WireCodec.PROTOCOL_VERSION` in the `X-Settledown-Protocol` header on every request, so the server can
+refuse a client from another version before either side tries to decode anything.
 
 ## Versions and guards
 
