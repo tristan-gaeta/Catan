@@ -11,6 +11,9 @@ import com.tgaetaprojects.settledown.auth.GoogleTokenVerifier
 import com.tgaetaprojects.settledown.auth.TokenVerifier
 import com.tgaetaprojects.settledown.auth.VerifierUnavailableException
 import com.tgaetaprojects.settledown.game.codec.WireCodec
+import com.tgaetaprojects.settledown.games.GameManager
+import com.tgaetaprojects.settledown.games.TurnLimits
+import com.tgaetaprojects.settledown.games.gameSocket
 import com.tgaetaprojects.settledown.rooms.GameStarter
 import com.tgaetaprojects.settledown.rooms.RoomService
 import com.tgaetaprojects.settledown.store.Account
@@ -51,7 +54,14 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
+import io.ktor.server.websocket.WebSockets
+import io.ktor.server.websocket.pingPeriod
+import io.ktor.server.websocket.timeout
+import kotlinx.coroutines.runBlocking
+import java.security.SecureRandom
+import java.util.Random
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 fun main() {
     val config = ServerConfig.from(System.getenv())
@@ -66,13 +76,21 @@ fun main() {
 class Services(
     val database: Database,
     val verifier: TokenVerifier,
-    now: () -> Long = System::currentTimeMillis,
+    val now: () -> Long = System::currentTimeMillis,
+    random: Random = SecureRandom(),
+    limits: TurnLimits = TurnLimits(),
+    val maxActionsPerSecond: Int = 20,
 ) {
     val accounts = AccountStore(database, now)
     val sessions = SessionStore(database, now)
     val games = GameStore(database, now)
-    private val starter = GameStarter(games)
-    val rooms = RoomService(accounts, starter::start, now)
+    val liveGames = GameManager(games, limits, now)
+    private val starter = GameStarter(games, random)
+    val rooms = RoomService(
+        accounts,
+        startGame = { members -> starter.start(members).also { liveGames.startHost(it) } },
+        now
+    )
 }
 
 /** A request that can't be carried out, sent to the client as an [ApiError]. */
@@ -102,7 +120,17 @@ fun Application.module(services: Services, trustProxy: Boolean = false) {
         // the proxy appends the address it saw, so entries before the last one are whatever the client claimed
         install(XForwardedHeaders) { useLastProxy() }
     }
+    services.liveGames.attach(this)
+    // before accepting anything, so a player reconnecting right after a restart finds their game
+    runBlocking { services.liveGames.resumeAll() }
+
     install(ContentNegotiation) { json() }
+    install(WebSockets) {
+        pingPeriod = 20.seconds
+        timeout = 30.seconds
+        // the largest client message, a trade offer, is about 20 bytes
+        maxFrameSize = 1024
+    }
     install(ProtocolCheck)
     install(StatusPages) {
         exception<ApiFailure> { call, failure ->
@@ -148,6 +176,7 @@ fun Application.module(services: Services, trustProxy: Boolean = false) {
             delete("/auth/session") {
                 val header = call.request.parseAuthorizationHeader() as HttpAuthHeader.Single
                 services.sessions.revoke(header.blob)
+                services.liveGames.disconnectAccount(call.account().id)
                 call.respond(HttpStatusCode.NoContent)
             }
 
@@ -163,9 +192,12 @@ fun Application.module(services: Services, trustProxy: Boolean = false) {
                     // in this order, so the session stops working before the seat is given up
                     services.accounts.delete(call.account().id)
                     services.rooms.removeAccount(call.account().id)
+                    services.liveGames.removeAccount(call.account().id)
                     call.respond(HttpStatusCode.NoContent)
                 }
             }
+
+            gameSocket(services.liveGames, services.maxActionsPerSecond, services.now)
 
             get("/me/games") { call.respond(services.games.gamesFor(call.account().id)) }
             get("/me/room") {

@@ -24,7 +24,8 @@ CATAN GmbH.*
     - `ui.home`: the start screen, with player count and board preview;
     - `ui.game`: the pass-and-play game screen, board drawing and dialogs;
     - `ui.theme`: the Material 3 color schemes and the fixed colors of terrain, resources and players.
-* [/server](./server/src/main/kotlin) is a Ktor skeleton; the authoritative game isn't built yet.
+* [/server](./server/src/main/kotlin) is the Ktor server that runs online games: accounts, room codes and the
+  authoritative game. See [docs/server.md](docs/server.md).
 
 ### Running the apps
 
@@ -35,7 +36,7 @@ options:
 - Desktop app:
     - Hot reload: `./gradlew :app:desktopApp:hotRun --auto`
     - Standard run: `./gradlew :app:desktopApp:run`
-- Server: `./gradlew :server:run`
+- Server, for local testing: `SETTLEDOWN_DEV_AUTH=true ./gradlew :server:run`
 
 ### Running tests
 

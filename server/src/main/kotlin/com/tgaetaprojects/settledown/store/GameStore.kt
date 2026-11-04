@@ -85,6 +85,14 @@ class GameStore(private val db: Database, private val now: () -> Long = System::
 
     suspend fun seats(gameId: Long): List<StoredSeat> = db.transaction { readSeats(gameId) }
 
+    /** The game's status, or `null` if there's no such game. */
+    suspend fun status(gameId: Long): GameStatus? = db.transaction {
+        prepareStatement("SELECT status FROM games WHERE id = ?").use { query ->
+            query.setLong(1, gameId)
+            query.executeQuery().use { if (it.next()) GameStatus.valueOf(it.getString(1)) else null }
+        }
+    }
+
     /**
      * The record of everything saved for [gameId]. Throws [CodecException] if its stored bytes are from another
      * format version; `GameRecord.replay` makes the same refusal for another rules version.

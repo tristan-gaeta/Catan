@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.tgaetaprojects.settledown.game.DevelopmentCardType
+import com.tgaetaprojects.settledown.game.DiceTotal
 import com.tgaetaprojects.settledown.game.Edge
 import com.tgaetaprojects.settledown.game.Hex
 import com.tgaetaprojects.settledown.game.PlayerColor
@@ -248,4 +249,4 @@ private fun GameSession.pips(vertex: Vertex): Int =
     vertex.hexes.sumOf { hex -> pipCount(view.layout.numbers.getValue(hex).value) }
 
 /** The dots under a number disc: how many of the 36 dice outcomes roll [total]. */
-internal fun pipCount(total: Int): Int = if (total == 7) 0 else 6 - kotlin.math.abs(7 - total)
+internal fun pipCount(total: Int): Int = DiceTotal.fromInt(total).pips

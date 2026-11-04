@@ -20,6 +20,7 @@ dependencies {
     implementation(ktorLibs.server.statusPages)
     implementation(ktorLibs.server.rateLimit)
     implementation(ktorLibs.server.forwardedHeader)
+    implementation(ktorLibs.server.websockets)
     implementation(ktorLibs.server.auth)
     // brings the JWT and key-fetching libraries used to verify Google ID tokens
     implementation(ktorLibs.server.auth.jwt)
@@ -27,5 +28,6 @@ dependencies {
 
     testImplementation(ktorLibs.server.testHost)
     testImplementation(ktorLibs.client.contentNegotiation)
+    testImplementation(ktorLibs.client.websockets)
     testImplementation(libs.kotlin.testJunit)
 }
