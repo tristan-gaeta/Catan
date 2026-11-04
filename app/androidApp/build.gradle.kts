@@ -44,15 +44,31 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         testInstrumentationRunnerArguments["useTestStorageService"] = "true"
+
+        // online play stays hidden in a build with no server URL
+        fun quoted(property: String) = "\"${providers.gradleProperty(property).getOrElse("")}\""
+        buildConfigField("String", "SERVER_URL", quoted("settledown.serverUrl"))
+        buildConfigField("String", "GOOGLE_CLIENT_ID", quoted("settledown.googleClientId"))
     }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+    buildFeatures {
+        buildConfig = true
+    }
     buildTypes {
+        getByName("debug") {
+            buildConfigField(
+                "String",
+                "DEV_USER",
+                "\"${providers.gradleProperty("settledown.devUser").getOrElse("")}\""
+            )
+        }
         getByName("release") {
             isMinifyEnabled = false
+            buildConfigField("String", "DEV_USER", "\"\"")
         }
     }
     testOptions {

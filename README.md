@@ -22,7 +22,9 @@ CATAN GmbH.*
 * [/app/shared](./app/shared/src/commonMain/kotlin) holds the Compose Multiplatform UI shared by the apps, built
   with Material 3 and drawn entirely in Compose (the board is a `Canvas`):
     - `ui.home`: the start screen, with player count and board preview;
-    - `ui.game`: the pass-and-play game screen, board drawing and dialogs;
+    - `ui.game`: the game screen, board drawing and dialogs, for pass-and-play and online games;
+    - `ui.online`: signing in, the lobby and the waiting room;
+    - `online`: the client for the server;
     - `ui.theme`: the Material 3 color schemes and the fixed colors of terrain, resources and players.
 * [/server](./server/src/main/kotlin) is the Ktor server that runs online games: accounts, room codes and the
   authoritative game. See [docs/server.md](docs/server.md).

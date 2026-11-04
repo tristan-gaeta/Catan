@@ -9,6 +9,8 @@ android-targetSdk = "37"
 androidx-activity = "1.13.0"
 # Must match the androidx Compose UI version that composeMultiplatform resolves to on Android.
 androidx-compose-ui = "1.12.1"
+androidx-credentials = "1.5.0"
+googleid = "1.1.1"
 androidx-lifecycle = "2.11.0"
 # ui-test-junit4 pulls espresso-core 3.5.0, which crashes on new Android (InputManager.getInstance was removed).
 androidx-test-espresso = "3.7.0"
@@ -26,6 +28,9 @@ material3 = "1.11.0-alpha07"
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-testJunit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
+androidx-credentials = { module = "androidx.credentials:credentials", version.ref = "androidx-credentials" }
+androidx-credentials-playServices = { module = "androidx.credentials:credentials-play-services-auth", version.ref = "androidx-credentials" }
+googleid = { module = "com.google.android.libraries.identity.googleid:googleid", version.ref = "googleid" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
 androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidx-test-runner" }
 androidx-test-espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "androidx-test-espresso" }

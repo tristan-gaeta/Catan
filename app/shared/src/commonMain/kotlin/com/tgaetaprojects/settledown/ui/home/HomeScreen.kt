@@ -46,13 +46,14 @@ fun HomeScreen(
     onPlayersChange: (Int) -> Unit,
     onShuffleBoard: () -> Unit,
     onStart: () -> Unit,
+    onPlayOnline: (() -> Unit)? = null,
 ) {
     Surface(color = MaterialTheme.colorScheme.surface, modifier = Modifier.fillMaxSize()) {
         BoxWithConstraints(Modifier.safeDrawingPadding().fillMaxSize(), contentAlignment = Alignment.Center) {
             val wide = maxWidth >= 720.dp && maxWidth > maxHeight
             val preview = @Composable { modifier: Modifier -> BoardPreview(boardSeed, modifier) }
             val settings = @Composable { modifier: Modifier ->
-                SetupCard(players, onPlayersChange, onShuffleBoard, onStart, modifier)
+                SetupCard(players, onPlayersChange, onShuffleBoard, onStart, onPlayOnline, modifier)
             }
             if (wide) {
                 Row(
@@ -132,6 +133,7 @@ private fun SetupCard(
     onPlayersChange: (Int) -> Unit,
     onShuffleBoard: () -> Unit,
     onStart: () -> Unit,
+    onPlayOnline: (() -> Unit)?,
     modifier: Modifier,
 ) {
     Card(
@@ -158,6 +160,11 @@ private fun SetupCard(
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedButton(onClick = onShuffleBoard, Modifier.weight(1f)) { Text("New board") }
                 Button(onClick = onStart, Modifier.weight(1f).testTag("start")) { Text("Start game") }
+            }
+            if (onPlayOnline != null) {
+                OutlinedButton(onClick = onPlayOnline, Modifier.fillMaxWidth().testTag("playOnline")) {
+                    Text("Play online")
+                }
             }
         }
     }

@@ -23,6 +23,26 @@ reachable by other people.
 | `SETTLEDOWN_HOST`, `SETTLEDOWN_PORT` | `0.0.0.0`, `8080` | Where to listen |
 | `SETTLEDOWN_TRUST_PROXY` | off | `true` takes the client's address from the last `X-Forwarded-For` entry |
 
+To play against it from the apps, online play only appears when an app knows the server's address. On desktop:
+
+```
+SETTLEDOWN_SERVER_URL=http://localhost:8080 SETTLEDOWN_DEV_USER=alice ./gradlew :app:desktopApp:run
+```
+
+`SETTLEDOWN_DEV_USER` signs in as `dev:<name>` without Google. The session token is kept in `~/.settledown`, so run each
+extra player as a different user or delete that token between runs.
+
+On Android, pass the same details as Gradle properties, and forward the port on a USB phone. A debug build is allowed
+plain HTTP only to `localhost`:
+
+```
+adb reverse tcp:8080 tcp:8080
+./gradlew :app:androidApp:assembleDebug -Psettledown.serverUrl=http://localhost:8080 -Psettledown.devUser=alice
+```
+
+For real sign-in, set `SETTLEDOWN_GOOGLE_CLIENT_ID` and `SETTLEDOWN_GOOGLE_CLIENT_SECRET` on desktop instead of the dev
+user, or `-Psettledown.googleClientId=<Web client ID>` on Android.
+
 ## Deploying it
 
 The server speaks plain HTTP and expects a reverse proxy in front of it for HTTPS. A deployment needs:

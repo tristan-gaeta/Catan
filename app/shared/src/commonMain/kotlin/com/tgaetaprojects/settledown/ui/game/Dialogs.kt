@@ -182,11 +182,11 @@ fun MonopolyDialog(onPick: (Resource) -> Unit, onDismiss: () -> Unit) {
 
 /** Confirms leaving a game in progress, which can't be undone. */
 @Composable
-fun LeaveGameDialog(onLeave: () -> Unit, onDismiss: () -> Unit) {
+fun LeaveGameDialog(warning: String, onLeave: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Leave this game?") },
-        text = { Text("The game in progress will be lost.") },
+        text = { Text(warning) },
         confirmButton = { TextButton(onClick = onLeave) { Text("Leave") } },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Keep playing") } },
     )

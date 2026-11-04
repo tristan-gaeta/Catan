@@ -16,6 +16,7 @@ import com.tgaetaprojects.settledown.game.engine.Phase
 import com.tgaetaprojects.settledown.game.engine.PlayerView
 import com.tgaetaprojects.settledown.game.engine.ResourceCounts
 import com.tgaetaprojects.settledown.game.engine.RuleViolation
+import kotlin.time.ComparableTimeMark
 
 /** What the current player is about to build with a tap on the board in [Phase.Main]. */
 enum class BuildTool(val cost: ResourceCounts) {
@@ -62,6 +63,15 @@ abstract class GameController {
 
     /** The newest refusal that arrived after [act] returned, for the screen to show once. */
     open val refusal: LateRefusal? get() = null
+
+    /** When the server will move for someone if they don't act first; `null` when there's no timer. */
+    open val deadline: TurnDeadline? get() = null
+
+    /** Something about the connection the player should know, or `null` if all is well. */
+    open val notice: String? get() = null
+
+    /** Whether [color] is connected, or `null` where that means nothing, as in a game on one device. */
+    open fun isConnected(color: PlayerColor): Boolean? = null
 
     /** Whether the device must be passed before the screen shows [actor]'s cards. */
     open val needsHandOff: Boolean get() = false
@@ -181,6 +191,12 @@ abstract class GameController {
     private companion object {
         const val LOG_LIMIT = 60
     }
+}
+
+/** The server will move for [waitingOn] when [end] arrives. */
+class TurnDeadline(val waitingOn: Set<PlayerColor>, private val end: ComparableTimeMark) {
+    /** Whole seconds left, rounded up so it reaches 0 only when time is really up. */
+    fun secondsLeft(): Int = (-end.elapsedNow()).inWholeMilliseconds.coerceAtLeast(0).let { ((it + 999) / 1000).toInt() }
 }
 
 /** A refused action. Each one is a new instance, so the same refusal twice still shows twice. */

@@ -72,6 +72,7 @@ import com.tgaetaprojects.settledown.game.engine.ResourceCounts
 import com.tgaetaprojects.settledown.game.engine.RuleViolation
 import com.tgaetaprojects.settledown.ui.theme.GameColors
 import com.tgaetaprojects.settledown.ui.theme.SettledownTheme
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /** Which pop-up the game screen is showing, besides the discard dialog that [Phase.Discard] forces. */
@@ -88,11 +89,17 @@ private sealed interface Popup {
  * the board; phones put it underneath. In a pass-and-play game, a cover hides the next player's cards until they take
  * the device.
  *
- * @param leaveLabel what the top bar's button says; it calls [onNewGame].
+ * @param leaveLabel what the top bar's button says; it calls [onNewGame], after showing [leaveWarning] if the game is
+ *   still going.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GameScreen(session: GameController, onNewGame: () -> Unit, leaveLabel: String = "New game") {
+fun GameScreen(
+    session: GameController,
+    onNewGame: () -> Unit,
+    leaveLabel: String = "New game",
+    leaveWarning: String = "The game in progress will be lost.",
+) {
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var popup by remember { mutableStateOf<Popup?>(null) }
@@ -101,6 +108,8 @@ fun GameScreen(session: GameController, onNewGame: () -> Unit, leaveLabel: Strin
     }
     val act: (Action) -> Unit = { report(session.act(it)) }
     LaunchedEffect(session.refusal) { session.refusal?.let { snackbar.showSnackbar(it.violation.message()) } }
+    // a choice being made when the turn moved on, say when the timer ran out, can no longer be played
+    LaunchedEffect(session.canAct) { if (!session.canAct && popup != Popup.LeaveGame) popup = null }
 
     if (session.needsHandOff) {
         HandOffCover(session)
@@ -160,6 +169,7 @@ fun GameScreen(session: GameController, onNewGame: () -> Unit, leaveLabel: Strin
                     modifier.verticalScroll(rememberScrollState()).navigationBarsPadding().padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
+                    session.notice?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.testTag("sessionNotice")) }
                     StatusCard(session)
                     HandSection(session)
                     ActionPanel(session, targets, act, onPopup = { popup = it }, onNewGame = onNewGame)
@@ -221,6 +231,7 @@ fun GameScreen(session: GameController, onNewGame: () -> Unit, leaveLabel: Strin
         )
 
         Popup.LeaveGame -> LeaveGameDialog(
+            warning = leaveWarning,
             onLeave = { popup = null; onNewGame() },
             onDismiss = { popup = null },
         )
@@ -286,10 +297,29 @@ private fun StatusCard(session: GameController) {
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.weight(1f).testTag("prompt"),
                 )
+                session.deadline?.let { Countdown(it) }
                 view.lastRoll?.let { roll -> RollTile(roll.value) }
             }
         }
     }
+}
+
+/** The seconds left before the server moves for whoever it's waiting on. */
+@Composable
+private fun Countdown(deadline: TurnDeadline) {
+    var seconds by remember(deadline) { mutableStateOf(deadline.secondsLeft()) }
+    LaunchedEffect(deadline) {
+        while (true) {
+            seconds = deadline.secondsLeft()
+            delay(250)
+        }
+    }
+    Text(
+        "${seconds}s",
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier.testTag("countdown"),
+    )
 }
 
 /** This turn's dice total on a die-like tile. The engine reports totals, not the two dice. */
@@ -463,7 +493,8 @@ private fun PlayersSection(session: GameController) {
                 ) {
                     PlayerDot(color, size = 18.dp)
                     Column(Modifier.weight(1f)) {
-                        Text(session.nameOf(color), style = MaterialTheme.typography.titleSmall)
+                        val offline = if (session.isConnected(color) == false) " (away)" else ""
+                        Text(session.nameOf(color) + offline, style = MaterialTheme.typography.titleSmall)
                         val awards = listOfNotNull(
                             "Longest road".takeIf { view.longestRoadHolder == color },
                             "Largest army".takeIf { view.largestArmyHolder == color },

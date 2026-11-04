@@ -29,6 +29,9 @@ kotlin {
     sourceSets {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
+            implementation(libs.androidx.credentials)
+            implementation(libs.androidx.credentials.playServices)
+            implementation(libs.googleid)
         }
         commonMain.dependencies {
             api(projects.core)
@@ -39,6 +42,11 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
+            implementation(ktorLibs.client.core)
+            implementation(ktorLibs.client.cio)
+            implementation(ktorLibs.client.websockets)
+            implementation(ktorLibs.client.contentNegotiation)
+            implementation(ktorLibs.serialization.kotlinx.json)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -47,6 +55,10 @@ kotlin {
             // Skiko native runtime so Compose UI tests run on the desktop JVM, no emulator needed.
             implementation(compose.desktop.currentOs)
             implementation(libs.compose.uiTest)
+            // the real server, so the online tests talk to it over real sockets
+            implementation(projects.server)
+            implementation(ktorLibs.server.core)
+            implementation(ktorLibs.server.netty)
         }
     }
 }
