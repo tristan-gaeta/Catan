@@ -24,7 +24,7 @@ CATAN GmbH.*
     - `ui.home`: the start screen, with player count and board preview;
     - `ui.game`: the pass-and-play game screen, board drawing and dialogs;
     - `ui.theme`: the Material 3 color schemes and the fixed colors of terrain, resources and players.
-* [/server](./server/src/main/kotlin) is the Ktor server, which runs the authoritative game.
+* [/server](./server/src/main/kotlin) is a Ktor skeleton; the authoritative game isn't built yet.
 
 ### Running the apps
 

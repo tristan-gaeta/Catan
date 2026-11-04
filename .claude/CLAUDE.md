@@ -13,7 +13,7 @@ Start with [docs/README.md](../docs/README.md) for the geometry, board setup, ru
   `game.engine` (rules), `game.codec` (bit-packed formats and replayable records), `game.random` (seeded RNG),
   `utils` (enum-keyed collections).
 - `app/shared`: Compose Multiplatform UI. `app/androidApp` and `app/desktopApp` are thin launchers.
-- `server`: the Ktor server, which runs the authoritative game.
+- `server`: a Ktor skeleton; the authoritative game isn't built yet.
 
 ## Building and testing
 

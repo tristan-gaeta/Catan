@@ -6,7 +6,7 @@ and eventually for a game database (SQLite for storage, DuckDB for analysis).
 | Codec | Encodes | Typical size | Who may see it |
 |-------|---------|-------------:|----------------|
 | `LayoutCodec` | a `BoardLayout` | 21 bytes | anyone |
-| `ActionCodec` | one `(actor, Action)` | 3–4 bytes; a trade offer about 8 | anyone |
+| `ActionCodec` | one `(actor, Action)` | 3–4 bytes; a trade offer about 10 | anyone |
 | `SnapshotCodec.encodeView` | a `PlayerView` | a little under a full snapshot | that player |
 | `SnapshotCodec.encode` | a whole `Game` | about 150 bytes, at most 200 in tests | server only |
 | `GameRecord.encode` | seeds, layout and every action | about 1 KB per game | server only |

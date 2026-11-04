@@ -3,6 +3,8 @@ package com.tgaetaprojects.settledown.game.codec
 import com.tgaetaprojects.settledown.game.BoardLayout
 import com.tgaetaprojects.settledown.game.DevelopmentCardType.KNIGHT
 import com.tgaetaprojects.settledown.game.DevelopmentCardType.MONOPOLY
+import com.tgaetaprojects.settledown.game.Edge
+import com.tgaetaprojects.settledown.game.PlayerColor
 import com.tgaetaprojects.settledown.game.PlayerColor.BLUE
 import com.tgaetaprojects.settledown.game.PlayerColor.RED
 import com.tgaetaprojects.settledown.game.PlayerColor.WHITE
@@ -14,14 +16,17 @@ import com.tgaetaprojects.settledown.game.engine.Chance
 import com.tgaetaprojects.settledown.game.engine.Game
 import com.tgaetaprojects.settledown.game.engine.GameEvent
 import com.tgaetaprojects.settledown.game.engine.Phase
+import com.tgaetaprojects.settledown.game.engine.PlayerState
 import com.tgaetaprojects.settledown.game.engine.RandomBots
 import com.tgaetaprojects.settledown.game.engine.ResourceCounts
 import com.tgaetaprojects.settledown.game.engine.ResourceCounts.Companion.of
 import com.tgaetaprojects.settledown.game.engine.SeededChance
+import com.tgaetaprojects.settledown.game.engine.TradeOffer
 import com.tgaetaprojects.settledown.game.engine.accepted
 import com.tgaetaprojects.settledown.game.engine.give
 import com.tgaetaprojects.settledown.game.engine.giveDevCard
 import com.tgaetaprojects.settledown.game.engine.newGame
+import com.tgaetaprojects.settledown.game.engine.putRoads
 import com.tgaetaprojects.settledown.game.engine.startTurnFor
 import com.tgaetaprojects.settledown.game.engine.viewFor
 import com.tgaetaprojects.settledown.game.random.GameRandom
@@ -116,6 +121,71 @@ class SnapshotAndViewTest {
         // set-up out of snake order
         val setup = newGame().apply { currentPlayer = BLUE }
         assertFailsWith<CodecException> { SnapshotCodec.decode(SnapshotCodec.encode(setup)) }
+    }
+
+    @Test
+    fun snapshot_roadBuildingWithTooFewRoadsLeft_isRejected() {
+        val game = newGame().apply {
+            putRoads(RED, Edge.entries.take(PlayerState.ROADS - 1))
+            startTurnFor(RED, Phase.RoadBuilding(2, Phase.Main))
+        }
+        assertFailsWith<CodecException> { SnapshotCodec.decode(SnapshotCodec.encode(game)) }
+    }
+
+    @Test
+    fun snapshot_roadBuildingWithExactlyEnoughRoadsLeft_roundTrips() {
+        val game = newGame().apply {
+            putRoads(RED, Edge.entries.take(PlayerState.ROADS - 2))
+            startTurnFor(RED, Phase.RoadBuilding(2, Phase.Main))
+        }
+        assertEquals(game.phase, SnapshotCodec.decode(SnapshotCodec.encode(game)).phase)
+    }
+
+    @Test
+    fun snapshot_offerToSelf_isRejected() {
+        val game = gameWithOffers(TradeOffer(1, RED, RED, of(ORE, 1), of(WOOL, 1)))
+        assertFailsWith<CodecException> { SnapshotCodec.decode(SnapshotCodec.encode(game)) }
+    }
+
+    @Test
+    fun snapshot_duplicateOfferIds_isRejected() {
+        val game = gameWithOffers(
+            TradeOffer(1, RED, WHITE, of(ORE, 1), of(WOOL, 1)),
+            TradeOffer(1, BLUE, RED, of(ORE, 1), of(WOOL, 1)),
+        )
+        assertFailsWith<CodecException> { SnapshotCodec.decode(SnapshotCodec.encode(game)) }
+    }
+
+    @Test
+    fun snapshot_offerIdNotBelowNextOfferId_isRejected() {
+        val game = gameWithOffers(TradeOffer(1, RED, WHITE, of(ORE, 1), of(WOOL, 1)))
+        game.nextOfferId = 1
+        assertFailsWith<CodecException> { SnapshotCodec.decode(SnapshotCodec.encode(game)) }
+    }
+
+    /** A game on RED's turn with [offers] open and the next offer id just past them. */
+    private fun gameWithOffers(vararg offers: TradeOffer): Game = newGame().apply {
+        startTurnFor(RED)
+        this.offers += offers
+        nextOfferId = offers.maxOf { it.id } + 1
+    }
+
+    @Test
+    fun decodeView_deeplyNestedPhases_isRejected() {
+        val bytes = BitWriter().apply {
+            header(BlobKind.VIEW)
+            varint(Game.RULES_VERSION)
+            bits(0, 1)
+            for (color in listOf(RED, WHITE, BLUE)) code(color)
+            optional<PlayerColor>(null)
+            code(RED)
+            with(LayoutCodec) { writeLayout(BoardLayout.generate(1)) }
+            varint(1)
+            code(RED)
+            // MOVE_ROBBER's 4-bit tag, over and over; each one claims to resume into the next
+            repeat(1_000_000) { bits(MOVE_ROBBER_TAG, 4) }
+        }.toByteArray()
+        assertFailsWith<CodecException> { SnapshotCodec.decodeView(bytes) }
     }
 
     @Test
@@ -267,5 +337,8 @@ class SnapshotAndViewTest {
     private companion object {
         /** An action count that lands mid-game for the seeds used here. */
         const val MID_GAME = 400
+
+        /** The ordinal of `SnapshotCodec`'s private `PhaseTag.MOVE_ROBBER`. */
+        const val MOVE_ROBBER_TAG = 4
     }
 }

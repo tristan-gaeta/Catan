@@ -4,8 +4,9 @@ import com.tgaetaprojects.settledown.game.PlayerColor
 import com.tgaetaprojects.settledown.game.engine.Action
 
 /**
- * Encodes who did what: the 2-bit actor, a 5-bit action tag, then the action's operands. Rolling the dice takes
- * 7 bits and building a road 14; only trade offers, which carry two hands of cards, run to about 8 bytes.
+ * Encodes who did what: the 2-bit actor, a 5-bit action tag, then the action's operands. Before the 2-byte header
+ * of a standalone blob, rolling the dice takes 7 bits and building a road 14; only trade offers, which carry two
+ * hands of cards, run to about 8 bytes.
  *
  * Diagram: [Bit layout of an encoded action](https://github.com/tristan-gaeta/Catan/blob/main/docs/images/action-bits.svg).
  */

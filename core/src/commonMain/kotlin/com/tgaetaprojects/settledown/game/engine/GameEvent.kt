@@ -10,7 +10,7 @@ import com.tgaetaprojects.settledown.game.Vertex
 
 /**
  * What happened as a result of an accepted [Action], in order. Some events carry private details (a stolen card, a
- * bought development card) that a future per-player view must hide from the other players.
+ * bought development card); [visibleTo] hides them from the other players.
  */
 sealed interface GameEvent {
     /** The first player has been rolled; [turnOrder] runs clockwise from them. */

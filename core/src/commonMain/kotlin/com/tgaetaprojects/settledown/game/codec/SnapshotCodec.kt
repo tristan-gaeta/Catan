@@ -158,6 +158,10 @@ object SnapshotCodec {
             game.devDeck.size + game.players.sumOf { it.devCards.total + it.knightsPlayed }
         require(devCards <= 25) { "More than 25 development cards" }
 
+        require(game.tradeOffers.all { it.id < game.nextOfferId }) {
+            "Next offer id ${game.nextOfferId} would reuse an open offer's id"
+        }
+
         checkPhase(game)
     }
 
@@ -195,6 +199,12 @@ object SnapshotCodec {
                     val held = game.player(color).hand.total
                     require(held > 7 && owed == held / 2) { "$color can't owe $owed cards with $held in hand" }
                 }
+            }
+
+            is Phase.RoadBuilding -> {
+                require(game.turn >= 1) { "Road Building only happens during play" }
+                val roadsLeft = game.player(game.currentPlayer).roadsLeft
+                require(phase.remaining <= roadsLeft) { "${phase.remaining} free roads to place with $roadsLeft left" }
             }
 
             else -> require(game.turn >= 1) { "${phase::class.simpleName} only happens during play" }
@@ -405,20 +415,26 @@ object SnapshotCodec {
             Phase.Discard(pending.asReadOnly())
         }
 
-        PhaseTag.MOVE_ROBBER -> Phase.MoveRobber(readResumablePhase(seats))
+        PhaseTag.MOVE_ROBBER -> Phase.MoveRobber(readResumablePhase())
         PhaseTag.MAIN -> Phase.Main
         PhaseTag.ROAD_BUILDING -> {
             val remaining = bits(2)
             require(remaining in 1..2) { "Road Building with $remaining roads" }
-            Phase.RoadBuilding(remaining, readResumablePhase(seats))
+            Phase.RoadBuilding(remaining, readResumablePhase())
         }
 
         PhaseTag.GAME_OVER -> Phase.GameOver(code<PlayerColor>().also { require(it in seats) })
     }
 
-    /** Robber moves and Road Building only ever resume the pre-roll or main phase. */
-    private fun BitReader.readResumablePhase(seats: List<PlayerColor>): Phase =
-        readPhase(seats).also { require(it == Phase.PreRoll || it == Phase.Main) { "Can't resume into $it" } }
+    /**
+     * Robber moves and Road Building only ever resume the pre-roll or main phase. Those have no fields, so this reads
+     * just the tag; recursing here would let corrupt data nest phases until the stack overflows.
+     */
+    private fun BitReader.readResumablePhase(): Phase = when (val tag = code<PhaseTag>()) {
+        PhaseTag.PRE_ROLL -> Phase.PreRoll
+        PhaseTag.MAIN -> Phase.Main
+        else -> throw CodecException("Can't resume into $tag")
+    }
 
     private fun BitWriter.writeBoard(
         robber: Hex,
@@ -468,6 +484,11 @@ object SnapshotCodec {
                 resourceCounts(),
                 resourceCounts()
             )
-                .also { require(it.from in seats && it.to in seats) { "Offer between players not in the game" } }
+                .also {
+                    require(it.from in seats && it.to in seats) { "Offer between players not in the game" }
+                    require(it.from != it.to) { "${it.from} can't make an offer to themselves" }
+                }
+        }.also { offers ->
+            require(offers.distinctBy { it.id }.size == offers.size) { "Duplicate offer ids in $offers" }
         }
 }
