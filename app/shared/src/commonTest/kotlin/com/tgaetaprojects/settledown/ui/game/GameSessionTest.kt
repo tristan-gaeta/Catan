@@ -152,7 +152,7 @@ class GameSessionTest {
         session.reveal()
         val first = session.actor
 
-        session.act(Action.Discard(firstCards(session.view.hand, (session.phase as Phase.Discard).pending.getValue(first))))
+        session.act(Action.Discard(session.view.hand.firstCards((session.phase as Phase.Discard).pending.getValue(first))))
 
         assertTrue(session.actor != first)
         assertTrue(session.needsHandOff)
@@ -167,7 +167,7 @@ class GameSessionTest {
             session.reveal()
             lastDiscarder = session.actor
             val owed = (session.phase as Phase.Discard).pending.getValue(lastDiscarder)
-            assertNull(session.act(Action.Discard(firstCards(session.view.hand, owed))))
+            assertNull(session.act(Action.Discard(session.view.hand.firstCards(owed))))
         }
 
         assertTrue(session.phase is Phase.MoveRobber)

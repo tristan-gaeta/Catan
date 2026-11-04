@@ -42,7 +42,7 @@ object SnapshotCodec {
     private const val KNIGHTS_WIDTH = 4
 
     /** One tag per phase, written as its ordinal (see [FORMAT_VERSION]). */
-    private enum class PhaseTag {
+    internal enum class PhaseTag {
         SETUP_SETTLEMENT,
         SETUP_ROAD,
         PRE_ROLL,
@@ -215,6 +215,15 @@ object SnapshotCodec {
 
     fun encodeView(view: PlayerView): ByteArray = BitWriter().apply {
         header(BlobKind.VIEW)
+        writeView(view)
+    }.toByteArray()
+
+    fun decodeView(bytes: ByteArray): PlayerView = decoding("player view", bytes) {
+        header(BlobKind.VIEW)
+        readView()
+    }
+
+    internal fun BitWriter.writeView(view: PlayerView) {
         varint(Game.RULES_VERSION)
         writeSeats(view.seatOrder, view.firstPlayer)
         code(view.viewer)
@@ -245,10 +254,9 @@ object SnapshotCodec {
         optional(view.longestRoadHolder)
         optional(view.largestArmyHolder)
         writeOffers(view.tradeOffers)
-    }.toByteArray()
+    }
 
-    fun decodeView(bytes: ByteArray): PlayerView = decoding("player view", bytes) {
-        header(BlobKind.VIEW)
+    internal fun BitReader.readView(): PlayerView {
         readRulesVersion()
         val (seats, firstPlayer) = readSeats()
         val viewer =
@@ -275,7 +283,7 @@ object SnapshotCodec {
         val devCards = devCardCounts()
         val bought = devCardCounts()
 
-        PlayerView(
+        return PlayerView(
             viewer = viewer,
             seatOrder = seats,
             firstPlayer = firstPlayer,
@@ -297,7 +305,13 @@ object SnapshotCodec {
             hand = hand,
             devCards = devCards,
             boughtThisTurn = bought
-        )
+        ).also { view ->
+            for (color in seats) {
+                require(view.settlementsLeft(color) >= 0 && view.citiesLeft(color) >= 0 && view.roadsLeft(color) >= 0) {
+                    "$color has more pieces on the board than exist"
+                }
+            }
+        }
     }
 
     // ---- Shared sections ----
@@ -462,32 +476,37 @@ object SnapshotCodec {
 
     private fun BitWriter.writeOffers(offers: List<TradeOffer>) {
         varint(offers.size)
-        for (offer in offers) {
-            varint(offer.id)
-            code(offer.from)
-            code(offer.to)
-            counts(offer.give)
-            counts(offer.get)
-        }
+        for (offer in offers) writeOffer(offer)
+    }
+
+    internal fun BitWriter.writeOffer(offer: TradeOffer) {
+        varint(offer.id)
+        code(offer.from)
+        code(offer.to)
+        counts(offer.give)
+        counts(offer.get)
     }
 
     /** The smallest possible encoded offer: a one-byte id, two colors and two hands of counts. */
     private val MIN_OFFER_BITS =
         8 + 2 * bitsFor(PlayerColor.entries.size) + 2 * Resource.entries.size * COUNT_WIDTH
 
+    internal fun BitReader.readOffer(): TradeOffer =
+        TradeOffer(
+            varint(),
+            code<PlayerColor>(),
+            code<PlayerColor>(),
+            resourceCounts(),
+            resourceCounts()
+        ).also {
+            require(it.from != it.to) { "${it.from} can't make an offer to themselves" }
+        }
+
     private fun BitReader.readOffers(seats: List<PlayerColor>): List<TradeOffer> =
         List(count(minBitsEach = MIN_OFFER_BITS)) {
-            TradeOffer(
-                varint(),
-                code<PlayerColor>(),
-                code<PlayerColor>(),
-                resourceCounts(),
-                resourceCounts()
-            )
-                .also {
-                    require(it.from in seats && it.to in seats) { "Offer between players not in the game" }
-                    require(it.from != it.to) { "${it.from} can't make an offer to themselves" }
-                }
+            readOffer().also {
+                require(it.from in seats && it.to in seats) { "Offer between players not in the game" }
+            }
         }.also { offers ->
             require(offers.distinctBy { it.id }.size == offers.size) { "Duplicate offer ids in $offers" }
         }

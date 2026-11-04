@@ -39,6 +39,13 @@ import kotlin.test.assertTrue
 
 class SnapshotAndViewTest {
 
+    @Test
+    fun decodeView_morePiecesThanExist_isRejected() {
+        val view = newGame().viewFor(RED)
+        val tooManyRoads = view.copy(roads = Edge.entries.take(PlayerState.ROADS + 1).associateWith { RED })
+        assertFailsWith<CodecException> { SnapshotCodec.decodeView(SnapshotCodec.encodeView(tooManyRoads)) }
+    }
+
     // ---- Full snapshots ----
 
     @Test

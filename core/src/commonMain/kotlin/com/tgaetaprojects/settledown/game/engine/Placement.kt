@@ -37,3 +37,32 @@ private fun GameBoard.connectsAt(vertex: Vertex, color: PlayerColor, newEdge: Ed
 /** Whether [vertex] holds one of [color]'s settlements, the only thing a city can replace. */
 internal fun GameBoard.canUpgradeToCity(color: PlayerColor, vertex: Vertex): Boolean =
     buildings[vertex] == Building.settlement(color)
+
+/** Where [color] may place a settlement in [phase]: free in set-up, connected by road afterward. */
+internal fun GameBoard.legalSettlementSpots(color: PlayerColor, settlementsLeft: Int, phase: Phase): List<Vertex> {
+    if (settlementsLeft == 0) return emptyList()
+    val requireRoad = phase !is Phase.SetupSettlement
+    return Vertex.entries.filter { canPlaceSettlement(color, it, requireRoad) }
+}
+
+/** Where [color] may place a road in [phase]; during set-up only [currentPlayer], next to their new settlement. */
+internal fun GameBoard.legalRoadSpots(
+    color: PlayerColor,
+    roadsLeft: Int,
+    phase: Phase,
+    currentPlayer: PlayerColor
+): List<Edge> {
+    if (roadsLeft == 0) return emptyList()
+    return when (phase) {
+        is Phase.SetupRoad ->
+            if (color == currentPlayer) phase.settlement.edges.filter { it !in roads } else emptyList()
+
+        else -> Edge.entries.filter { canPlaceRoad(color, it) }
+    }
+}
+
+/** Which of [color]'s settlements could become cities; none once all their cities are on the board. */
+internal fun GameBoard.legalCitySpots(color: PlayerColor, citiesLeft: Int): List<Vertex> {
+    if (citiesLeft == 0) return emptyList()
+    return Vertex.entries.filter { canUpgradeToCity(color, it) }
+}

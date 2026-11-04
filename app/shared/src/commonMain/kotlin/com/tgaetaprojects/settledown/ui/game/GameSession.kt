@@ -207,7 +207,7 @@ internal fun GameSession.playScripted(turns: Int, stopWhen: GameSession.() -> Bo
             is Phase.RollForFirstPlayer, Phase.PreRoll -> act(Action.RollDice)
             is Phase.SetupSettlement -> tapVertex(targets().vertices.maxBy { pips(it) * 100 - it.ordinal })
             is Phase.SetupRoad, is Phase.RoadBuilding -> tapEdge(targets().edges.minBy { it.ordinal })
-            is Phase.Discard -> act(Action.Discard(firstCards(view.hand, p.pending.getValue(actor))))
+            is Phase.Discard -> act(Action.Discard(view.hand.firstCards(p.pending.getValue(actor))))
             is Phase.MoveRobber -> {
                 val hex = targets().hexes.maxBy { robberVictims(it).size * 100 - it.ordinal }
                 act(Action.MoveRobber(hex, robberVictims(hex).minByOrNull { it.ordinal }))
@@ -249,15 +249,3 @@ private fun GameSession.pips(vertex: Vertex): Int =
 
 /** The dots under a number disc: how many of the 36 dice outcomes roll [total]. */
 internal fun pipCount(total: Int): Int = if (total == 7) 0 else 6 - kotlin.math.abs(7 - total)
-
-/** The first [count] cards of [hand], in resource order; the scripted player's discard. */
-internal fun firstCards(hand: ResourceCounts, count: Int): ResourceCounts {
-    var left = count
-    var cards = ResourceCounts.EMPTY
-    for (r in Resource.entries) {
-        val take = minOf(left, hand[r])
-        cards += ResourceCounts.of(r, take)
-        left -= take
-    }
-    return cards
-}

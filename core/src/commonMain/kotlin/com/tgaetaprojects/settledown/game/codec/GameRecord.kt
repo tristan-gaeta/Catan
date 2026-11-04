@@ -100,13 +100,19 @@ class GameRecord(
  * Plays a game while recording it: use [apply] in place of [Game.apply]. Only accepted actions are recorded,
  * since refused ones change nothing.
  */
-class GameRecorder(
-    seats: List<PlayerColor>,
+class GameRecorder private constructor(
+    val game: Game,
     private val boardSeed: Long,
-    private val gameSeed: Long
+    private val gameSeed: Long,
+    recorded: List<RecordedAction>
 ) {
-    val game = Game(seats, boardSeed, gameSeed)
-    private val actions = mutableListOf<RecordedAction>()
+    constructor(seats: List<PlayerColor>, boardSeed: Long, gameSeed: Long) :
+            this(Game(seats, boardSeed, gameSeed), boardSeed, gameSeed, emptyList())
+
+    private val actions = recorded.toMutableList()
+
+    /** How many actions have been accepted, so also the sequence number of the next one. */
+    val actionCount: Int get() = actions.size
 
     fun apply(actor: PlayerColor, action: Action): ActionResult =
         game.apply(actor, action)
@@ -122,4 +128,13 @@ class GameRecorder(
             game.board.layout,
             actions
         )
+
+    companion object {
+        /**
+         * Carries on recording from [record], replaying it to rebuild the game. Throws [IllegalStateException] under
+         * the same conditions as [GameRecord.replay].
+         */
+        fun resume(record: GameRecord): GameRecorder =
+            GameRecorder(record.replay(), record.boardSeed, record.gameSeed, record.actions)
+    }
 }

@@ -56,6 +56,38 @@ class GameRecordTest {
     }
 
     @Test
+    fun resume_partWayThrough_matchesAnUninterruptedGame() {
+        for (seed in 1L..6L) {
+            val (whole, _) = recordGame(seed)
+            val allActions = whole.record().actions
+            val splitAt = allActions.size / 2
+
+            val first = GameRecorder(RandomBots.colorsFor(seed), boardSeed = seed * 31, gameSeed = seed * 17)
+            for (recorded in allActions.take(splitAt)) first.apply(recorded.actor, recorded.action)
+
+            val resumed = GameRecorder.resume(GameRecord.decode(first.record().encode()))
+            assertEquals(splitAt, resumed.actionCount)
+            for (recorded in allActions.drop(splitAt)) resumed.apply(recorded.actor, recorded.action)
+
+            assertEquals(allActions, resumed.record().actions, "seed $seed actions")
+            assertContentEquals(
+                SnapshotCodec.encode(whole.game),
+                SnapshotCodec.encode(resumed.game),
+                "seed $seed final state"
+            )
+        }
+    }
+
+    @Test
+    fun actionCount_refusedAction_doesNotCount() {
+        val recorder = GameRecorder(listOf(RED, WHITE, BLUE), 1L, 2L)
+        recorder.apply(WHITE, Action.RollDice) // it's RED's roll
+        assertEquals(0, recorder.actionCount)
+        recorder.apply(RED, Action.RollDice)
+        assertEquals(1, recorder.actionCount)
+    }
+
+    @Test
     fun theHeaderRoundTrips() {
         val record = recordGame(3).first.record()
         val decoded = GameRecord.decode(record.encode())

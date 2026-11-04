@@ -158,28 +158,16 @@ class Game internal constructor(
     // ---- Queries for UIs and bots ----
 
     /** Where [color] may place a settlement now: free in set-up, connected by road afterward. */
-    fun legalSettlementSpots(color: PlayerColor): List<Vertex> {
-        if (player(color).settlementsLeft == 0) return emptyList()
-        val requireRoad = phase !is Phase.SetupSettlement
-        return Vertex.entries.filter { board.canPlaceSettlement(color, it, requireRoad) }
-    }
+    fun legalSettlementSpots(color: PlayerColor): List<Vertex> =
+        board.legalSettlementSpots(color, player(color).settlementsLeft, phase)
 
     /** Where [color] may place a road now; during set-up only next to the settlement just placed. */
-    fun legalRoadSpots(color: PlayerColor): List<Edge> {
-        if (player(color).roadsLeft == 0) return emptyList()
-        return when (val p = phase) {
-            is Phase.SetupRoad ->
-                if (color == currentPlayer) p.settlement.edges.filter { it !in board.roads } else emptyList()
-
-            else -> Edge.entries.filter { board.canPlaceRoad(color, it) }
-        }
-    }
+    fun legalRoadSpots(color: PlayerColor): List<Edge> =
+        board.legalRoadSpots(color, player(color).roadsLeft, phase, currentPlayer)
 
     /** Which of [color]'s settlements could become cities; none once all their cities are on the board. */
-    fun legalCitySpots(color: PlayerColor): List<Vertex> {
-        if (player(color).citiesLeft == 0) return emptyList()
-        return Vertex.entries.filter { board.canUpgradeToCity(color, it) }
-    }
+    fun legalCitySpots(color: PlayerColor): List<Vertex> =
+        board.legalCitySpots(color, player(color).citiesLeft)
 
     fun maritimeRate(color: PlayerColor, resource: Resource): Int =
         board.maritimeRate(color, resource)
